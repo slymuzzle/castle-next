@@ -1,0 +1,77 @@
+package schema
+
+import (
+	"journeyhub/ent/schema/pulid"
+	"time"
+
+	"entgo.io/contrib/entgql"
+	"entgo.io/ent"
+	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
+)
+
+// Room holds the schema definition for the Room entity.
+type Room struct {
+	ent.Schema
+}
+
+// Mixin returns Room mixed-in schema.
+func (Room) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		pulid.MixinWithPrefix("RO"),
+	}
+}
+
+// Fields of the Room.
+func (Room) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("name").
+			Annotations(
+				entgql.OrderField("NAME"),
+			),
+		field.Uint64("version").
+			Positive().
+			Default(0).
+			Annotations(
+				entgql.Type("Uint64"),
+				entgql.OrderField("VERSION"),
+			),
+		field.Time("created_at").
+			Immutable().
+			Default(time.Now).
+			Annotations(
+				entgql.OrderField("CREATED_AT"),
+			),
+		field.Time("updated_at").
+			Default(time.Now).
+			UpdateDefault(time.Now).
+			Annotations(
+				entgql.OrderField("UPDATED_AT"),
+			),
+	}
+}
+
+// Edges of the Room.
+func (Room) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("users", User.Type).
+			Through("room_members", RoomMember.Type).
+			Annotations(
+				entgql.RelayConnection(),
+			),
+		edge.To("messages", Message.Type).
+			Annotations(
+				entgql.RelayConnection(),
+			),
+	}
+}
+
+// Annotations of the Room.
+func (Room) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.MultiOrder(),
+		entgql.RelayConnection(),
+	}
+}

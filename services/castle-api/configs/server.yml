@@ -1,0 +1,22 @@
+# Server configuration
+server:
+  host: localhost
+  port: 8080
+
+# Auth configuration
+auth:
+  secret: secret
+
+# Nats configuration
+nats:
+  host: nats
+  port: 4222
+
+# Database credentials
+database:
+  host: postgres
+  port: 5432
+  database: castle
+  user: admin
+  password: "123456"
+  driver: postgres

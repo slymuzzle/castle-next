@@ -1,0 +1,29 @@
+"""
+UserRegisterInput is used for user register.
+"""
+input UserRegisterInput {
+  firstName: String! @goTag(key: "validate", value: "min=1,max=255")
+  lastName: String! @goTag(key: "validate", value: "min=1,max=255")
+  email: String! @goTag(key: "validate", value: "min=1,max=255,email")
+  nickname: String! @goTag(key: "validate", value: "min=8,max=255")
+  password: String! @goTag(key: "validate", value: "min=8,max=64")
+  passwordConfirmation: String! @goTag(key: "validate", value: "min=8,max=64")
+}
+
+"""
+UserLoginInput is used for user login.
+"""
+input UserLoginInput {
+  nicknameOrEmail: String!
+  password: String!
+}
+
+type LoginUser {
+  user: User!
+  token: String!
+}
+
+extend type Mutation {
+  register(input: UserRegisterInput!): User
+  login(input: UserLoginInput!): LoginUser
+}

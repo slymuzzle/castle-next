@@ -1,0 +1,27 @@
+"""
+CreateRoomInput is used for create Room object.
+"""
+input CreateRoomInput {
+  name: String!
+  userIDs: [ID!]
+}
+
+"""
+UpdateRoomInput is used for update Room object.
+"""
+input UpdateRoomInput {
+  name: String
+  addUserIDs: [ID!]
+  removeUserIDs: [ID!]
+  clearUsers: Boolean
+}
+
+extend type Mutation {
+  createRoom(input: CreateRoomInput!): Room
+  updateRoom(input: UpdateRoomInput!): Room
+  deleteRoom(roomId: ID!): Room
+}
+
+extend type Subscription {
+  messageAdded(roomId: ID!): Message!
+}

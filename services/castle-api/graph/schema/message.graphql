@@ -1,0 +1,26 @@
+"""
+The Upload scalar type represents a multipart file upload.
+"""
+scalar Upload
+
+"""
+CreateMessageInput is used for create Message object.
+"""
+input SendMessageInput {
+  content: String!
+  userID: ID
+  roomID: ID
+}
+
+"""
+UpdateMessageInput is used for update Message object.
+"""
+input UpdateMessageInput {
+  content: String!
+}
+
+extend type Mutation {
+  sendMessage(input: SendMessageInput!): Message
+  updateMessage(input: UpdateMessageInput!): Message
+  deleteMessage(roomId: ID!): Room
+}
