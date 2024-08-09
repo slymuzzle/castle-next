@@ -7,6 +7,7 @@ import (
 	"journeyhub/ent/user"
 	"journeyhub/graph/model"
 	"journeyhub/internal/config"
+	"journeyhub/internal/db"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -40,14 +41,14 @@ var (
 )
 
 type service struct {
-	entClient *ent.Client
 	config    config.AuthConfig
+	dbService db.Service
 }
 
-func NewService(entClient *ent.Client, config config.AuthConfig) Service {
+func NewService(config config.AuthConfig, dbService db.Service) Service {
 	return &service{
-		entClient: entClient,
 		config:    config,
+		dbService: dbService,
 	}
 }
 
@@ -60,7 +61,9 @@ func (s *service) Register(
 	password string,
 	passwordConfirmation string,
 ) (*ent.User, error) {
-	existingUser, _ := s.entClient.User.
+	entClient := s.dbService.Client()
+
+	existingUser, _ := entClient.User.
 		Query().
 		Where(
 			user.Or(
@@ -84,7 +87,7 @@ func (s *service) Register(
 		return existingUser, ErrPasswordHash
 	}
 
-	user, err := s.entClient.User.
+	user, err := entClient.User.
 		Create().
 		SetFirstName(firstName).
 		SetLastName(lastName).
@@ -104,7 +107,9 @@ func (s *service) Login(
 	nicknameOrEmail string,
 	password string,
 ) (*model.LoginUser, error) {
-	existingUser, err := s.entClient.User.
+	entClient := s.dbService.Client()
+
+	existingUser, err := entClient.User.
 		Query().
 		Where(
 			user.Or(

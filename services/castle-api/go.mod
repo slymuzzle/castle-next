@@ -4,7 +4,6 @@ go 1.22.2
 
 require (
 	ariga.io/atlas v0.22.0
-	ariga.io/atlas-go-sdk v0.5.3
 	entgo.io/contrib v0.5.0
 	entgo.io/ent v0.14.0
 	github.com/99designs/gqlgen v0.17.49
@@ -13,6 +12,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-playground/validator/v10 v10.22.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/gorilla/websocket v1.5.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/knadh/koanf/parsers/yaml v0.1.0
 	github.com/knadh/koanf/providers/env v0.1.0
@@ -22,7 +22,6 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/nats-io/nats.go v1.36.0
 	github.com/oklog/ulid/v2 v2.1.0
-	github.com/urfave/cli/v2 v2.27.3
 	github.com/vektah/gqlparser/v2 v2.5.16
 	golang.org/x/crypto v0.25.0
 )
@@ -40,12 +39,12 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/hcl/v2 v2.20.1 // indirect
 	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/knadh/koanf/maps v0.1.1 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -61,6 +60,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sosodev/duration v1.3.1 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
+	github.com/urfave/cli/v2 v2.27.3 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
+	"journeyhub/internal/db"
 
 	"github.com/nats-io/nats.go"
 )
@@ -20,13 +21,13 @@ type Service interface {
 }
 
 type service struct {
-	entClient *ent.Client
+	dbService db.Service
 	natsConn  *nats.EncodedConn
 }
 
-func NewService(entClient *ent.Client, natsConn *nats.EncodedConn) Service {
+func NewService(dbService db.Service, natsConn *nats.EncodedConn) Service {
 	return &service{
-		entClient: entClient,
+		dbService: dbService,
 		natsConn:  natsConn,
 	}
 }
@@ -37,7 +38,9 @@ func (s *service) SendMessage(
 	userID pulid.ID,
 	content string,
 ) (*ent.Message, error) {
-	msg, err := s.entClient.Message.
+	entClient := s.dbService.Client()
+
+	msg, err := entClient.Message.
 		Create().
 		SetRoomID(roomID).
 		SetUserID(userID).

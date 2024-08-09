@@ -12,6 +12,8 @@ import (
 	"journeyhub/ent/user"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
@@ -21,6 +23,7 @@ type RoomMemberCreate struct {
 	config
 	mutation *RoomMemberMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUserID sets the "user_id" field.
@@ -166,6 +169,7 @@ func (rmc *RoomMemberCreate) createSpec() (*RoomMember, *sqlgraph.CreateSpec) {
 		_node = &RoomMember{config: rmc.config}
 		_spec = sqlgraph.NewCreateSpec(roommember.Table, sqlgraph.NewFieldSpec(roommember.FieldID, field.TypeString))
 	)
+	_spec.OnConflict = rmc.conflict
 	if id, ok := rmc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -211,11 +215,202 @@ func (rmc *RoomMemberCreate) createSpec() (*RoomMember, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.RoomMember.Create().
+//		SetUserID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.RoomMemberUpsert) {
+//			SetUserID(v+v).
+//		}).
+//		Exec(ctx)
+func (rmc *RoomMemberCreate) OnConflict(opts ...sql.ConflictOption) *RoomMemberUpsertOne {
+	rmc.conflict = opts
+	return &RoomMemberUpsertOne{
+		create: rmc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.RoomMember.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (rmc *RoomMemberCreate) OnConflictColumns(columns ...string) *RoomMemberUpsertOne {
+	rmc.conflict = append(rmc.conflict, sql.ConflictColumns(columns...))
+	return &RoomMemberUpsertOne{
+		create: rmc,
+	}
+}
+
+type (
+	// RoomMemberUpsertOne is the builder for "upsert"-ing
+	//  one RoomMember node.
+	RoomMemberUpsertOne struct {
+		create *RoomMemberCreate
+	}
+
+	// RoomMemberUpsert is the "OnConflict" setter.
+	RoomMemberUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUserID sets the "user_id" field.
+func (u *RoomMemberUpsert) SetUserID(v pulid.ID) *RoomMemberUpsert {
+	u.Set(roommember.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *RoomMemberUpsert) UpdateUserID() *RoomMemberUpsert {
+	u.SetExcluded(roommember.FieldUserID)
+	return u
+}
+
+// SetRoomID sets the "room_id" field.
+func (u *RoomMemberUpsert) SetRoomID(v pulid.ID) *RoomMemberUpsert {
+	u.Set(roommember.FieldRoomID, v)
+	return u
+}
+
+// UpdateRoomID sets the "room_id" field to the value that was provided on create.
+func (u *RoomMemberUpsert) UpdateRoomID() *RoomMemberUpsert {
+	u.SetExcluded(roommember.FieldRoomID)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.RoomMember.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(roommember.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *RoomMemberUpsertOne) UpdateNewValues() *RoomMemberUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(roommember.FieldID)
+		}
+		if _, exists := u.create.mutation.JoinedAt(); exists {
+			s.SetIgnore(roommember.FieldJoinedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.RoomMember.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *RoomMemberUpsertOne) Ignore() *RoomMemberUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *RoomMemberUpsertOne) DoNothing() *RoomMemberUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the RoomMemberCreate.OnConflict
+// documentation for more info.
+func (u *RoomMemberUpsertOne) Update(set func(*RoomMemberUpsert)) *RoomMemberUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&RoomMemberUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *RoomMemberUpsertOne) SetUserID(v pulid.ID) *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *RoomMemberUpsertOne) UpdateUserID() *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetRoomID sets the "room_id" field.
+func (u *RoomMemberUpsertOne) SetRoomID(v pulid.ID) *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.SetRoomID(v)
+	})
+}
+
+// UpdateRoomID sets the "room_id" field to the value that was provided on create.
+func (u *RoomMemberUpsertOne) UpdateRoomID() *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.UpdateRoomID()
+	})
+}
+
+// Exec executes the query.
+func (u *RoomMemberUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for RoomMemberCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *RoomMemberUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *RoomMemberUpsertOne) ID(ctx context.Context) (id pulid.ID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: RoomMemberUpsertOne.ID is not supported by MySQL driver. Use RoomMemberUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *RoomMemberUpsertOne) IDX(ctx context.Context) pulid.ID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // RoomMemberCreateBulk is the builder for creating many RoomMember entities in bulk.
 type RoomMemberCreateBulk struct {
 	config
 	err      error
 	builders []*RoomMemberCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the RoomMember entities in the database.
@@ -245,6 +440,7 @@ func (rmcb *RoomMemberCreateBulk) Save(ctx context.Context) ([]*RoomMember, erro
 					_, err = mutators[i+1].Mutate(root, rmcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = rmcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, rmcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -291,6 +487,151 @@ func (rmcb *RoomMemberCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (rmcb *RoomMemberCreateBulk) ExecX(ctx context.Context) {
 	if err := rmcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.RoomMember.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.RoomMemberUpsert) {
+//			SetUserID(v+v).
+//		}).
+//		Exec(ctx)
+func (rmcb *RoomMemberCreateBulk) OnConflict(opts ...sql.ConflictOption) *RoomMemberUpsertBulk {
+	rmcb.conflict = opts
+	return &RoomMemberUpsertBulk{
+		create: rmcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.RoomMember.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (rmcb *RoomMemberCreateBulk) OnConflictColumns(columns ...string) *RoomMemberUpsertBulk {
+	rmcb.conflict = append(rmcb.conflict, sql.ConflictColumns(columns...))
+	return &RoomMemberUpsertBulk{
+		create: rmcb,
+	}
+}
+
+// RoomMemberUpsertBulk is the builder for "upsert"-ing
+// a bulk of RoomMember nodes.
+type RoomMemberUpsertBulk struct {
+	create *RoomMemberCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.RoomMember.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(roommember.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *RoomMemberUpsertBulk) UpdateNewValues() *RoomMemberUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(roommember.FieldID)
+			}
+			if _, exists := b.mutation.JoinedAt(); exists {
+				s.SetIgnore(roommember.FieldJoinedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.RoomMember.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *RoomMemberUpsertBulk) Ignore() *RoomMemberUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *RoomMemberUpsertBulk) DoNothing() *RoomMemberUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the RoomMemberCreateBulk.OnConflict
+// documentation for more info.
+func (u *RoomMemberUpsertBulk) Update(set func(*RoomMemberUpsert)) *RoomMemberUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&RoomMemberUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *RoomMemberUpsertBulk) SetUserID(v pulid.ID) *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *RoomMemberUpsertBulk) UpdateUserID() *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetRoomID sets the "room_id" field.
+func (u *RoomMemberUpsertBulk) SetRoomID(v pulid.ID) *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.SetRoomID(v)
+	})
+}
+
+// UpdateRoomID sets the "room_id" field to the value that was provided on create.
+func (u *RoomMemberUpsertBulk) UpdateRoomID() *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.UpdateRoomID()
+	})
+}
+
+// Exec executes the query.
+func (u *RoomMemberUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the RoomMemberCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for RoomMemberCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *RoomMemberUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

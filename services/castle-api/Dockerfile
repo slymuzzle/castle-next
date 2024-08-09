@@ -13,7 +13,6 @@ SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 RUN apk add --no-cache \
     build-base=0.5-r3 \
     curl=8.9.0-r0 \
-    make=4.4.1-r2 \
     # Install atlas
     && curl -sSf https://atlasgo.sh | ash
 
@@ -35,9 +34,9 @@ RUN addgroup --system --gid ${USER_GID} devgroup \
 
 USER devuser
 
-RUN go install github.com/air-verse/air@latest
+RUN go install github.com/go-task/task/v3/cmd/task@latest
 
 COPY go.mod go.sum ./
 RUN go mod download
 
-CMD ["air", "-c", ".air.toml"]
+CMD ["task", "cleanup", "watch"]

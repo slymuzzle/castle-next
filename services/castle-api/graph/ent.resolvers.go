@@ -16,17 +16,17 @@ import (
 
 // Node is the resolver for the node field.
 func (r *queryResolver) Node(ctx context.Context, id pulid.ID) (ent.Noder, error) {
-	return r.client.Noder(ctx, id)
+	return r.dbService.Client().Noder(ctx, id)
 }
 
 // Nodes is the resolver for the nodes field.
 func (r *queryResolver) Nodes(ctx context.Context, ids []pulid.ID) ([]ent.Noder, error) {
-	return r.client.Noders(ctx, ids)
+	return r.dbService.Client().Noders(ctx, ids)
 }
 
 // Messages is the resolver for the messages field.
 func (r *queryResolver) Messages(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) (*ent.MessageConnection, error) {
-	return r.client.Message.Query().
+	return r.dbService.Client().Message.Query().
 		Paginate(
 			ctx,
 			after,
@@ -39,7 +39,7 @@ func (r *queryResolver) Messages(ctx context.Context, after *entgql.Cursor[pulid
 
 // Rooms is the resolver for the rooms field.
 func (r *queryResolver) Rooms(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomOrder, where *ent.RoomWhereInput) (*ent.RoomConnection, error) {
-	return r.client.Room.Query().
+	return r.dbService.Client().Room.Query().
 		Paginate(
 			ctx,
 			after,
@@ -52,7 +52,7 @@ func (r *queryResolver) Rooms(ctx context.Context, after *entgql.Cursor[pulid.ID
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error) {
-	return r.client.User.Query().
+	return r.dbService.Client().User.Query().
 		Paginate(
 			ctx,
 			after,

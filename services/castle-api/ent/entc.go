@@ -34,7 +34,10 @@ func main() {
 	}
 
 	if err := entc.Generate("./ent/schema", &gen.Config{
-		Features:  []gen.Feature{gen.FeatureVersionedMigration},
+		Features: []gen.Feature{
+			gen.FeatureVersionedMigration,
+			gen.FeatureUpsert,
+		},
 		Templates: templates,
 	}, opts...); err != nil {
 		log.Fatalf("running ent codegen: %v", err)

@@ -32,7 +32,7 @@ func (Room) Fields() []ent.Field {
 			),
 		field.Uint64("version").
 			Positive().
-			Default(0).
+			Default(1).
 			Annotations(
 				entgql.Type("Uint64"),
 				entgql.OrderField("VERSION"),

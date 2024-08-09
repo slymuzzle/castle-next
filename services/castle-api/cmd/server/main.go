@@ -9,10 +9,13 @@ import (
 	"journeyhub/internal/db"
 	"journeyhub/internal/nats"
 	"journeyhub/internal/validation"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/gorilla/websocket"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
@@ -64,12 +67,11 @@ func main() {
 		dbService,
 	)
 
-	entClient, err := dbService.Connect()
-	if err != nil {
+	if err := dbService.Connect(); err != nil {
 		level.Error(logger).Log("msg", err)
 		os.Exit(1)
 	}
-	defer entClient.Close()
+	defer dbService.Close()
 
 	var validationService validation.Service
 	validationService = validation.NewService()
@@ -79,14 +81,14 @@ func main() {
 	)
 
 	var authService auth.Service
-	authService = auth.NewService(entClient, config.Auth)
+	authService = auth.NewService(config.Auth, dbService)
 	authService = auth.NewLoggingService(
 		log.With(logger, "component", "auth"),
 		authService,
 	)
 
 	var chatService chat.Service
-	chatService = chat.NewService(entClient, natsConn)
+	chatService = chat.NewService(dbService, natsConn)
 	chatService = chat.NewLoggingService(
 		log.With(logger, "component", "chat"),
 		chatService,
@@ -124,13 +126,23 @@ func main() {
 
 	graphqlQueryHandler := handler.NewDefaultServer(
 		graph.NewSchema(
-			entClient,
+			dbService,
 			validationService,
 			authService,
 			chatService,
 		),
 	)
-	graphqlQueryHandler.AddTransport(&transport.Websocket{})
+	graphqlQueryHandler.AddTransport(&transport.Websocket{
+		KeepAlivePingInterval: 10 * time.Second,
+		Upgrader: websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		},
+		// InitFunc: func(ctx context.Context, initPayload transport.InitPayload) (context.Context, error) {
+		// 	return webSocketInit(ctx, initPayload)
+		// },
+	})
 
 	server.Any("/query", func(c echo.Context) error {
 		graphqlQueryHandler.ServeHTTP(c.Response(), c.Request())

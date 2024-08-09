@@ -9,14 +9,10 @@ ariga.io/atlas/sql/mysql/internal/mysqlversion
 ariga.io/atlas/sql/postgres
 ariga.io/atlas/sql/postgres/internal/postgresop
 ariga.io/atlas/sql/schema
-ariga.io/atlas/sql/sqlcheck
 ariga.io/atlas/sql/sqlclient
 ariga.io/atlas/sql/sqlite
 ariga.io/atlas/sql/sqlspec
 ariga.io/atlas/sql/sqltool
-# ariga.io/atlas-go-sdk v0.5.3
-## explicit; go 1.22
-ariga.io/atlas-go-sdk/atlasexec
 # entgo.io/contrib v0.5.0
 ## explicit; go 1.21
 entgo.io/contrib/entgql
@@ -169,6 +165,8 @@ github.com/knadh/koanf/providers/file
 # github.com/knadh/koanf/v2 v2.1.1
 ## explicit; go 1.18
 github.com/knadh/koanf/v2
+# github.com/kr/pretty v0.3.0
+## explicit; go 1.12
 # github.com/labstack/echo/v4 v4.12.0
 ## explicit; go 1.18
 github.com/labstack/echo/v4
@@ -309,7 +307,6 @@ golang.org/x/net/idna
 # golang.org/x/sync v0.7.0
 ## explicit; go 1.18
 golang.org/x/sync/errgroup
-golang.org/x/sync/semaphore
 # golang.org/x/sys v0.22.0
 ## explicit; go 1.18
 golang.org/x/sys/cpu
