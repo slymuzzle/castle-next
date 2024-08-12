@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"journeyhub/ent/schema/property/roomtype"
 	"journeyhub/ent/schema/pulid"
 	"time"
 
@@ -37,6 +38,8 @@ func (Room) Fields() []ent.Field {
 				entgql.Type("Uint64"),
 				entgql.OrderField("VERSION"),
 			),
+		field.Enum("type").
+			GoType(roomtype.Type("")),
 		field.Time("created_at").
 			Immutable().
 			Default(time.Now).

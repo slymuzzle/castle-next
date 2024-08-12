@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"journeyhub/ent/room"
+	"journeyhub/ent/schema/property/roomtype"
 	"journeyhub/ent/schema/pulid"
 	"strings"
 	"time"
@@ -22,6 +23,8 @@ type Room struct {
 	Name string `json:"name,omitempty"`
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
+	// Type holds the value of the "type" field.
+	Type roomtype.Type `json:"type,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -87,7 +90,7 @@ func (*Room) scanValues(columns []string) ([]any, error) {
 			values[i] = new(pulid.ID)
 		case room.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case room.FieldName:
+		case room.FieldName, room.FieldType:
 			values[i] = new(sql.NullString)
 		case room.FieldCreatedAt, room.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -123,6 +126,12 @@ func (r *Room) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field version", values[i])
 			} else if value.Valid {
 				r.Version = uint64(value.Int64)
+			}
+		case room.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
+			} else if value.Valid {
+				r.Type = roomtype.Type(value.String)
 			}
 		case room.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -192,6 +201,9 @@ func (r *Room) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", r.Version))
+	builder.WriteString(", ")
+	builder.WriteString("type=")
+	builder.WriteString(fmt.Sprintf("%v", r.Type))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(r.CreatedAt.Format(time.ANSIC))

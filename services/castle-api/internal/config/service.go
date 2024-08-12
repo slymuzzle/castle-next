@@ -10,10 +10,6 @@ import (
 	"github.com/knadh/koanf/v2"
 )
 
-type Service interface {
-	LoadConfig() (Config, error)
-}
-
 type ServerConfig struct {
 	Host string `koanf:"host"`
 	Port int    `koanf:"port"`
@@ -50,6 +46,10 @@ var (
 	ErrLoadingConfig      = "error loading config: %v"
 	ErrUnmarshalingConfig = "error unmarshaling config: %v"
 )
+
+type Service interface {
+	LoadConfig() (Config, error)
+}
 
 type service struct {
 	koanf koanf.Koanf

@@ -8,11 +8,15 @@ import (
 )
 
 type Service interface {
-	Connect() (*nats.EncodedConn, error)
+	Connect() error
+	Config() config.NatsConfig
+	Client() *nats.EncodedConn
+	Close() error
 }
 
 type service struct {
 	config config.NatsConfig
+	conn   *nats.EncodedConn
 }
 
 func NewService(config config.NatsConfig) Service {
@@ -21,7 +25,7 @@ func NewService(config config.NatsConfig) Service {
 	}
 }
 
-func (s *service) Connect() (*nats.EncodedConn, error) {
+func (s *service) Connect() error {
 	natsConn, err := nats.Connect(
 		fmt.Sprintf(
 			"nats://%s:%d",
@@ -30,7 +34,7 @@ func (s *service) Connect() (*nats.EncodedConn, error) {
 		),
 	)
 	if err != nil {
-		return &nats.EncodedConn{}, err
+		return err
 	}
 
 	natsEncodedConn, err := nats.NewEncodedConn(
@@ -38,8 +42,22 @@ func (s *service) Connect() (*nats.EncodedConn, error) {
 		nats.JSON_ENCODER,
 	)
 	if err != nil {
-		return natsEncodedConn, err
+		return err
 	}
 
-	return natsEncodedConn, err
+	s.conn = natsEncodedConn
+
+	return err
+}
+
+func (s *service) Config() config.NatsConfig {
+	return s.config
+}
+
+func (s *service) Client() *nats.EncodedConn {
+	return s.conn
+}
+
+func (s *service) Close() error {
+	return s.conn.Drain()
 }

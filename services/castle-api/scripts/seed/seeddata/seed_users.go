@@ -25,14 +25,14 @@ func SeedUsers(dbService db.Service) error {
 			SetLastName("Admin").
 			SetEmail("admin@admin.com").
 			SetNickname("admin").
-			SetHashedPassword(hashedPassword),
+			SetPassword(string(hashedPassword)),
 		entClient.User.
 			Create().
 			SetFirstName("Test").
 			SetLastName("Test").
 			SetEmail("test@test.com").
 			SetNickname("test").
-			SetHashedPassword(hashedPassword),
+			SetPassword(string(hashedPassword)),
 	).OnConflict().
 		DoNothing().
 		Exec(context.Background())

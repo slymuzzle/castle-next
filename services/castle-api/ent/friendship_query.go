@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"journeyhub/ent/friendship"
 	"journeyhub/ent/predicate"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"math"
@@ -26,6 +27,7 @@ type FriendshipQuery struct {
 	predicates []predicate.Friendship
 	withUser   *UserQuery
 	withFriend *UserQuery
+	withRoom   *RoomQuery
 	modifiers  []func(*sql.Selector)
 	loadTotal  []func(context.Context, []*Friendship) error
 	// intermediate query (i.e. traversal path).
@@ -101,6 +103,28 @@ func (fq *FriendshipQuery) QueryFriend() *UserQuery {
 			sqlgraph.From(friendship.Table, friendship.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, friendship.FriendTable, friendship.FriendColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRoom chains the current query on the "room" edge.
+func (fq *FriendshipQuery) QueryRoom() *RoomQuery {
+	query := (&RoomClient{config: fq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(friendship.Table, friendship.FieldID, selector),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, friendship.RoomTable, friendship.RoomColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
 		return fromU, nil
@@ -302,6 +326,7 @@ func (fq *FriendshipQuery) Clone() *FriendshipQuery {
 		predicates: append([]predicate.Friendship{}, fq.predicates...),
 		withUser:   fq.withUser.Clone(),
 		withFriend: fq.withFriend.Clone(),
+		withRoom:   fq.withRoom.Clone(),
 		// clone intermediate query.
 		sql:  fq.sql.Clone(),
 		path: fq.path,
@@ -327,6 +352,17 @@ func (fq *FriendshipQuery) WithFriend(opts ...func(*UserQuery)) *FriendshipQuery
 		opt(query)
 	}
 	fq.withFriend = query
+	return fq
+}
+
+// WithRoom tells the query-builder to eager-load the nodes that are connected to
+// the "room" edge. The optional arguments are used to configure the query builder of the edge.
+func (fq *FriendshipQuery) WithRoom(opts ...func(*RoomQuery)) *FriendshipQuery {
+	query := (&RoomClient{config: fq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withRoom = query
 	return fq
 }
 
@@ -408,9 +444,10 @@ func (fq *FriendshipQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*F
 	var (
 		nodes       = []*Friendship{}
 		_spec       = fq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			fq.withUser != nil,
 			fq.withFriend != nil,
+			fq.withRoom != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -443,6 +480,12 @@ func (fq *FriendshipQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*F
 	if query := fq.withFriend; query != nil {
 		if err := fq.loadFriend(ctx, query, nodes, nil,
 			func(n *Friendship, e *User) { n.Edges.Friend = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := fq.withRoom; query != nil {
+		if err := fq.loadRoom(ctx, query, nodes, nil,
+			func(n *Friendship, e *Room) { n.Edges.Room = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -512,6 +555,35 @@ func (fq *FriendshipQuery) loadFriend(ctx context.Context, query *UserQuery, nod
 	}
 	return nil
 }
+func (fq *FriendshipQuery) loadRoom(ctx context.Context, query *RoomQuery, nodes []*Friendship, init func(*Friendship), assign func(*Friendship, *Room)) error {
+	ids := make([]pulid.ID, 0, len(nodes))
+	nodeids := make(map[pulid.ID][]*Friendship)
+	for i := range nodes {
+		fk := nodes[i].RoomID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(room.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "room_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (fq *FriendshipQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := fq.querySpec()
@@ -546,6 +618,9 @@ func (fq *FriendshipQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if fq.withFriend != nil {
 			_spec.Node.AddColumnOnce(friendship.FieldFriendID)
+		}
+		if fq.withRoom != nil {
+			_spec.Node.AddColumnOnce(friendship.FieldRoomID)
 		}
 	}
 	if ps := fq.predicates; len(ps) > 0 {

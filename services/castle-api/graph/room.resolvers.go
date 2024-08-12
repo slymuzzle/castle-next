@@ -10,6 +10,7 @@ import (
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/graph/generated"
+	"journeyhub/graph/middleware"
 	"journeyhub/graph/model"
 )
 
@@ -30,6 +31,10 @@ func (r *mutationResolver) DeleteRoom(ctx context.Context, roomID pulid.ID) (*en
 
 // MessageAdded is the resolver for the messageAdded field.
 func (r *subscriptionResolver) MessageAdded(ctx context.Context, roomID pulid.ID) (<-chan *ent.Message, error) {
+	if user := middleware.JwtUserForContext(ctx); user == nil {
+		return nil, middleware.ErrAccessDenied
+	}
+
 	return r.chatService.Subscribe(roomID)
 }
 

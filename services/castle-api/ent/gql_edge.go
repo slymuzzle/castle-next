@@ -24,6 +24,14 @@ func (f *Friendship) Friend(ctx context.Context) (*User, error) {
 	return result, err
 }
 
+func (f *Friendship) Room(ctx context.Context) (*Room, error) {
+	result, err := f.Edges.RoomOrErr()
+	if IsNotLoaded(err) {
+		result, err = f.QueryRoom().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (m *Message) User(ctx context.Context) (*User, error) {
 	result, err := m.Edges.UserOrErr()
 	if IsNotLoaded(err) {

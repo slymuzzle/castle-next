@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"journeyhub/ent/friendship"
 	"journeyhub/ent/predicate"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"time"
@@ -58,6 +59,26 @@ func (fu *FriendshipUpdate) SetNillableFriendID(pu *pulid.ID) *FriendshipUpdate 
 	return fu
 }
 
+// SetRoomID sets the "room_id" field.
+func (fu *FriendshipUpdate) SetRoomID(pu pulid.ID) *FriendshipUpdate {
+	fu.mutation.SetRoomID(pu)
+	return fu
+}
+
+// SetNillableRoomID sets the "room_id" field if the given value is not nil.
+func (fu *FriendshipUpdate) SetNillableRoomID(pu *pulid.ID) *FriendshipUpdate {
+	if pu != nil {
+		fu.SetRoomID(*pu)
+	}
+	return fu
+}
+
+// ClearRoomID clears the value of the "room_id" field.
+func (fu *FriendshipUpdate) ClearRoomID() *FriendshipUpdate {
+	fu.mutation.ClearRoomID()
+	return fu
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (fu *FriendshipUpdate) SetCreatedAt(t time.Time) *FriendshipUpdate {
 	fu.mutation.SetCreatedAt(t)
@@ -82,6 +103,11 @@ func (fu *FriendshipUpdate) SetFriend(u *User) *FriendshipUpdate {
 	return fu.SetFriendID(u.ID)
 }
 
+// SetRoom sets the "room" edge to the Room entity.
+func (fu *FriendshipUpdate) SetRoom(r *Room) *FriendshipUpdate {
+	return fu.SetRoomID(r.ID)
+}
+
 // Mutation returns the FriendshipMutation object of the builder.
 func (fu *FriendshipUpdate) Mutation() *FriendshipMutation {
 	return fu.mutation
@@ -96,6 +122,12 @@ func (fu *FriendshipUpdate) ClearUser() *FriendshipUpdate {
 // ClearFriend clears the "friend" edge to the User entity.
 func (fu *FriendshipUpdate) ClearFriend() *FriendshipUpdate {
 	fu.mutation.ClearFriend()
+	return fu
+}
+
+// ClearRoom clears the "room" edge to the Room entity.
+func (fu *FriendshipUpdate) ClearRoom() *FriendshipUpdate {
+	fu.mutation.ClearRoom()
 	return fu
 }
 
@@ -210,6 +242,35 @@ func (fu *FriendshipUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if fu.mutation.RoomCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   friendship.RoomTable,
+			Columns: []string{friendship.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   friendship.RoomTable,
+			Columns: []string{friendship.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{friendship.Label}
@@ -258,6 +319,26 @@ func (fuo *FriendshipUpdateOne) SetNillableFriendID(pu *pulid.ID) *FriendshipUpd
 	return fuo
 }
 
+// SetRoomID sets the "room_id" field.
+func (fuo *FriendshipUpdateOne) SetRoomID(pu pulid.ID) *FriendshipUpdateOne {
+	fuo.mutation.SetRoomID(pu)
+	return fuo
+}
+
+// SetNillableRoomID sets the "room_id" field if the given value is not nil.
+func (fuo *FriendshipUpdateOne) SetNillableRoomID(pu *pulid.ID) *FriendshipUpdateOne {
+	if pu != nil {
+		fuo.SetRoomID(*pu)
+	}
+	return fuo
+}
+
+// ClearRoomID clears the value of the "room_id" field.
+func (fuo *FriendshipUpdateOne) ClearRoomID() *FriendshipUpdateOne {
+	fuo.mutation.ClearRoomID()
+	return fuo
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (fuo *FriendshipUpdateOne) SetCreatedAt(t time.Time) *FriendshipUpdateOne {
 	fuo.mutation.SetCreatedAt(t)
@@ -282,6 +363,11 @@ func (fuo *FriendshipUpdateOne) SetFriend(u *User) *FriendshipUpdateOne {
 	return fuo.SetFriendID(u.ID)
 }
 
+// SetRoom sets the "room" edge to the Room entity.
+func (fuo *FriendshipUpdateOne) SetRoom(r *Room) *FriendshipUpdateOne {
+	return fuo.SetRoomID(r.ID)
+}
+
 // Mutation returns the FriendshipMutation object of the builder.
 func (fuo *FriendshipUpdateOne) Mutation() *FriendshipMutation {
 	return fuo.mutation
@@ -296,6 +382,12 @@ func (fuo *FriendshipUpdateOne) ClearUser() *FriendshipUpdateOne {
 // ClearFriend clears the "friend" edge to the User entity.
 func (fuo *FriendshipUpdateOne) ClearFriend() *FriendshipUpdateOne {
 	fuo.mutation.ClearFriend()
+	return fuo
+}
+
+// ClearRoom clears the "room" edge to the Room entity.
+func (fuo *FriendshipUpdateOne) ClearRoom() *FriendshipUpdateOne {
+	fuo.mutation.ClearRoom()
 	return fuo
 }
 
@@ -433,6 +525,35 @@ func (fuo *FriendshipUpdateOne) sqlSave(ctx context.Context) (_node *Friendship,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.RoomCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   friendship.RoomTable,
+			Columns: []string{friendship.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   friendship.RoomTable,
+			Columns: []string{friendship.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

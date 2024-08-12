@@ -491,19 +491,14 @@ func (c *FriendshipConnection) build(nodes []*Friendship, pager *friendshipPager
 type FriendshipPaginateOption func(*friendshipPager) error
 
 // WithFriendshipOrder configures pagination ordering.
-func WithFriendshipOrder(order *FriendshipOrder) FriendshipPaginateOption {
-	if order == nil {
-		order = DefaultFriendshipOrder
-	}
-	o := *order
+func WithFriendshipOrder(order []*FriendshipOrder) FriendshipPaginateOption {
 	return func(pager *friendshipPager) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
+		for _, o := range order {
+			if err := o.Direction.Validate(); err != nil {
+				return err
+			}
 		}
-		if o.Field == nil {
-			o.Field = DefaultFriendshipOrder.Field
-		}
-		pager.order = &o
+		pager.order = append(pager.order, order...)
 		return nil
 	}
 }
@@ -521,7 +516,7 @@ func WithFriendshipFilter(filter func(*FriendshipQuery) (*FriendshipQuery, error
 
 type friendshipPager struct {
 	reverse bool
-	order   *FriendshipOrder
+	order   []*FriendshipOrder
 	filter  func(*FriendshipQuery) (*FriendshipQuery, error)
 }
 
@@ -532,8 +527,10 @@ func newFriendshipPager(opts []FriendshipPaginateOption, reverse bool) (*friends
 			return nil, err
 		}
 	}
-	if pager.order == nil {
-		pager.order = DefaultFriendshipOrder
+	for i, o := range pager.order {
+		if i > 0 && o.Field == pager.order[i-1].Field {
+			return nil, fmt.Errorf("duplicate order direction %q", o.Direction)
+		}
 	}
 	return pager, nil
 }
@@ -546,48 +543,87 @@ func (p *friendshipPager) applyFilter(query *FriendshipQuery) (*FriendshipQuery,
 }
 
 func (p *friendshipPager) toCursor(f *Friendship) Cursor {
-	return p.order.Field.toCursor(f)
+	cs_ := make([]any, 0, len(p.order))
+	for _, o_ := range p.order {
+		cs_ = append(cs_, o_.Field.toCursor(f).Value)
+	}
+	return Cursor{ID: f.ID, Value: cs_}
 }
 
 func (p *friendshipPager) applyCursors(query *FriendshipQuery, after, before *Cursor) (*FriendshipQuery, error) {
-	direction := p.order.Direction
+	idDirection := entgql.OrderDirectionAsc
 	if p.reverse {
-		direction = direction.Reverse()
+		idDirection = entgql.OrderDirectionDesc
 	}
-	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultFriendshipOrder.Field.column, p.order.Field.column, direction) {
+	fields, directions := make([]string, 0, len(p.order)), make([]OrderDirection, 0, len(p.order))
+	for _, o := range p.order {
+		fields = append(fields, o.Field.column)
+		direction := o.Direction
+		if p.reverse {
+			direction = direction.Reverse()
+		}
+		directions = append(directions, direction)
+	}
+	predicates, err := entgql.MultiCursorsPredicate(after, before, &entgql.MultiCursorsOptions{
+		FieldID:     DefaultFriendshipOrder.Field.column,
+		DirectionID: idDirection,
+		Fields:      fields,
+		Directions:  directions,
+	})
+	if err != nil {
+		return nil, err
+	}
+	for _, predicate := range predicates {
 		query = query.Where(predicate)
 	}
 	return query, nil
 }
 
 func (p *friendshipPager) applyOrder(query *FriendshipQuery) *FriendshipQuery {
-	direction := p.order.Direction
-	if p.reverse {
-		direction = direction.Reverse()
+	var defaultOrdered bool
+	for _, o := range p.order {
+		direction := o.Direction
+		if p.reverse {
+			direction = direction.Reverse()
+		}
+		query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
+		if o.Field.column == DefaultFriendshipOrder.Field.column {
+			defaultOrdered = true
+		}
+		if len(query.ctx.Fields) > 0 {
+			query.ctx.AppendFieldOnce(o.Field.column)
+		}
 	}
-	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
-	if p.order.Field != DefaultFriendshipOrder.Field {
+	if !defaultOrdered {
+		direction := entgql.OrderDirectionAsc
+		if p.reverse {
+			direction = direction.Reverse()
+		}
 		query = query.Order(DefaultFriendshipOrder.Field.toTerm(direction.OrderTermOption()))
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(p.order.Field.column)
 	}
 	return query
 }
 
 func (p *friendshipPager) orderExpr(query *FriendshipQuery) sql.Querier {
-	direction := p.order.Direction
-	if p.reverse {
-		direction = direction.Reverse()
-	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(p.order.Field.column)
+		for _, o := range p.order {
+			query.ctx.AppendFieldOnce(o.Field.column)
+		}
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
-		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultFriendshipOrder.Field {
-			b.Comma().Ident(DefaultFriendshipOrder.Field.column).Pad().WriteString(string(direction))
+		for _, o := range p.order {
+			direction := o.Direction
+			if p.reverse {
+				direction = direction.Reverse()
+			}
+			b.Ident(o.Field.column).Pad().WriteString(string(direction))
+			b.Comma()
 		}
+		direction := entgql.OrderDirectionAsc
+		if p.reverse {
+			direction = direction.Reverse()
+		}
+		b.Ident(DefaultFriendshipOrder.Field.column).Pad().WriteString(string(direction))
 	})
 }
 
@@ -1476,19 +1512,14 @@ func (c *RoomMemberConnection) build(nodes []*RoomMember, pager *roommemberPager
 type RoomMemberPaginateOption func(*roommemberPager) error
 
 // WithRoomMemberOrder configures pagination ordering.
-func WithRoomMemberOrder(order *RoomMemberOrder) RoomMemberPaginateOption {
-	if order == nil {
-		order = DefaultRoomMemberOrder
-	}
-	o := *order
+func WithRoomMemberOrder(order []*RoomMemberOrder) RoomMemberPaginateOption {
 	return func(pager *roommemberPager) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
+		for _, o := range order {
+			if err := o.Direction.Validate(); err != nil {
+				return err
+			}
 		}
-		if o.Field == nil {
-			o.Field = DefaultRoomMemberOrder.Field
-		}
-		pager.order = &o
+		pager.order = append(pager.order, order...)
 		return nil
 	}
 }
@@ -1506,7 +1537,7 @@ func WithRoomMemberFilter(filter func(*RoomMemberQuery) (*RoomMemberQuery, error
 
 type roommemberPager struct {
 	reverse bool
-	order   *RoomMemberOrder
+	order   []*RoomMemberOrder
 	filter  func(*RoomMemberQuery) (*RoomMemberQuery, error)
 }
 
@@ -1517,8 +1548,10 @@ func newRoomMemberPager(opts []RoomMemberPaginateOption, reverse bool) (*roommem
 			return nil, err
 		}
 	}
-	if pager.order == nil {
-		pager.order = DefaultRoomMemberOrder
+	for i, o := range pager.order {
+		if i > 0 && o.Field == pager.order[i-1].Field {
+			return nil, fmt.Errorf("duplicate order direction %q", o.Direction)
+		}
 	}
 	return pager, nil
 }
@@ -1531,48 +1564,87 @@ func (p *roommemberPager) applyFilter(query *RoomMemberQuery) (*RoomMemberQuery,
 }
 
 func (p *roommemberPager) toCursor(rm *RoomMember) Cursor {
-	return p.order.Field.toCursor(rm)
+	cs_ := make([]any, 0, len(p.order))
+	for _, o_ := range p.order {
+		cs_ = append(cs_, o_.Field.toCursor(rm).Value)
+	}
+	return Cursor{ID: rm.ID, Value: cs_}
 }
 
 func (p *roommemberPager) applyCursors(query *RoomMemberQuery, after, before *Cursor) (*RoomMemberQuery, error) {
-	direction := p.order.Direction
+	idDirection := entgql.OrderDirectionAsc
 	if p.reverse {
-		direction = direction.Reverse()
+		idDirection = entgql.OrderDirectionDesc
 	}
-	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultRoomMemberOrder.Field.column, p.order.Field.column, direction) {
+	fields, directions := make([]string, 0, len(p.order)), make([]OrderDirection, 0, len(p.order))
+	for _, o := range p.order {
+		fields = append(fields, o.Field.column)
+		direction := o.Direction
+		if p.reverse {
+			direction = direction.Reverse()
+		}
+		directions = append(directions, direction)
+	}
+	predicates, err := entgql.MultiCursorsPredicate(after, before, &entgql.MultiCursorsOptions{
+		FieldID:     DefaultRoomMemberOrder.Field.column,
+		DirectionID: idDirection,
+		Fields:      fields,
+		Directions:  directions,
+	})
+	if err != nil {
+		return nil, err
+	}
+	for _, predicate := range predicates {
 		query = query.Where(predicate)
 	}
 	return query, nil
 }
 
 func (p *roommemberPager) applyOrder(query *RoomMemberQuery) *RoomMemberQuery {
-	direction := p.order.Direction
-	if p.reverse {
-		direction = direction.Reverse()
+	var defaultOrdered bool
+	for _, o := range p.order {
+		direction := o.Direction
+		if p.reverse {
+			direction = direction.Reverse()
+		}
+		query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
+		if o.Field.column == DefaultRoomMemberOrder.Field.column {
+			defaultOrdered = true
+		}
+		if len(query.ctx.Fields) > 0 {
+			query.ctx.AppendFieldOnce(o.Field.column)
+		}
 	}
-	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
-	if p.order.Field != DefaultRoomMemberOrder.Field {
+	if !defaultOrdered {
+		direction := entgql.OrderDirectionAsc
+		if p.reverse {
+			direction = direction.Reverse()
+		}
 		query = query.Order(DefaultRoomMemberOrder.Field.toTerm(direction.OrderTermOption()))
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(p.order.Field.column)
 	}
 	return query
 }
 
 func (p *roommemberPager) orderExpr(query *RoomMemberQuery) sql.Querier {
-	direction := p.order.Direction
-	if p.reverse {
-		direction = direction.Reverse()
-	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(p.order.Field.column)
+		for _, o := range p.order {
+			query.ctx.AppendFieldOnce(o.Field.column)
+		}
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
-		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultRoomMemberOrder.Field {
-			b.Comma().Ident(DefaultRoomMemberOrder.Field.column).Pad().WriteString(string(direction))
+		for _, o := range p.order {
+			direction := o.Direction
+			if p.reverse {
+				direction = direction.Reverse()
+			}
+			b.Ident(o.Field.column).Pad().WriteString(string(direction))
+			b.Comma()
 		}
+		direction := entgql.OrderDirectionAsc
+		if p.reverse {
+			direction = direction.Reverse()
+		}
+		b.Ident(DefaultRoomMemberOrder.Field.column).Pad().WriteString(string(direction))
 	})
 }
 

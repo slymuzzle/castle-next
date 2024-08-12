@@ -43,7 +43,7 @@ func init() {
 	friendshipFields := schema.Friendship{}.Fields()
 	_ = friendshipFields
 	// friendshipDescCreatedAt is the schema descriptor for created_at field.
-	friendshipDescCreatedAt := friendshipFields[2].Descriptor()
+	friendshipDescCreatedAt := friendshipFields[3].Descriptor()
 	// friendship.DefaultCreatedAt holds the default value on creation for the created_at field.
 	friendship.DefaultCreatedAt = friendshipDescCreatedAt.Default.(func() time.Time)
 	// friendshipDescID is the schema descriptor for id field.
@@ -81,11 +81,11 @@ func init() {
 	// room.VersionValidator is a validator for the "version" field. It is called by the builders before save.
 	room.VersionValidator = roomDescVersion.Validators[0].(func(uint64) error)
 	// roomDescCreatedAt is the schema descriptor for created_at field.
-	roomDescCreatedAt := roomFields[2].Descriptor()
+	roomDescCreatedAt := roomFields[3].Descriptor()
 	// room.DefaultCreatedAt holds the default value on creation for the created_at field.
 	room.DefaultCreatedAt = roomDescCreatedAt.Default.(func() time.Time)
 	// roomDescUpdatedAt is the schema descriptor for updated_at field.
-	roomDescUpdatedAt := roomFields[3].Descriptor()
+	roomDescUpdatedAt := roomFields[4].Descriptor()
 	// room.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	room.DefaultUpdatedAt = roomDescUpdatedAt.Default.(func() time.Time)
 	// room.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

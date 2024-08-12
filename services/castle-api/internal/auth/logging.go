@@ -70,3 +70,23 @@ func (s *loggingService) Login(
 		password,
 	)
 }
+
+func (s *loggingService) User(
+	ctx context.Context,
+	token string,
+) (user *ent.User, err error) {
+	defer func(begin time.Time) {
+		level.Debug(s.logger).Log(
+			"method", "User",
+			"token", token,
+			"userId", user.ID,
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+
+	return s.Service.User(
+		ctx,
+		token,
+	)
+}

@@ -52,9 +52,9 @@ func (uc *UserCreate) SetEmail(s string) *UserCreate {
 	return uc
 }
 
-// SetHashedPassword sets the "hashed_password" field.
-func (uc *UserCreate) SetHashedPassword(b []byte) *UserCreate {
-	uc.mutation.SetHashedPassword(b)
+// SetPassword sets the "password" field.
+func (uc *UserCreate) SetPassword(s string) *UserCreate {
+	uc.mutation.SetPassword(s)
 	return uc
 }
 
@@ -238,8 +238,8 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "User.email"`)}
 	}
-	if _, ok := uc.mutation.HashedPassword(); !ok {
-		return &ValidationError{Name: "hashed_password", err: errors.New(`ent: missing required field "User.hashed_password"`)}
+	if _, ok := uc.mutation.Password(); !ok {
+		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "User.password"`)}
 	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
@@ -299,9 +299,9 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 		_node.Email = value
 	}
-	if value, ok := uc.mutation.HashedPassword(); ok {
-		_spec.SetField(user.FieldHashedPassword, field.TypeBytes, value)
-		_node.HashedPassword = value
+	if value, ok := uc.mutation.Password(); ok {
+		_spec.SetField(user.FieldPassword, field.TypeString, value)
+		_node.Password = value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
@@ -505,15 +505,15 @@ func (u *UserUpsert) UpdateEmail() *UserUpsert {
 	return u
 }
 
-// SetHashedPassword sets the "hashed_password" field.
-func (u *UserUpsert) SetHashedPassword(v []byte) *UserUpsert {
-	u.Set(user.FieldHashedPassword, v)
+// SetPassword sets the "password" field.
+func (u *UserUpsert) SetPassword(v string) *UserUpsert {
+	u.Set(user.FieldPassword, v)
 	return u
 }
 
-// UpdateHashedPassword sets the "hashed_password" field to the value that was provided on create.
-func (u *UserUpsert) UpdateHashedPassword() *UserUpsert {
-	u.SetExcluded(user.FieldHashedPassword)
+// UpdatePassword sets the "password" field to the value that was provided on create.
+func (u *UserUpsert) UpdatePassword() *UserUpsert {
+	u.SetExcluded(user.FieldPassword)
 	return u
 }
 
@@ -636,17 +636,17 @@ func (u *UserUpsertOne) UpdateEmail() *UserUpsertOne {
 	})
 }
 
-// SetHashedPassword sets the "hashed_password" field.
-func (u *UserUpsertOne) SetHashedPassword(v []byte) *UserUpsertOne {
+// SetPassword sets the "password" field.
+func (u *UserUpsertOne) SetPassword(v string) *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
-		s.SetHashedPassword(v)
+		s.SetPassword(v)
 	})
 }
 
-// UpdateHashedPassword sets the "hashed_password" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateHashedPassword() *UserUpsertOne {
+// UpdatePassword sets the "password" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdatePassword() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
-		s.UpdateHashedPassword()
+		s.UpdatePassword()
 	})
 }
 
@@ -938,17 +938,17 @@ func (u *UserUpsertBulk) UpdateEmail() *UserUpsertBulk {
 	})
 }
 
-// SetHashedPassword sets the "hashed_password" field.
-func (u *UserUpsertBulk) SetHashedPassword(v []byte) *UserUpsertBulk {
+// SetPassword sets the "password" field.
+func (u *UserUpsertBulk) SetPassword(v string) *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
-		s.SetHashedPassword(v)
+		s.SetPassword(v)
 	})
 }
 
-// UpdateHashedPassword sets the "hashed_password" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateHashedPassword() *UserUpsertBulk {
+// UpdatePassword sets the "password" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdatePassword() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
-		s.UpdateHashedPassword()
+		s.UpdatePassword()
 	})
 }
 

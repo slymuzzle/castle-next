@@ -334,6 +334,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteMessage(ctx context.Cont
 				return ec.fieldContext_Room_name(ctx, field)
 			case "version":
 				return ec.fieldContext_Room_version(ctx, field)
+			case "type":
+				return ec.fieldContext_Room_type(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Room_createdAt(ctx, field)
 			case "updatedAt":
@@ -404,6 +406,8 @@ func (ec *executionContext) fieldContext_Mutation_createRoom(ctx context.Context
 				return ec.fieldContext_Room_name(ctx, field)
 			case "version":
 				return ec.fieldContext_Room_version(ctx, field)
+			case "type":
+				return ec.fieldContext_Room_type(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Room_createdAt(ctx, field)
 			case "updatedAt":
@@ -474,6 +478,8 @@ func (ec *executionContext) fieldContext_Mutation_updateRoom(ctx context.Context
 				return ec.fieldContext_Room_name(ctx, field)
 			case "version":
 				return ec.fieldContext_Room_version(ctx, field)
+			case "type":
+				return ec.fieldContext_Room_type(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Room_createdAt(ctx, field)
 			case "updatedAt":
@@ -544,6 +550,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteRoom(ctx context.Context
 				return ec.fieldContext_Room_name(ctx, field)
 			case "version":
 				return ec.fieldContext_Room_version(ctx, field)
+			case "type":
+				return ec.fieldContext_Room_type(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Room_createdAt(ctx, field)
 			case "updatedAt":
@@ -719,13 +727,20 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"content", "userID", "roomID"}
+	fieldsInOrder := [...]string{"targetUserId", "content"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "targetUserId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("targetUserId"))
+			data, err := ec.unmarshalOID2ᚖjourneyhubᚋentᚋschemaᚋpulidᚐID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TargetUserID = data
 		case "content":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -733,20 +748,6 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 				return it, err
 			}
 			it.Content = data
-		case "userID":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			data, err := ec.unmarshalOID2ᚖjourneyhubᚋentᚋschemaᚋpulidᚐID(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.UserID = data
-		case "roomID":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomID"))
-			data, err := ec.unmarshalOID2ᚖjourneyhubᚋentᚋschemaᚋpulidᚐID(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.RoomID = data
 		}
 	}
 

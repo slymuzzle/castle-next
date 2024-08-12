@@ -11,6 +11,7 @@ import (
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
+	"journeyhub/ent/schema/property/roomtype"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"time"
@@ -505,6 +506,23 @@ type FriendshipWhereInput struct {
 	FriendIDEqualFold    *pulid.ID  `json:"friendIDEqualFold,omitempty"`
 	FriendIDContainsFold *pulid.ID  `json:"friendIDContainsFold,omitempty"`
 
+	// "room_id" field predicates.
+	RoomID             *pulid.ID  `json:"roomID,omitempty"`
+	RoomIDNEQ          *pulid.ID  `json:"roomIDNEQ,omitempty"`
+	RoomIDIn           []pulid.ID `json:"roomIDIn,omitempty"`
+	RoomIDNotIn        []pulid.ID `json:"roomIDNotIn,omitempty"`
+	RoomIDGT           *pulid.ID  `json:"roomIDGT,omitempty"`
+	RoomIDGTE          *pulid.ID  `json:"roomIDGTE,omitempty"`
+	RoomIDLT           *pulid.ID  `json:"roomIDLT,omitempty"`
+	RoomIDLTE          *pulid.ID  `json:"roomIDLTE,omitempty"`
+	RoomIDContains     *pulid.ID  `json:"roomIDContains,omitempty"`
+	RoomIDHasPrefix    *pulid.ID  `json:"roomIDHasPrefix,omitempty"`
+	RoomIDHasSuffix    *pulid.ID  `json:"roomIDHasSuffix,omitempty"`
+	RoomIDIsNil        bool       `json:"roomIDIsNil,omitempty"`
+	RoomIDNotNil       bool       `json:"roomIDNotNil,omitempty"`
+	RoomIDEqualFold    *pulid.ID  `json:"roomIDEqualFold,omitempty"`
+	RoomIDContainsFold *pulid.ID  `json:"roomIDContainsFold,omitempty"`
+
 	// "created_at" field predicates.
 	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
 	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
@@ -522,6 +540,10 @@ type FriendshipWhereInput struct {
 	// "friend" edge predicates.
 	HasFriend     *bool             `json:"hasFriend,omitempty"`
 	HasFriendWith []*UserWhereInput `json:"hasFriendWith,omitempty"`
+
+	// "room" edge predicates.
+	HasRoom     *bool             `json:"hasRoom,omitempty"`
+	HasRoomWith []*RoomWhereInput `json:"hasRoomWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -697,6 +719,51 @@ func (i *FriendshipWhereInput) P() (predicate.Friendship, error) {
 	if i.FriendIDContainsFold != nil {
 		predicates = append(predicates, friendship.FriendIDContainsFold(*i.FriendIDContainsFold))
 	}
+	if i.RoomID != nil {
+		predicates = append(predicates, friendship.RoomIDEQ(*i.RoomID))
+	}
+	if i.RoomIDNEQ != nil {
+		predicates = append(predicates, friendship.RoomIDNEQ(*i.RoomIDNEQ))
+	}
+	if len(i.RoomIDIn) > 0 {
+		predicates = append(predicates, friendship.RoomIDIn(i.RoomIDIn...))
+	}
+	if len(i.RoomIDNotIn) > 0 {
+		predicates = append(predicates, friendship.RoomIDNotIn(i.RoomIDNotIn...))
+	}
+	if i.RoomIDGT != nil {
+		predicates = append(predicates, friendship.RoomIDGT(*i.RoomIDGT))
+	}
+	if i.RoomIDGTE != nil {
+		predicates = append(predicates, friendship.RoomIDGTE(*i.RoomIDGTE))
+	}
+	if i.RoomIDLT != nil {
+		predicates = append(predicates, friendship.RoomIDLT(*i.RoomIDLT))
+	}
+	if i.RoomIDLTE != nil {
+		predicates = append(predicates, friendship.RoomIDLTE(*i.RoomIDLTE))
+	}
+	if i.RoomIDContains != nil {
+		predicates = append(predicates, friendship.RoomIDContains(*i.RoomIDContains))
+	}
+	if i.RoomIDHasPrefix != nil {
+		predicates = append(predicates, friendship.RoomIDHasPrefix(*i.RoomIDHasPrefix))
+	}
+	if i.RoomIDHasSuffix != nil {
+		predicates = append(predicates, friendship.RoomIDHasSuffix(*i.RoomIDHasSuffix))
+	}
+	if i.RoomIDIsNil {
+		predicates = append(predicates, friendship.RoomIDIsNil())
+	}
+	if i.RoomIDNotNil {
+		predicates = append(predicates, friendship.RoomIDNotNil())
+	}
+	if i.RoomIDEqualFold != nil {
+		predicates = append(predicates, friendship.RoomIDEqualFold(*i.RoomIDEqualFold))
+	}
+	if i.RoomIDContainsFold != nil {
+		predicates = append(predicates, friendship.RoomIDContainsFold(*i.RoomIDContainsFold))
+	}
 	if i.CreatedAt != nil {
 		predicates = append(predicates, friendship.CreatedAtEQ(*i.CreatedAt))
 	}
@@ -757,6 +824,24 @@ func (i *FriendshipWhereInput) P() (predicate.Friendship, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, friendship.HasFriendWith(with...))
+	}
+	if i.HasRoom != nil {
+		p := friendship.HasRoom()
+		if !*i.HasRoom {
+			p = friendship.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasRoomWith) > 0 {
+		with := make([]predicate.Room, 0, len(i.HasRoomWith))
+		for _, w := range i.HasRoomWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasRoomWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, friendship.HasRoomWith(with...))
 	}
 	switch len(predicates) {
 	case 0:
@@ -1100,6 +1185,12 @@ type RoomWhereInput struct {
 	VersionLT    *uint64  `json:"versionLT,omitempty"`
 	VersionLTE   *uint64  `json:"versionLTE,omitempty"`
 
+	// "type" field predicates.
+	Type      *roomtype.Type  `json:"type,omitempty"`
+	TypeNEQ   *roomtype.Type  `json:"typeNEQ,omitempty"`
+	TypeIn    []roomtype.Type `json:"typeIn,omitempty"`
+	TypeNotIn []roomtype.Type `json:"typeNotIn,omitempty"`
+
 	// "created_at" field predicates.
 	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
 	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
@@ -1290,6 +1381,18 @@ func (i *RoomWhereInput) P() (predicate.Room, error) {
 	}
 	if i.VersionLTE != nil {
 		predicates = append(predicates, room.VersionLTE(*i.VersionLTE))
+	}
+	if i.Type != nil {
+		predicates = append(predicates, room.TypeEQ(*i.Type))
+	}
+	if i.TypeNEQ != nil {
+		predicates = append(predicates, room.TypeNEQ(*i.TypeNEQ))
+	}
+	if len(i.TypeIn) > 0 {
+		predicates = append(predicates, room.TypeIn(i.TypeIn...))
+	}
+	if len(i.TypeNotIn) > 0 {
+		predicates = append(predicates, room.TypeNotIn(i.TypeNotIn...))
 	}
 	if i.CreatedAt != nil {
 		predicates = append(predicates, room.CreatedAtEQ(*i.CreatedAt))

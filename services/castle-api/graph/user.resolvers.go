@@ -13,7 +13,7 @@ import (
 // Register is the resolver for the register field.
 func (r *mutationResolver) Register(ctx context.Context, input model.UserRegisterInput) (*ent.User, error) {
 	if validationErrors := r.validationService.ValidateGqlStruct(input); len(validationErrors) > 0 {
-		return &ent.User{}, validationErrors
+		return nil, validationErrors
 	}
 
 	return r.authService.Register(
@@ -30,7 +30,7 @@ func (r *mutationResolver) Register(ctx context.Context, input model.UserRegiste
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.UserLoginInput) (*model.LoginUser, error) {
 	if validationErrors := r.validationService.ValidateGqlStruct(input); len(validationErrors) > 0 {
-		return &model.LoginUser{}, validationErrors
+		return nil, validationErrors
 	}
 
 	return r.authService.Login(

@@ -10,12 +10,19 @@ import (
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/graph/generated"
+	"journeyhub/graph/middleware"
 	"journeyhub/graph/model"
 )
 
 // SendMessage is the resolver for the sendMessage field.
 func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMessageInput) (*ent.Message, error) {
-	return r.chatService.SendMessage(ctx, *input.RoomID, *input.UserID, input.Content)
+	user := middleware.JwtUserForContext(ctx)
+
+	if user == nil {
+		return nil, middleware.ErrAccessDenied
+	}
+
+	return r.chatService.SendMessage(ctx, user.ID, *input.TargetUserID, input.Content)
 }
 
 // UpdateMessage is the resolver for the updateMessage field.

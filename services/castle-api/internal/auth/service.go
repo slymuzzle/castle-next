@@ -4,14 +4,22 @@ import (
 	"context"
 	"errors"
 	"journeyhub/ent"
+	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"journeyhub/graph/model"
 	"journeyhub/internal/config"
 	"journeyhub/internal/db"
 	"time"
+)
 
-	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
+var (
+	ErrUserExist          = errors.New("user already exists")
+	ErrPasswordConfirm    = errors.New("passwords do not match")
+	ErrPasswordHash       = errors.New("failed to hash password")
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrCreateUser         = errors.New("failed to create user")
+	ErrUserNotFound       = errors.New("user not found")
+	ErrGenerateToken      = errors.New("failed to generate token")
 )
 
 type Service interface {
@@ -29,16 +37,11 @@ type Service interface {
 		nicknameOrEmail string,
 		password string,
 	) (*model.LoginUser, error)
+	User(
+		ctx context.Context,
+		token string,
+	) (*ent.User, error)
 }
-
-var (
-	ErrUserExist          = errors.New("user already exists")
-	ErrPasswordConfirm    = errors.New("passwords do not match")
-	ErrPasswordHash       = errors.New("failed to hash password")
-	ErrCreateUser         = errors.New("failed to create user")
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrGenerateToken      = errors.New("failed to generate token")
-)
 
 type service struct {
 	config    config.AuthConfig
@@ -72,19 +75,16 @@ func (s *service) Register(
 			),
 		).Only(ctx)
 	if existingUser != nil {
-		return existingUser, ErrUserExist
+		return nil, ErrUserExist
 	}
 
 	if password != passwordConfirmation {
-		return existingUser, ErrPasswordConfirm
+		return nil, ErrPasswordConfirm
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword(
-		[]byte(password),
-		bcrypt.DefaultCost,
-	)
+	hashedPassword, err := HashPassword(password)
 	if err != nil {
-		return existingUser, ErrPasswordHash
+		return nil, ErrPasswordHash
 	}
 
 	user, err := entClient.User.
@@ -93,10 +93,10 @@ func (s *service) Register(
 		SetLastName(lastName).
 		SetEmail(email).
 		SetNickname(nickname).
-		SetHashedPassword(hashedPassword).
+		SetPassword(hashedPassword).
 		Save(ctx)
 	if err != nil {
-		return user, ErrCreateUser
+		return nil, ErrCreateUser
 	}
 
 	return user, nil
@@ -118,26 +118,49 @@ func (s *service) Login(
 			),
 		).Only(ctx)
 	if err != nil {
-		return &model.LoginUser{}, ErrInvalidCredentials
+		return nil, ErrInvalidCredentials
 	}
 
-	err = bcrypt.CompareHashAndPassword(
-		existingUser.HashedPassword,
-		[]byte(password),
+	err = CompareHashAndPassword(existingUser.Password, password)
+	if err != nil {
+		return nil, ErrInvalidCredentials
+	}
+
+	token, err := GenerateJwtToken(
+		s.config.Secret,
+		string(existingUser.ID),
+		time.Now().Add(time.Hour*24),
 	)
 	if err != nil {
-		return &model.LoginUser{}, ErrInvalidCredentials
-	}
-
-	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": existingUser.ID,
-		"exp": time.Now().Add(time.Hour * 24).Unix(), // Expires in 24 hours
-	})
-
-	token, err := claims.SignedString([]byte(s.config.Secret))
-	if err != nil {
-		return &model.LoginUser{}, ErrGenerateToken
+		return nil, ErrGenerateToken
 	}
 
 	return &model.LoginUser{User: existingUser, Token: token}, nil
+}
+
+func (s *service) User(
+	ctx context.Context,
+	token string,
+) (*ent.User, error) {
+	jwtToken, err := ParseJwtToken(s.config.Secret, token)
+	if err != nil {
+		return nil, err
+	}
+
+	subject, err := jwtToken.Claims.GetSubject()
+	if err != nil {
+		return nil, err
+	}
+
+	entClient := s.dbService.Client()
+
+	user, err := entClient.User.
+		Query().
+		Where(user.ID(pulid.ID(subject))).
+		Only(ctx)
+	if err != nil {
+		return nil, ErrUserNotFound
+	}
+
+	return user, nil
 }

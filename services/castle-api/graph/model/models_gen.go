@@ -20,9 +20,8 @@ type LoginUser struct {
 
 // CreateMessageInput is used for create Message object.
 type SendMessageInput struct {
-	Content string    `json:"content"`
-	UserID  *pulid.ID `json:"userID,omitempty"`
-	RoomID  *pulid.ID `json:"roomID,omitempty"`
+	TargetUserID *pulid.ID `json:"targetUserId,omitempty"`
+	Content      string    `json:"content"`
 }
 
 type Subscription struct {

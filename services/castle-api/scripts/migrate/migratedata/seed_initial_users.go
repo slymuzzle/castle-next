@@ -31,7 +31,7 @@ func SeedInitialUsers(dialect string, dir *migrate.LocalDir) error {
 			SetLastName("Admin").
 			SetEmail("admin@admin.com").
 			SetNickname("admin").
-			SetHashedPassword(hashedPassword),
+			SetPassword(string(hashedPassword)),
 	).Exec(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed generating statement: %w", err)

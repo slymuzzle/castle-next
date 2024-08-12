@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"journeyhub/graph"
+	graphmiddleware "journeyhub/graph/middleware"
 	"journeyhub/internal/auth"
 	"journeyhub/internal/chat"
 	"journeyhub/internal/config"
@@ -21,8 +22,8 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 
 	_ "github.com/lib/pq"
 )
@@ -42,7 +43,7 @@ func main() {
 
 	config, err := configService.LoadConfig()
 	if err != nil {
-		level.Error(logger).Log("msg", err)
+		level.Error(logger).Log("exit", err)
 		os.Exit(1)
 	}
 
@@ -53,12 +54,11 @@ func main() {
 		natsService,
 	)
 
-	natsConn, err := natsService.Connect()
-	if err != nil {
-		level.Error(logger).Log("msg", err)
+	if err = natsService.Connect(); err != nil {
+		level.Error(logger).Log("exit", err)
 		os.Exit(1)
 	}
-	defer natsConn.Drain()
+	defer natsService.Close()
 
 	var dbService db.Service
 	dbService = db.NewService(config.Database)
@@ -67,8 +67,8 @@ func main() {
 		dbService,
 	)
 
-	if err := dbService.Connect(); err != nil {
-		level.Error(logger).Log("msg", err)
+	if err = dbService.Connect(); err != nil {
+		level.Error(logger).Log("exit", err)
 		os.Exit(1)
 	}
 	defer dbService.Close()
@@ -88,41 +88,31 @@ func main() {
 	)
 
 	var chatService chat.Service
-	chatService = chat.NewService(dbService, natsConn)
+	chatRepository := chat.NewRepository(dbService)
+	chatService = chat.NewService(chatRepository, natsService)
 	chatService = chat.NewLoggingService(
 		log.With(logger, "component", "chat"),
 		chatService,
 	)
 
-	server := echo.New()
 	httpLogger := log.With(logger, "component", "http")
 
-	server.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogProtocol:      true,
-		LogRemoteIP:      true,
-		LogHost:          true,
-		LogMethod:        true,
-		LogURI:           true,
-		LogStatus:        true,
-		LogLatency:       true,
-		LogContentLength: true,
-		LogResponseSize:  true,
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-			httpLogger.Log(
-				"protocol", v.Protocol,
-				"remote_ip", v.RemoteIP,
-				"host", v.Host,
-				"method", v.Method,
-				"uri", v.URI,
-				"status", v.Status,
-				"latency", v.Latency,
-				"bytes_in", v.ContentLength,
-				"bytes_out", v.ResponseSize,
-			)
-			return nil
-		},
-	}))
-	server.Use(middleware.Recover())
+	// Initialize chi router
+	router := chi.NewRouter()
+
+	// A good base middleware stack
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+
+	// GraphQL middleware stack
+	router.Use(graphmiddleware.JwtMiddleware(authService))
+
+	// Set a timeout value on the request context (ctx), that will signal
+	// through ctx.Done() that the request has timed out and further
+	// processing should be stopped.
+	router.Use(middleware.Timeout(60 * time.Second))
 
 	graphqlQueryHandler := handler.NewDefaultServer(
 		graph.NewSchema(
@@ -143,21 +133,20 @@ func main() {
 		// 	return webSocketInit(ctx, initPayload)
 		// },
 	})
-
-	server.Any("/query", func(c echo.Context) error {
-		graphqlQueryHandler.ServeHTTP(c.Response(), c.Request())
-		return nil
-	})
+	router.Handle("/query", graphqlQueryHandler)
 
 	graphqlPlaygroundHandler := playground.Handler("GraphQL", "/query")
+	router.Get("/", graphqlPlaygroundHandler)
 
-	server.GET("/", func(c echo.Context) error {
-		graphqlPlaygroundHandler.ServeHTTP(c.Response(), c.Request())
-		return nil
-	})
+	addr := fmt.Sprintf(":%d", config.Server.Port)
 
-	if err := server.Start(fmt.Sprintf(":%d", config.Server.Port)); err != nil {
-		level.Error(logger).Log("msg", err)
+	level.Info(httpLogger).Log(
+		"msg", "start server",
+		"addr", addr,
+	)
+
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.Server.Port), router); err != nil {
+		level.Error(logger).Log("exit", err)
 		os.Exit(1)
 	}
 }

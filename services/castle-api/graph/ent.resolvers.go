@@ -10,6 +10,7 @@ import (
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/graph/generated"
+	"journeyhub/graph/middleware"
 
 	"entgo.io/contrib/entgql"
 )
@@ -24,8 +25,17 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []pulid.ID) ([]ent.Noder,
 	return r.dbService.Client().Noders(ctx, ids)
 }
 
+// Friendships is the resolver for the friendships field.
+func (r *queryResolver) Friendships(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, where *ent.FriendshipWhereInput) (*ent.FriendshipConnection, error) {
+	panic(fmt.Errorf("not implemented: Friendships - friendships"))
+}
+
 // Messages is the resolver for the messages field.
 func (r *queryResolver) Messages(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) (*ent.MessageConnection, error) {
+	if user := middleware.JwtUserForContext(ctx); user == nil {
+		return nil, middleware.ErrAccessDenied
+	}
+
 	return r.dbService.Client().Message.Query().
 		Paginate(
 			ctx,
@@ -39,6 +49,10 @@ func (r *queryResolver) Messages(ctx context.Context, after *entgql.Cursor[pulid
 
 // Rooms is the resolver for the rooms field.
 func (r *queryResolver) Rooms(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomOrder, where *ent.RoomWhereInput) (*ent.RoomConnection, error) {
+	if user := middleware.JwtUserForContext(ctx); user == nil {
+		return nil, middleware.ErrAccessDenied
+	}
+
 	return r.dbService.Client().Room.Query().
 		Paginate(
 			ctx,
@@ -50,8 +64,28 @@ func (r *queryResolver) Rooms(ctx context.Context, after *entgql.Cursor[pulid.ID
 		)
 }
 
+// RoomMembers is the resolver for the roomMembers field.
+func (r *queryResolver) RoomMembers(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, where *ent.RoomMemberWhereInput) (*ent.RoomMemberConnection, error) {
+	if user := middleware.JwtUserForContext(ctx); user == nil {
+		return nil, middleware.ErrAccessDenied
+	}
+
+	return r.dbService.Client().RoomMember.Query().
+		Paginate(
+			ctx,
+			after,
+			first,
+			before,
+			last,
+		)
+}
+
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error) {
+	if user := middleware.JwtUserForContext(ctx); user == nil {
+		return nil, middleware.ErrAccessDenied
+	}
+
 	return r.dbService.Client().User.Query().
 		Paginate(
 			ctx,
@@ -63,30 +97,7 @@ func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[pulid.ID
 		)
 }
 
-// RoomMembers is the resolver for the roomMembers field.
-func (r *roomResolver) RoomMembers(ctx context.Context, obj *ent.Room) ([]*ent.RoomMember, error) {
-	panic(fmt.Errorf("not implemented: RoomMembers - roomMembers"))
-}
-
-// Friendships is the resolver for the friendships field.
-func (r *userResolver) Friendships(ctx context.Context, obj *ent.User) ([]*ent.Friendship, error) {
-	panic(fmt.Errorf("not implemented: Friendships - friendships"))
-}
-
-// Memberships is the resolver for the memberships field.
-func (r *userResolver) Memberships(ctx context.Context, obj *ent.User) ([]*ent.RoomMember, error) {
-	panic(fmt.Errorf("not implemented: Memberships - memberships"))
-}
-
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
-// Room returns generated.RoomResolver implementation.
-func (r *Resolver) Room() generated.RoomResolver { return &roomResolver{r} }
-
-// User returns generated.UserResolver implementation.
-func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
-
 type queryResolver struct{ *Resolver }
-type roomResolver struct{ *Resolver }
-type userResolver struct{ *Resolver }

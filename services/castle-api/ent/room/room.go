@@ -3,11 +3,14 @@
 package room
 
 import (
+	"fmt"
+	"journeyhub/ent/schema/property/roomtype"
 	"journeyhub/ent/schema/pulid"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/99designs/gqlgen/graphql"
 )
 
 const (
@@ -19,6 +22,8 @@ const (
 	FieldName = "name"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -57,6 +62,7 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldVersion,
+	FieldType,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -92,6 +98,16 @@ var (
 	DefaultID func() pulid.ID
 )
 
+// TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
+func TypeValidator(_type roomtype.Type) error {
+	switch _type {
+	case "personal", "group":
+		return nil
+	default:
+		return fmt.Errorf("room: invalid enum value for type field: %q", _type)
+	}
+}
+
 // OrderOption defines the ordering options for the Room queries.
 type OrderOption func(*sql.Selector)
 
@@ -108,6 +124,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByVersion orders the results by the version field.
 func ByVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVersion, opts...).ToFunc()
+}
+
+// ByType orders the results by the type field.
+func ByType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldType, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.
@@ -182,3 +203,10 @@ func newRoomMembersStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, true, RoomMembersTable, RoomMembersColumn),
 	)
 }
+
+var (
+	// roomtype.Type must implement graphql.Marshaler.
+	_ graphql.Marshaler = (*roomtype.Type)(nil)
+	// roomtype.Type must implement graphql.Unmarshaler.
+	_ graphql.Unmarshaler = (*roomtype.Type)(nil)
+)

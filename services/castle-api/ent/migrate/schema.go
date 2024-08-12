@@ -31,6 +31,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeString},
 		{Name: "friend_id", Type: field.TypeString},
+		{Name: "room_id", Type: field.TypeString, Nullable: true},
 	}
 	// FriendshipsTable holds the schema information for the "friendships" table.
 	FriendshipsTable = &schema.Table{
@@ -49,6 +50,12 @@ var (
 				Columns:    []*schema.Column{FriendshipsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "friendships_rooms_room",
+				Columns:    []*schema.Column{FriendshipsColumns[4]},
+				RefColumns: []*schema.Column{RoomsColumns[0]},
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -93,6 +100,7 @@ var (
 		{Name: "id", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"personal", "group"}},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -130,9 +138,9 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "roommember_user_id_room_id",
+				Name:    "roommember_room_id_user_id",
 				Unique:  true,
-				Columns: []*schema.Column{RoomMembersColumns[2], RoomMembersColumns[3]},
+				Columns: []*schema.Column{RoomMembersColumns[3], RoomMembersColumns[2]},
 			},
 		},
 	}
@@ -143,7 +151,7 @@ var (
 		{Name: "last_name", Type: field.TypeString},
 		{Name: "nickname", Type: field.TypeString, Unique: true},
 		{Name: "email", Type: field.TypeString, Unique: true},
-		{Name: "hashed_password", Type: field.TypeBytes},
+		{Name: "password", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -167,6 +175,7 @@ var (
 func init() {
 	FriendshipsTable.ForeignKeys[0].RefTable = UsersTable
 	FriendshipsTable.ForeignKeys[1].RefTable = UsersTable
+	FriendshipsTable.ForeignKeys[2].RefTable = RoomsTable
 	MessagesTable.ForeignKeys[0].RefTable = RoomsTable
 	MessagesTable.ForeignKeys[1].RefTable = UsersTable
 	RoomMembersTable.ForeignKeys[0].RefTable = UsersTable

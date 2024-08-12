@@ -9,6 +9,7 @@ import (
 	"journeyhub/ent/message"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
+	"journeyhub/ent/schema/property/roomtype"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"time"
@@ -44,6 +45,12 @@ func (rc *RoomCreate) SetNillableVersion(u *uint64) *RoomCreate {
 	if u != nil {
 		rc.SetVersion(*u)
 	}
+	return rc
+}
+
+// SetType sets the "type" field.
+func (rc *RoomCreate) SetType(r roomtype.Type) *RoomCreate {
+	rc.mutation.SetType(r)
 	return rc
 }
 
@@ -200,6 +207,14 @@ func (rc *RoomCreate) check() error {
 			return &ValidationError{Name: "version", err: fmt.Errorf(`ent: validator failed for field "Room.version": %w`, err)}
 		}
 	}
+	if _, ok := rc.mutation.GetType(); !ok {
+		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Room.type"`)}
+	}
+	if v, ok := rc.mutation.GetType(); ok {
+		if err := room.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Room.type": %w`, err)}
+		}
+	}
 	if _, ok := rc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Room.created_at"`)}
 	}
@@ -249,6 +264,10 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 	if value, ok := rc.mutation.Version(); ok {
 		_spec.SetField(room.FieldVersion, field.TypeUint64, value)
 		_node.Version = value
+	}
+	if value, ok := rc.mutation.GetType(); ok {
+		_spec.SetField(room.FieldType, field.TypeEnum, value)
+		_node.Type = value
 	}
 	if value, ok := rc.mutation.CreatedAt(); ok {
 		_spec.SetField(room.FieldCreatedAt, field.TypeTime, value)
@@ -395,6 +414,18 @@ func (u *RoomUpsert) AddVersion(v uint64) *RoomUpsert {
 	return u
 }
 
+// SetType sets the "type" field.
+func (u *RoomUpsert) SetType(v roomtype.Type) *RoomUpsert {
+	u.Set(room.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *RoomUpsert) UpdateType() *RoomUpsert {
+	u.SetExcluded(room.FieldType)
+	return u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (u *RoomUpsert) SetUpdatedAt(v time.Time) *RoomUpsert {
 	u.Set(room.FieldUpdatedAt, v)
@@ -490,6 +521,20 @@ func (u *RoomUpsertOne) AddVersion(v uint64) *RoomUpsertOne {
 func (u *RoomUpsertOne) UpdateVersion() *RoomUpsertOne {
 	return u.Update(func(s *RoomUpsert) {
 		s.UpdateVersion()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *RoomUpsertOne) SetType(v roomtype.Type) *RoomUpsertOne {
+	return u.Update(func(s *RoomUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *RoomUpsertOne) UpdateType() *RoomUpsertOne {
+	return u.Update(func(s *RoomUpsert) {
+		s.UpdateType()
 	})
 }
 
@@ -757,6 +802,20 @@ func (u *RoomUpsertBulk) AddVersion(v uint64) *RoomUpsertBulk {
 func (u *RoomUpsertBulk) UpdateVersion() *RoomUpsertBulk {
 	return u.Update(func(s *RoomUpsert) {
 		s.UpdateVersion()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *RoomUpsertBulk) SetType(v roomtype.Type) *RoomUpsertBulk {
+	return u.Update(func(s *RoomUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *RoomUpsertBulk) UpdateType() *RoomUpsertBulk {
+	return u.Update(func(s *RoomUpsert) {
+		s.UpdateType()
 	})
 }
 

@@ -2557,6 +2557,16 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) unmarshalOID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx context.Context, v interface{}) (pulid.ID, error) {
+	var res pulid.ID
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx context.Context, sel ast.SelectionSet, v pulid.ID) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalOID2ᚕjourneyhubᚋentᚋschemaᚋpulidᚐIDᚄ(ctx context.Context, v interface{}) ([]pulid.ID, error) {
 	if v == nil {
 		return nil, nil

@@ -4,11 +4,12 @@ import (
 	"journeyhub/ent/schema/pulid"
 	"time"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"entgo.io/ent/schema/index"
 )
 
 // RoomMember holds the edge schema definition of the Friendship relationship.
@@ -56,10 +57,16 @@ func (RoomMember) Edges() []ent.Edge {
 	}
 }
 
-// Indexes of the Friendship.
+// Indexes of the RoomMember.
 func (RoomMember) Indexes() []ent.Index {
-	return []ent.Index{
-		index.Fields("user_id", "room_id").
-			Unique(),
+	return []ent.Index{}
+}
+
+// Annotations of the RoomMember.
+func (RoomMember) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.MultiOrder(),
+		entgql.RelayConnection(),
 	}
 }

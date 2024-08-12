@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"journeyhub/ent"
+	"journeyhub/ent/schema/property/roomtype"
 	"journeyhub/ent/schema/pulid"
 	"strconv"
 	"sync"
@@ -24,16 +25,11 @@ import (
 type QueryResolver interface {
 	Node(ctx context.Context, id pulid.ID) (ent.Noder, error)
 	Nodes(ctx context.Context, ids []pulid.ID) ([]ent.Noder, error)
+	Friendships(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, where *ent.FriendshipWhereInput) (*ent.FriendshipConnection, error)
 	Messages(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) (*ent.MessageConnection, error)
 	Rooms(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomOrder, where *ent.RoomWhereInput) (*ent.RoomConnection, error)
+	RoomMembers(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, where *ent.RoomMemberWhereInput) (*ent.RoomMemberConnection, error)
 	Users(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error)
-}
-type RoomResolver interface {
-	RoomMembers(ctx context.Context, obj *ent.Room) ([]*ent.RoomMember, error)
-}
-type UserResolver interface {
-	Friendships(ctx context.Context, obj *ent.User) ([]*ent.Friendship, error)
-	Memberships(ctx context.Context, obj *ent.User) ([]*ent.RoomMember, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -52,6 +48,57 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_friendships_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *entgql.Cursor[pulid.ID]
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg0, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg1
+	var arg2 *entgql.Cursor[pulid.ID]
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg2, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *ent.FriendshipWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg4, err = ec.unmarshalOFriendshipWhereInput2ᚖjourneyhubᚋentᚐFriendshipWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg4
 	return args, nil
 }
 
@@ -142,6 +189,57 @@ func (ec *executionContext) field_Query_nodes_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["ids"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_roomMembers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *entgql.Cursor[pulid.ID]
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg0, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg1
+	var arg2 *entgql.Cursor[pulid.ID]
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg2, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *ent.RoomMemberWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg4, err = ec.unmarshalORoomMemberWhereInput2ᚖjourneyhubᚋentᚐRoomMemberWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg4
 	return args, nil
 }
 
@@ -325,6 +423,57 @@ func (ec *executionContext) field_Room_messages_args(ctx context.Context, rawArg
 	return args, nil
 }
 
+func (ec *executionContext) field_Room_roomMembers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *entgql.Cursor[pulid.ID]
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg0, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg1
+	var arg2 *entgql.Cursor[pulid.ID]
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg2, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *ent.RoomMemberWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg4, err = ec.unmarshalORoomMemberWhereInput2ᚖjourneyhubᚋentᚐRoomMemberWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg4
+	return args, nil
+}
+
 func (ec *executionContext) field_Room_users_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -442,6 +591,108 @@ func (ec *executionContext) field_User_friends_args(ctx context.Context, rawArgs
 		}
 	}
 	args["where"] = arg5
+	return args, nil
+}
+
+func (ec *executionContext) field_User_friendships_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *entgql.Cursor[pulid.ID]
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg0, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg1
+	var arg2 *entgql.Cursor[pulid.ID]
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg2, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *ent.FriendshipWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg4, err = ec.unmarshalOFriendshipWhereInput2ᚖjourneyhubᚋentᚐFriendshipWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg4
+	return args, nil
+}
+
+func (ec *executionContext) field_User_memberships_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *entgql.Cursor[pulid.ID]
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg0, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg1
+	var arg2 *entgql.Cursor[pulid.ID]
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg2, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *ent.RoomMemberWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg4, err = ec.unmarshalORoomMemberWhereInput2ᚖjourneyhubᚋentᚐRoomMemberWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg4
 	return args, nil
 }
 
@@ -1057,6 +1308,47 @@ func (ec *executionContext) fieldContext_Friendship_friendID(_ context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Friendship_roomID(ctx context.Context, field graphql.CollectedField, obj *ent.Friendship) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Friendship_roomID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RoomID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(pulid.ID)
+	fc.Result = res
+	return ec.marshalOID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Friendship_roomID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Friendship",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Friendship_createdAt(ctx context.Context, field graphql.CollectedField, obj *ent.Friendship) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Friendship_createdAt(ctx, field)
 	if err != nil {
@@ -1236,6 +1528,315 @@ func (ec *executionContext) fieldContext_Friendship_friend(_ context.Context, fi
 				return ec.fieldContext_User_memberships(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Friendship_room(ctx context.Context, field graphql.CollectedField, obj *ent.Friendship) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Friendship_room(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Room(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Room)
+	fc.Result = res
+	return ec.marshalORoom2ᚖjourneyhubᚋentᚐRoom(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Friendship_room(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Friendship",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Room_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Room_name(ctx, field)
+			case "version":
+				return ec.fieldContext_Room_version(ctx, field)
+			case "type":
+				return ec.fieldContext_Room_type(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Room_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Room_updatedAt(ctx, field)
+			case "users":
+				return ec.fieldContext_Room_users(ctx, field)
+			case "messages":
+				return ec.fieldContext_Room_messages(ctx, field)
+			case "roomMembers":
+				return ec.fieldContext_Room_roomMembers(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Room", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FriendshipConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.FriendshipConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FriendshipConnection_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.FriendshipEdge)
+	fc.Result = res
+	return ec.marshalOFriendshipEdge2ᚕᚖjourneyhubᚋentᚐFriendshipEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FriendshipConnection_edges(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FriendshipConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_FriendshipEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_FriendshipEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FriendshipEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FriendshipConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.FriendshipConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FriendshipConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(entgql.PageInfo[pulid.ID])
+	fc.Result = res
+	return ec.marshalNPageInfo2entgoᚗioᚋcontribᚋentgqlᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FriendshipConnection_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FriendshipConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			case "hasPreviousPage":
+				return ec.fieldContext_PageInfo_hasPreviousPage(ctx, field)
+			case "startCursor":
+				return ec.fieldContext_PageInfo_startCursor(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FriendshipConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.FriendshipConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FriendshipConnection_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FriendshipConnection_totalCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FriendshipConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FriendshipEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.FriendshipEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FriendshipEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Friendship)
+	fc.Result = res
+	return ec.marshalOFriendship2ᚖjourneyhubᚋentᚐFriendship(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FriendshipEdge_node(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FriendshipEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Friendship_id(ctx, field)
+			case "userID":
+				return ec.fieldContext_Friendship_userID(ctx, field)
+			case "friendID":
+				return ec.fieldContext_Friendship_friendID(ctx, field)
+			case "roomID":
+				return ec.fieldContext_Friendship_roomID(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Friendship_createdAt(ctx, field)
+			case "user":
+				return ec.fieldContext_Friendship_user(ctx, field)
+			case "friend":
+				return ec.fieldContext_Friendship_friend(ctx, field)
+			case "room":
+				return ec.fieldContext_Friendship_room(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Friendship", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FriendshipEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.FriendshipEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FriendshipEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(entgql.Cursor[pulid.ID])
+	fc.Result = res
+	return ec.marshalNCursor2entgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FriendshipEdge_cursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FriendshipEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1526,6 +2127,8 @@ func (ec *executionContext) fieldContext_Message_room(_ context.Context, field g
 				return ec.fieldContext_Room_name(ctx, field)
 			case "version":
 				return ec.fieldContext_Room_version(ctx, field)
+			case "type":
+				return ec.fieldContext_Room_type(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Room_createdAt(ctx, field)
 			case "updatedAt":
@@ -2064,6 +2667,69 @@ func (ec *executionContext) fieldContext_Query_nodes(ctx context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_friendships(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_friendships(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Friendships(rctx, fc.Args["after"].(*entgql.Cursor[pulid.ID]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[pulid.ID]), fc.Args["last"].(*int), fc.Args["where"].(*ent.FriendshipWhereInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.FriendshipConnection)
+	fc.Result = res
+	return ec.marshalNFriendshipConnection2ᚖjourneyhubᚋentᚐFriendshipConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_friendships(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_FriendshipConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_FriendshipConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_FriendshipConnection_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FriendshipConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_friendships_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_messages(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_messages(ctx, field)
 	if err != nil {
@@ -2184,6 +2850,69 @@ func (ec *executionContext) fieldContext_Query_rooms(ctx context.Context, field 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_rooms_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_roomMembers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_roomMembers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().RoomMembers(rctx, fc.Args["after"].(*entgql.Cursor[pulid.ID]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[pulid.ID]), fc.Args["last"].(*int), fc.Args["where"].(*ent.RoomMemberWhereInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.RoomMemberConnection)
+	fc.Result = res
+	return ec.marshalNRoomMemberConnection2ᚖjourneyhubᚋentᚐRoomMemberConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_roomMembers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_RoomMemberConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_RoomMemberConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_RoomMemberConnection_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RoomMemberConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_roomMembers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -2514,6 +3243,50 @@ func (ec *executionContext) fieldContext_Room_version(_ context.Context, field g
 	return fc, nil
 }
 
+func (ec *executionContext) _Room_type(ctx context.Context, field graphql.CollectedField, obj *ent.Room) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Room_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(roomtype.Type)
+	fc.Result = res
+	return ec.marshalNRoomType2journeyhubᚋentᚋschemaᚋpropertyᚋroomtypeᚐType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Room_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Room",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RoomType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Room_createdAt(ctx context.Context, field graphql.CollectedField, obj *ent.Room) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Room_createdAt(ctx, field)
 	if err != nil {
@@ -2742,43 +3515,51 @@ func (ec *executionContext) _Room_roomMembers(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Room().RoomMembers(rctx, obj)
+		return obj.RoomMembers(ctx, fc.Args["after"].(*entgql.Cursor[pulid.ID]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[pulid.ID]), fc.Args["last"].(*int), fc.Args["where"].(*ent.RoomMemberWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.RoomMember)
+	res := resTmp.(*ent.RoomMemberConnection)
 	fc.Result = res
-	return ec.marshalORoomMember2ᚕᚖjourneyhubᚋentᚐRoomMemberᚄ(ctx, field.Selections, res)
+	return ec.marshalNRoomMemberConnection2ᚖjourneyhubᚋentᚐRoomMemberConnection(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Room_roomMembers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Room_roomMembers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Room",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: true,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_RoomMember_id(ctx, field)
-			case "userID":
-				return ec.fieldContext_RoomMember_userID(ctx, field)
-			case "roomID":
-				return ec.fieldContext_RoomMember_roomID(ctx, field)
-			case "joinedAt":
-				return ec.fieldContext_RoomMember_joinedAt(ctx, field)
-			case "user":
-				return ec.fieldContext_RoomMember_user(ctx, field)
-			case "room":
-				return ec.fieldContext_RoomMember_room(ctx, field)
+			case "edges":
+				return ec.fieldContext_RoomMemberConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_RoomMemberConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_RoomMemberConnection_totalCount(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type RoomMember", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type RoomMemberConnection", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Room_roomMembers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -2970,6 +3751,8 @@ func (ec *executionContext) fieldContext_RoomEdge_node(_ context.Context, field 
 				return ec.fieldContext_Room_name(ctx, field)
 			case "version":
 				return ec.fieldContext_Room_version(ctx, field)
+			case "type":
+				return ec.fieldContext_Room_type(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Room_createdAt(ctx, field)
 			case "updatedAt":
@@ -3322,6 +4105,8 @@ func (ec *executionContext) fieldContext_RoomMember_room(_ context.Context, fiel
 				return ec.fieldContext_Room_name(ctx, field)
 			case "version":
 				return ec.fieldContext_Room_version(ctx, field)
+			case "type":
+				return ec.fieldContext_Room_type(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Room_createdAt(ctx, field)
 			case "updatedAt":
@@ -3334,6 +4119,250 @@ func (ec *executionContext) fieldContext_RoomMember_room(_ context.Context, fiel
 				return ec.fieldContext_Room_roomMembers(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Room", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoomMemberConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.RoomMemberConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoomMemberConnection_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.RoomMemberEdge)
+	fc.Result = res
+	return ec.marshalORoomMemberEdge2ᚕᚖjourneyhubᚋentᚐRoomMemberEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoomMemberConnection_edges(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoomMemberConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_RoomMemberEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_RoomMemberEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RoomMemberEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoomMemberConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.RoomMemberConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoomMemberConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(entgql.PageInfo[pulid.ID])
+	fc.Result = res
+	return ec.marshalNPageInfo2entgoᚗioᚋcontribᚋentgqlᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoomMemberConnection_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoomMemberConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			case "hasPreviousPage":
+				return ec.fieldContext_PageInfo_hasPreviousPage(ctx, field)
+			case "startCursor":
+				return ec.fieldContext_PageInfo_startCursor(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoomMemberConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.RoomMemberConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoomMemberConnection_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoomMemberConnection_totalCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoomMemberConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoomMemberEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.RoomMemberEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoomMemberEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.RoomMember)
+	fc.Result = res
+	return ec.marshalORoomMember2ᚖjourneyhubᚋentᚐRoomMember(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoomMemberEdge_node(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoomMemberEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RoomMember_id(ctx, field)
+			case "userID":
+				return ec.fieldContext_RoomMember_userID(ctx, field)
+			case "roomID":
+				return ec.fieldContext_RoomMember_roomID(ctx, field)
+			case "joinedAt":
+				return ec.fieldContext_RoomMember_joinedAt(ctx, field)
+			case "user":
+				return ec.fieldContext_RoomMember_user(ctx, field)
+			case "room":
+				return ec.fieldContext_RoomMember_room(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RoomMember", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoomMemberEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.RoomMemberEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoomMemberEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(entgql.Cursor[pulid.ID])
+	fc.Result = res
+	return ec.marshalNCursor2entgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoomMemberEdge_cursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoomMemberEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3850,43 +4879,51 @@ func (ec *executionContext) _User_friendships(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().Friendships(rctx, obj)
+		return obj.Friendships(ctx, fc.Args["after"].(*entgql.Cursor[pulid.ID]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[pulid.ID]), fc.Args["last"].(*int), fc.Args["where"].(*ent.FriendshipWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.Friendship)
+	res := resTmp.(*ent.FriendshipConnection)
 	fc.Result = res
-	return ec.marshalOFriendship2ᚕᚖjourneyhubᚋentᚐFriendshipᚄ(ctx, field.Selections, res)
+	return ec.marshalNFriendshipConnection2ᚖjourneyhubᚋentᚐFriendshipConnection(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_friendships(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_friendships(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: true,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Friendship_id(ctx, field)
-			case "userID":
-				return ec.fieldContext_Friendship_userID(ctx, field)
-			case "friendID":
-				return ec.fieldContext_Friendship_friendID(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Friendship_createdAt(ctx, field)
-			case "user":
-				return ec.fieldContext_Friendship_user(ctx, field)
-			case "friend":
-				return ec.fieldContext_Friendship_friend(ctx, field)
+			case "edges":
+				return ec.fieldContext_FriendshipConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_FriendshipConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_FriendshipConnection_totalCount(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Friendship", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type FriendshipConnection", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_User_friendships_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -3905,43 +4942,51 @@ func (ec *executionContext) _User_memberships(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().Memberships(rctx, obj)
+		return obj.Memberships(ctx, fc.Args["after"].(*entgql.Cursor[pulid.ID]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[pulid.ID]), fc.Args["last"].(*int), fc.Args["where"].(*ent.RoomMemberWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.RoomMember)
+	res := resTmp.(*ent.RoomMemberConnection)
 	fc.Result = res
-	return ec.marshalORoomMember2ᚕᚖjourneyhubᚋentᚐRoomMemberᚄ(ctx, field.Selections, res)
+	return ec.marshalNRoomMemberConnection2ᚖjourneyhubᚋentᚐRoomMemberConnection(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_memberships(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_memberships(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: true,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_RoomMember_id(ctx, field)
-			case "userID":
-				return ec.fieldContext_RoomMember_userID(ctx, field)
-			case "roomID":
-				return ec.fieldContext_RoomMember_roomID(ctx, field)
-			case "joinedAt":
-				return ec.fieldContext_RoomMember_joinedAt(ctx, field)
-			case "user":
-				return ec.fieldContext_RoomMember_user(ctx, field)
-			case "room":
-				return ec.fieldContext_RoomMember_room(ctx, field)
+			case "edges":
+				return ec.fieldContext_RoomMemberConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_RoomMemberConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_RoomMemberConnection_totalCount(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type RoomMember", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type RoomMemberConnection", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_User_memberships_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -5590,7 +6635,7 @@ func (ec *executionContext) unmarshalInputRoomWhereInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameEqualFold", "nameContainsFold", "version", "versionNEQ", "versionIn", "versionNotIn", "versionGT", "versionGTE", "versionLT", "versionLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "hasUsers", "hasUsersWith", "hasMessages", "hasMessagesWith", "hasRoomMembers", "hasRoomMembersWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameEqualFold", "nameContainsFold", "version", "versionNEQ", "versionIn", "versionNotIn", "versionGT", "versionGTE", "versionLT", "versionLTE", "type", "typeNEQ", "typeIn", "typeNotIn", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "hasUsers", "hasUsersWith", "hasMessages", "hasMessagesWith", "hasRoomMembers", "hasRoomMembersWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5821,6 +6866,34 @@ func (ec *executionContext) unmarshalInputRoomWhereInput(ctx context.Context, ob
 				return it, err
 			}
 			it.VersionLTE = data
+		case "type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			data, err := ec.unmarshalORoomType2ᚖjourneyhubᚋentᚋschemaᚋpropertyᚋroomtypeᚐType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Type = data
+		case "typeNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("typeNEQ"))
+			data, err := ec.unmarshalORoomType2ᚖjourneyhubᚋentᚋschemaᚋpropertyᚋroomtypeᚐType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TypeNEQ = data
+		case "typeIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("typeIn"))
+			data, err := ec.unmarshalORoomType2ᚕjourneyhubᚋentᚋschemaᚋpropertyᚋroomtypeᚐTypeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TypeIn = data
+		case "typeNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("typeNotIn"))
+			data, err := ec.unmarshalORoomType2ᚕjourneyhubᚋentᚋschemaᚋpropertyᚋroomtypeᚐTypeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TypeNotIn = data
 		case "createdAt":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
@@ -6809,6 +7882,8 @@ func (ec *executionContext) _Friendship(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "roomID":
+			out.Values[i] = ec._Friendship_roomID(ctx, field, obj)
 		case "createdAt":
 			out.Values[i] = ec._Friendship_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6886,6 +7961,126 @@ func (ec *executionContext) _Friendship(ctx context.Context, sel ast.SelectionSe
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "room":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Friendship_room(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var friendshipConnectionImplementors = []string{"FriendshipConnection"}
+
+func (ec *executionContext) _FriendshipConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.FriendshipConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, friendshipConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FriendshipConnection")
+		case "edges":
+			out.Values[i] = ec._FriendshipConnection_edges(ctx, field, obj)
+		case "pageInfo":
+			out.Values[i] = ec._FriendshipConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalCount":
+			out.Values[i] = ec._FriendshipConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var friendshipEdgeImplementors = []string{"FriendshipEdge"}
+
+func (ec *executionContext) _FriendshipEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.FriendshipEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, friendshipEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FriendshipEdge")
+		case "node":
+			out.Values[i] = ec._FriendshipEdge_node(ctx, field, obj)
+		case "cursor":
+			out.Values[i] = ec._FriendshipEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7224,6 +8419,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "friendships":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_friendships(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "messages":
 			field := field
 
@@ -7256,6 +8473,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_rooms(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "roomMembers":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_roomMembers(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -7347,6 +8586,11 @@ func (ec *executionContext) _Room(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "type":
+			out.Values[i] = ec._Room_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "createdAt":
 			out.Values[i] = ec._Room_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -7432,13 +8676,16 @@ func (ec *executionContext) _Room(ctx context.Context, sel ast.SelectionSet, obj
 		case "roomMembers":
 			field := field
 
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
 				res = ec._Room_roomMembers(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -7698,6 +8945,93 @@ func (ec *executionContext) _RoomMember(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var roomMemberConnectionImplementors = []string{"RoomMemberConnection"}
+
+func (ec *executionContext) _RoomMemberConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.RoomMemberConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, roomMemberConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RoomMemberConnection")
+		case "edges":
+			out.Values[i] = ec._RoomMemberConnection_edges(ctx, field, obj)
+		case "pageInfo":
+			out.Values[i] = ec._RoomMemberConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalCount":
+			out.Values[i] = ec._RoomMemberConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var roomMemberEdgeImplementors = []string{"RoomMemberEdge"}
+
+func (ec *executionContext) _RoomMemberEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.RoomMemberEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, roomMemberEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RoomMemberEdge")
+		case "node":
+			out.Values[i] = ec._RoomMemberEdge_node(ctx, field, obj)
+		case "cursor":
+			out.Values[i] = ec._RoomMemberEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var userImplementors = []string{"User", "Node"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *ent.User) graphql.Marshaler {
@@ -7855,13 +9189,16 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "friendships":
 			field := field
 
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
 				res = ec._User_friendships(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -7888,13 +9225,16 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "memberships":
 			field := field
 
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
 				res = ec._User_memberships(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -8063,14 +9403,18 @@ func (ec *executionContext) unmarshalNFileWhereInput2ᚖjourneyhubᚋentᚐFileW
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNFriendship2ᚖjourneyhubᚋentᚐFriendship(ctx context.Context, sel ast.SelectionSet, v *ent.Friendship) graphql.Marshaler {
+func (ec *executionContext) marshalNFriendshipConnection2journeyhubᚋentᚐFriendshipConnection(ctx context.Context, sel ast.SelectionSet, v ent.FriendshipConnection) graphql.Marshaler {
+	return ec._FriendshipConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFriendshipConnection2ᚖjourneyhubᚋentᚐFriendshipConnection(ctx context.Context, sel ast.SelectionSet, v *ent.FriendshipConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._Friendship(ctx, sel, v)
+	return ec._FriendshipConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNFriendshipWhereInput2ᚖjourneyhubᚋentᚐFriendshipWhereInput(ctx context.Context, v interface{}) (*ent.FriendshipWhereInput, error) {
@@ -8208,14 +9552,18 @@ func (ec *executionContext) marshalNRoomConnection2ᚖjourneyhubᚋentᚐRoomCon
 	return ec._RoomConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNRoomMember2ᚖjourneyhubᚋentᚐRoomMember(ctx context.Context, sel ast.SelectionSet, v *ent.RoomMember) graphql.Marshaler {
+func (ec *executionContext) marshalNRoomMemberConnection2journeyhubᚋentᚐRoomMemberConnection(ctx context.Context, sel ast.SelectionSet, v ent.RoomMemberConnection) graphql.Marshaler {
+	return ec._RoomMemberConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRoomMemberConnection2ᚖjourneyhubᚋentᚐRoomMemberConnection(ctx context.Context, sel ast.SelectionSet, v *ent.RoomMemberConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._RoomMember(ctx, sel, v)
+	return ec._RoomMemberConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNRoomMemberWhereInput2ᚖjourneyhubᚋentᚐRoomMemberWhereInput(ctx context.Context, v interface{}) (*ent.RoomMemberWhereInput, error) {
@@ -8242,6 +9590,22 @@ func (ec *executionContext) marshalNRoomOrderField2ᚖjourneyhubᚋentᚐRoomOrd
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalNRoomType2journeyhubᚋentᚋschemaᚋpropertyᚋroomtypeᚐType(ctx context.Context, v interface{}) (roomtype.Type, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := roomtype.Type(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRoomType2journeyhubᚋentᚋschemaᚋpropertyᚋroomtypeᚐType(ctx context.Context, sel ast.SelectionSet, v roomtype.Type) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) unmarshalNRoomWhereInput2ᚖjourneyhubᚋentᚐRoomWhereInput(ctx context.Context, v interface{}) (*ent.RoomWhereInput, error) {
@@ -8373,7 +9737,14 @@ func (ec *executionContext) unmarshalOFileWhereInput2ᚖjourneyhubᚋentᚐFileW
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOFriendship2ᚕᚖjourneyhubᚋentᚐFriendshipᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Friendship) graphql.Marshaler {
+func (ec *executionContext) marshalOFriendship2ᚖjourneyhubᚋentᚐFriendship(ctx context.Context, sel ast.SelectionSet, v *ent.Friendship) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Friendship(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOFriendshipEdge2ᚕᚖjourneyhubᚋentᚐFriendshipEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.FriendshipEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -8400,7 +9771,7 @@ func (ec *executionContext) marshalOFriendship2ᚕᚖjourneyhubᚋentᚐFriendsh
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNFriendship2ᚖjourneyhubᚋentᚐFriendship(ctx, sel, v[i])
+			ret[i] = ec.marshalOFriendshipEdge2ᚖjourneyhubᚋentᚐFriendshipEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8411,13 +9782,14 @@ func (ec *executionContext) marshalOFriendship2ᚕᚖjourneyhubᚋentᚐFriendsh
 	}
 	wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
 	return ret
+}
+
+func (ec *executionContext) marshalOFriendshipEdge2ᚖjourneyhubᚋentᚐFriendshipEdge(ctx context.Context, sel ast.SelectionSet, v *ent.FriendshipEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._FriendshipEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOFriendshipWhereInput2ᚕᚖjourneyhubᚋentᚐFriendshipWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.FriendshipWhereInput, error) {
@@ -8613,7 +9985,14 @@ func (ec *executionContext) marshalORoomEdge2ᚖjourneyhubᚋentᚐRoomEdge(ctx 
 	return ec._RoomEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalORoomMember2ᚕᚖjourneyhubᚋentᚐRoomMemberᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.RoomMember) graphql.Marshaler {
+func (ec *executionContext) marshalORoomMember2ᚖjourneyhubᚋentᚐRoomMember(ctx context.Context, sel ast.SelectionSet, v *ent.RoomMember) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._RoomMember(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalORoomMemberEdge2ᚕᚖjourneyhubᚋentᚐRoomMemberEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.RoomMemberEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -8640,7 +10019,7 @@ func (ec *executionContext) marshalORoomMember2ᚕᚖjourneyhubᚋentᚐRoomMemb
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNRoomMember2ᚖjourneyhubᚋentᚐRoomMember(ctx, sel, v[i])
+			ret[i] = ec.marshalORoomMemberEdge2ᚖjourneyhubᚋentᚐRoomMemberEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8651,13 +10030,14 @@ func (ec *executionContext) marshalORoomMember2ᚕᚖjourneyhubᚋentᚐRoomMemb
 	}
 	wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
 	return ret
+}
+
+func (ec *executionContext) marshalORoomMemberEdge2ᚖjourneyhubᚋentᚐRoomMemberEdge(ctx context.Context, sel ast.SelectionSet, v *ent.RoomMemberEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._RoomMemberEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalORoomMemberWhereInput2ᚕᚖjourneyhubᚋentᚐRoomMemberWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.RoomMemberWhereInput, error) {
@@ -8706,6 +10086,90 @@ func (ec *executionContext) unmarshalORoomOrder2ᚕᚖjourneyhubᚋentᚐRoomOrd
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalORoomType2ᚕjourneyhubᚋentᚋschemaᚋpropertyᚋroomtypeᚐTypeᚄ(ctx context.Context, v interface{}) ([]roomtype.Type, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]roomtype.Type, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNRoomType2journeyhubᚋentᚋschemaᚋpropertyᚋroomtypeᚐType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalORoomType2ᚕjourneyhubᚋentᚋschemaᚋpropertyᚋroomtypeᚐTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []roomtype.Type) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRoomType2journeyhubᚋentᚋschemaᚋpropertyᚋroomtypeᚐType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalORoomType2ᚖjourneyhubᚋentᚋschemaᚋpropertyᚋroomtypeᚐType(ctx context.Context, v interface{}) (*roomtype.Type, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tmp, err := graphql.UnmarshalString(v)
+	res := roomtype.Type(tmp)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalORoomType2ᚖjourneyhubᚋentᚋschemaᚋpropertyᚋroomtypeᚐType(ctx context.Context, sel ast.SelectionSet, v *roomtype.Type) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalString(string(*v))
+	return res
 }
 
 func (ec *executionContext) unmarshalORoomWhereInput2ᚕᚖjourneyhubᚋentᚐRoomWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.RoomWhereInput, error) {

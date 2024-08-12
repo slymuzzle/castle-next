@@ -520,6 +520,22 @@ func (c *FriendshipClient) QueryFriend(f *Friendship) *UserQuery {
 	return query
 }
 
+// QueryRoom queries the room edge of a Friendship.
+func (c *FriendshipClient) QueryRoom(f *Friendship) *RoomQuery {
+	query := (&RoomClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(friendship.Table, friendship.FieldID, id),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, friendship.RoomTable, friendship.RoomColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FriendshipClient) Hooks() []Hook {
 	return c.hooks.Friendship

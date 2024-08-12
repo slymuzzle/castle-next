@@ -19,12 +19,16 @@ const (
 	FieldUserID = "user_id"
 	// FieldFriendID holds the string denoting the friend_id field in the database.
 	FieldFriendID = "friend_id"
+	// FieldRoomID holds the string denoting the room_id field in the database.
+	FieldRoomID = "room_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeFriend holds the string denoting the friend edge name in mutations.
 	EdgeFriend = "friend"
+	// EdgeRoom holds the string denoting the room edge name in mutations.
+	EdgeRoom = "room"
 	// Table holds the table name of the friendship in the database.
 	Table = "friendships"
 	// UserTable is the table that holds the user relation/edge.
@@ -41,6 +45,13 @@ const (
 	FriendInverseTable = "users"
 	// FriendColumn is the table column denoting the friend relation/edge.
 	FriendColumn = "friend_id"
+	// RoomTable is the table that holds the room relation/edge.
+	RoomTable = "friendships"
+	// RoomInverseTable is the table name for the Room entity.
+	// It exists in this package in order to avoid circular dependency with the "room" package.
+	RoomInverseTable = "rooms"
+	// RoomColumn is the table column denoting the room relation/edge.
+	RoomColumn = "room_id"
 )
 
 // Columns holds all SQL columns for friendship fields.
@@ -48,6 +59,7 @@ var Columns = []string{
 	FieldID,
 	FieldUserID,
 	FieldFriendID,
+	FieldRoomID,
 	FieldCreatedAt,
 }
 
@@ -86,6 +98,11 @@ func ByFriendID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFriendID, opts...).ToFunc()
 }
 
+// ByRoomID orders the results by the room_id field.
+func ByRoomID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRoomID, opts...).ToFunc()
+}
+
 // ByCreatedAt orders the results by the created_at field.
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
@@ -104,6 +121,13 @@ func ByFriendField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newFriendStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByRoomField orders the results by room field.
+func ByRoomField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRoomStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -116,5 +140,12 @@ func newFriendStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FriendInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, FriendTable, FriendColumn),
+	)
+}
+func newRoomStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RoomInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, RoomTable, RoomColumn),
 	)
 }

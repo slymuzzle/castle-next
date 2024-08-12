@@ -189,6 +189,21 @@ func (f *FriendshipQuery) collectField(ctx context.Context, oneNode bool, opCtx 
 				selectedFields = append(selectedFields, friendship.FieldFriendID)
 				fieldSeen[friendship.FieldFriendID] = struct{}{}
 			}
+
+		case "room":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&RoomClient{config: f.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, roomImplementors)...); err != nil {
+				return err
+			}
+			f.withRoom = query
+			if _, ok := fieldSeen[friendship.FieldRoomID]; !ok {
+				selectedFields = append(selectedFields, friendship.FieldRoomID)
+				fieldSeen[friendship.FieldRoomID] = struct{}{}
+			}
 		case "userID":
 			if _, ok := fieldSeen[friendship.FieldUserID]; !ok {
 				selectedFields = append(selectedFields, friendship.FieldUserID)
@@ -198,6 +213,11 @@ func (f *FriendshipQuery) collectField(ctx context.Context, oneNode bool, opCtx 
 			if _, ok := fieldSeen[friendship.FieldFriendID]; !ok {
 				selectedFields = append(selectedFields, friendship.FieldFriendID)
 				fieldSeen[friendship.FieldFriendID] = struct{}{}
+			}
+		case "roomID":
+			if _, ok := fieldSeen[friendship.FieldRoomID]; !ok {
+				selectedFields = append(selectedFields, friendship.FieldRoomID)
+				fieldSeen[friendship.FieldRoomID] = struct{}{}
 			}
 		case "createdAt":
 			if _, ok := fieldSeen[friendship.FieldCreatedAt]; !ok {
@@ -673,6 +693,11 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 			if _, ok := fieldSeen[room.FieldVersion]; !ok {
 				selectedFields = append(selectedFields, room.FieldVersion)
 				fieldSeen[room.FieldVersion] = struct{}{}
+			}
+		case "type":
+			if _, ok := fieldSeen[room.FieldType]; !ok {
+				selectedFields = append(selectedFields, room.FieldType)
+				fieldSeen[room.FieldType] = struct{}{}
 			}
 		case "createdAt":
 			if _, ok := fieldSeen[room.FieldCreatedAt]; !ok {

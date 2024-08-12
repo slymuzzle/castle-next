@@ -6,14 +6,14 @@ import (
 	"journeyhub/internal/config"
 )
 
+var ErrUnsupportedDatabaseDriver = errors.New("unsupported database driver")
+
 type Service interface {
 	Connect() error
-	Close() error
 	Config() config.DatabaseConfig
 	Client() *ent.Client
+	Close() error
 }
-
-var ErrUnsupportedDatabaseDriver = errors.New("unsupported database driver")
 
 type service struct {
 	config    config.DatabaseConfig

@@ -10,6 +10,7 @@ import (
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
+	"journeyhub/ent/schema/property/roomtype"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"time"
@@ -64,6 +65,20 @@ func (ru *RoomUpdate) SetNillableVersion(u *uint64) *RoomUpdate {
 // AddVersion adds u to the "version" field.
 func (ru *RoomUpdate) AddVersion(u int64) *RoomUpdate {
 	ru.mutation.AddVersion(u)
+	return ru
+}
+
+// SetType sets the "type" field.
+func (ru *RoomUpdate) SetType(r roomtype.Type) *RoomUpdate {
+	ru.mutation.SetType(r)
+	return ru
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (ru *RoomUpdate) SetNillableType(r *roomtype.Type) *RoomUpdate {
+	if r != nil {
+		ru.SetType(*r)
+	}
 	return ru
 }
 
@@ -229,6 +244,11 @@ func (ru *RoomUpdate) check() error {
 			return &ValidationError{Name: "version", err: fmt.Errorf(`ent: validator failed for field "Room.version": %w`, err)}
 		}
 	}
+	if v, ok := ru.mutation.GetType(); ok {
+		if err := room.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Room.type": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -252,6 +272,9 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := ru.mutation.AddedVersion(); ok {
 		_spec.AddField(room.FieldVersion, field.TypeUint64, value)
+	}
+	if value, ok := ru.mutation.GetType(); ok {
+		_spec.SetField(room.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := ru.mutation.UpdatedAt(); ok {
 		_spec.SetField(room.FieldUpdatedAt, field.TypeTime, value)
@@ -467,6 +490,20 @@ func (ruo *RoomUpdateOne) AddVersion(u int64) *RoomUpdateOne {
 	return ruo
 }
 
+// SetType sets the "type" field.
+func (ruo *RoomUpdateOne) SetType(r roomtype.Type) *RoomUpdateOne {
+	ruo.mutation.SetType(r)
+	return ruo
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (ruo *RoomUpdateOne) SetNillableType(r *roomtype.Type) *RoomUpdateOne {
+	if r != nil {
+		ruo.SetType(*r)
+	}
+	return ruo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (ruo *RoomUpdateOne) SetUpdatedAt(t time.Time) *RoomUpdateOne {
 	ruo.mutation.SetUpdatedAt(t)
@@ -642,6 +679,11 @@ func (ruo *RoomUpdateOne) check() error {
 			return &ValidationError{Name: "version", err: fmt.Errorf(`ent: validator failed for field "Room.version": %w`, err)}
 		}
 	}
+	if v, ok := ruo.mutation.GetType(); ok {
+		if err := room.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Room.type": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -682,6 +724,9 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 	}
 	if value, ok := ruo.mutation.AddedVersion(); ok {
 		_spec.AddField(room.FieldVersion, field.TypeUint64, value)
+	}
+	if value, ok := ruo.mutation.GetType(); ok {
+		_spec.SetField(room.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := ruo.mutation.UpdatedAt(); ok {
 		_spec.SetField(room.FieldUpdatedAt, field.TypeTime, value)

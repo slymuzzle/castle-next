@@ -23,12 +23,12 @@ tasks:
   build:
     desc: Build the application
     cmds:
-      - go build -o .tmp/server cmd/server
+      - go build -o ./.tmp/server ./cmd/server
 
   run:
     desc: Run the application
     cmds:
-      - .tmp/server
+      - ./.tmp/server
 
   watch:
     desc: Watch and rebuild the application

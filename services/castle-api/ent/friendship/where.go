@@ -66,6 +66,11 @@ func FriendID(v pulid.ID) predicate.Friendship {
 	return predicate.Friendship(sql.FieldEQ(FieldFriendID, v))
 }
 
+// RoomID applies equality check predicate on the "room_id" field. It's identical to RoomIDEQ.
+func RoomID(v pulid.ID) predicate.Friendship {
+	return predicate.Friendship(sql.FieldEQ(FieldRoomID, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Friendship {
 	return predicate.Friendship(sql.FieldEQ(FieldCreatedAt, v))
@@ -211,6 +216,86 @@ func FriendIDContainsFold(v pulid.ID) predicate.Friendship {
 	return predicate.Friendship(sql.FieldContainsFold(FieldFriendID, vc))
 }
 
+// RoomIDEQ applies the EQ predicate on the "room_id" field.
+func RoomIDEQ(v pulid.ID) predicate.Friendship {
+	return predicate.Friendship(sql.FieldEQ(FieldRoomID, v))
+}
+
+// RoomIDNEQ applies the NEQ predicate on the "room_id" field.
+func RoomIDNEQ(v pulid.ID) predicate.Friendship {
+	return predicate.Friendship(sql.FieldNEQ(FieldRoomID, v))
+}
+
+// RoomIDIn applies the In predicate on the "room_id" field.
+func RoomIDIn(vs ...pulid.ID) predicate.Friendship {
+	return predicate.Friendship(sql.FieldIn(FieldRoomID, vs...))
+}
+
+// RoomIDNotIn applies the NotIn predicate on the "room_id" field.
+func RoomIDNotIn(vs ...pulid.ID) predicate.Friendship {
+	return predicate.Friendship(sql.FieldNotIn(FieldRoomID, vs...))
+}
+
+// RoomIDGT applies the GT predicate on the "room_id" field.
+func RoomIDGT(v pulid.ID) predicate.Friendship {
+	return predicate.Friendship(sql.FieldGT(FieldRoomID, v))
+}
+
+// RoomIDGTE applies the GTE predicate on the "room_id" field.
+func RoomIDGTE(v pulid.ID) predicate.Friendship {
+	return predicate.Friendship(sql.FieldGTE(FieldRoomID, v))
+}
+
+// RoomIDLT applies the LT predicate on the "room_id" field.
+func RoomIDLT(v pulid.ID) predicate.Friendship {
+	return predicate.Friendship(sql.FieldLT(FieldRoomID, v))
+}
+
+// RoomIDLTE applies the LTE predicate on the "room_id" field.
+func RoomIDLTE(v pulid.ID) predicate.Friendship {
+	return predicate.Friendship(sql.FieldLTE(FieldRoomID, v))
+}
+
+// RoomIDContains applies the Contains predicate on the "room_id" field.
+func RoomIDContains(v pulid.ID) predicate.Friendship {
+	vc := string(v)
+	return predicate.Friendship(sql.FieldContains(FieldRoomID, vc))
+}
+
+// RoomIDHasPrefix applies the HasPrefix predicate on the "room_id" field.
+func RoomIDHasPrefix(v pulid.ID) predicate.Friendship {
+	vc := string(v)
+	return predicate.Friendship(sql.FieldHasPrefix(FieldRoomID, vc))
+}
+
+// RoomIDHasSuffix applies the HasSuffix predicate on the "room_id" field.
+func RoomIDHasSuffix(v pulid.ID) predicate.Friendship {
+	vc := string(v)
+	return predicate.Friendship(sql.FieldHasSuffix(FieldRoomID, vc))
+}
+
+// RoomIDIsNil applies the IsNil predicate on the "room_id" field.
+func RoomIDIsNil() predicate.Friendship {
+	return predicate.Friendship(sql.FieldIsNull(FieldRoomID))
+}
+
+// RoomIDNotNil applies the NotNil predicate on the "room_id" field.
+func RoomIDNotNil() predicate.Friendship {
+	return predicate.Friendship(sql.FieldNotNull(FieldRoomID))
+}
+
+// RoomIDEqualFold applies the EqualFold predicate on the "room_id" field.
+func RoomIDEqualFold(v pulid.ID) predicate.Friendship {
+	vc := string(v)
+	return predicate.Friendship(sql.FieldEqualFold(FieldRoomID, vc))
+}
+
+// RoomIDContainsFold applies the ContainsFold predicate on the "room_id" field.
+func RoomIDContainsFold(v pulid.ID) predicate.Friendship {
+	vc := string(v)
+	return predicate.Friendship(sql.FieldContainsFold(FieldRoomID, vc))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Friendship {
 	return predicate.Friendship(sql.FieldEQ(FieldCreatedAt, v))
@@ -289,6 +374,29 @@ func HasFriend() predicate.Friendship {
 func HasFriendWith(preds ...predicate.User) predicate.Friendship {
 	return predicate.Friendship(func(s *sql.Selector) {
 		step := newFriendStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRoom applies the HasEdge predicate on the "room" edge.
+func HasRoom() predicate.Friendship {
+	return predicate.Friendship(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, RoomTable, RoomColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRoomWith applies the HasEdge predicate on the "room" edge with a given conditions (other predicates).
+func HasRoomWith(preds ...predicate.Room) predicate.Friendship {
+	return predicate.Friendship(func(s *sql.Selector) {
+		step := newRoomStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

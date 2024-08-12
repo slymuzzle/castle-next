@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"journeyhub/ent/friendship"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"time"
@@ -34,6 +35,20 @@ func (fc *FriendshipCreate) SetUserID(pu pulid.ID) *FriendshipCreate {
 // SetFriendID sets the "friend_id" field.
 func (fc *FriendshipCreate) SetFriendID(pu pulid.ID) *FriendshipCreate {
 	fc.mutation.SetFriendID(pu)
+	return fc
+}
+
+// SetRoomID sets the "room_id" field.
+func (fc *FriendshipCreate) SetRoomID(pu pulid.ID) *FriendshipCreate {
+	fc.mutation.SetRoomID(pu)
+	return fc
+}
+
+// SetNillableRoomID sets the "room_id" field if the given value is not nil.
+func (fc *FriendshipCreate) SetNillableRoomID(pu *pulid.ID) *FriendshipCreate {
+	if pu != nil {
+		fc.SetRoomID(*pu)
+	}
 	return fc
 }
 
@@ -73,6 +88,11 @@ func (fc *FriendshipCreate) SetUser(u *User) *FriendshipCreate {
 // SetFriend sets the "friend" edge to the User entity.
 func (fc *FriendshipCreate) SetFriend(u *User) *FriendshipCreate {
 	return fc.SetFriendID(u.ID)
+}
+
+// SetRoom sets the "room" edge to the Room entity.
+func (fc *FriendshipCreate) SetRoom(r *Room) *FriendshipCreate {
+	return fc.SetRoomID(r.ID)
 }
 
 // Mutation returns the FriendshipMutation object of the builder.
@@ -211,6 +231,23 @@ func (fc *FriendshipCreate) createSpec() (*Friendship, *sqlgraph.CreateSpec) {
 		_node.FriendID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := fc.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   friendship.RoomTable,
+			Columns: []string{friendship.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RoomID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -284,6 +321,24 @@ func (u *FriendshipUpsert) SetFriendID(v pulid.ID) *FriendshipUpsert {
 // UpdateFriendID sets the "friend_id" field to the value that was provided on create.
 func (u *FriendshipUpsert) UpdateFriendID() *FriendshipUpsert {
 	u.SetExcluded(friendship.FieldFriendID)
+	return u
+}
+
+// SetRoomID sets the "room_id" field.
+func (u *FriendshipUpsert) SetRoomID(v pulid.ID) *FriendshipUpsert {
+	u.Set(friendship.FieldRoomID, v)
+	return u
+}
+
+// UpdateRoomID sets the "room_id" field to the value that was provided on create.
+func (u *FriendshipUpsert) UpdateRoomID() *FriendshipUpsert {
+	u.SetExcluded(friendship.FieldRoomID)
+	return u
+}
+
+// ClearRoomID clears the value of the "room_id" field.
+func (u *FriendshipUpsert) ClearRoomID() *FriendshipUpsert {
+	u.SetNull(friendship.FieldRoomID)
 	return u
 }
 
@@ -372,6 +427,27 @@ func (u *FriendshipUpsertOne) SetFriendID(v pulid.ID) *FriendshipUpsertOne {
 func (u *FriendshipUpsertOne) UpdateFriendID() *FriendshipUpsertOne {
 	return u.Update(func(s *FriendshipUpsert) {
 		s.UpdateFriendID()
+	})
+}
+
+// SetRoomID sets the "room_id" field.
+func (u *FriendshipUpsertOne) SetRoomID(v pulid.ID) *FriendshipUpsertOne {
+	return u.Update(func(s *FriendshipUpsert) {
+		s.SetRoomID(v)
+	})
+}
+
+// UpdateRoomID sets the "room_id" field to the value that was provided on create.
+func (u *FriendshipUpsertOne) UpdateRoomID() *FriendshipUpsertOne {
+	return u.Update(func(s *FriendshipUpsert) {
+		s.UpdateRoomID()
+	})
+}
+
+// ClearRoomID clears the value of the "room_id" field.
+func (u *FriendshipUpsertOne) ClearRoomID() *FriendshipUpsertOne {
+	return u.Update(func(s *FriendshipUpsert) {
+		s.ClearRoomID()
 	})
 }
 
@@ -629,6 +705,27 @@ func (u *FriendshipUpsertBulk) SetFriendID(v pulid.ID) *FriendshipUpsertBulk {
 func (u *FriendshipUpsertBulk) UpdateFriendID() *FriendshipUpsertBulk {
 	return u.Update(func(s *FriendshipUpsert) {
 		s.UpdateFriendID()
+	})
+}
+
+// SetRoomID sets the "room_id" field.
+func (u *FriendshipUpsertBulk) SetRoomID(v pulid.ID) *FriendshipUpsertBulk {
+	return u.Update(func(s *FriendshipUpsert) {
+		s.SetRoomID(v)
+	})
+}
+
+// UpdateRoomID sets the "room_id" field to the value that was provided on create.
+func (u *FriendshipUpsertBulk) UpdateRoomID() *FriendshipUpsertBulk {
+	return u.Update(func(s *FriendshipUpsert) {
+		s.UpdateRoomID()
+	})
+}
+
+// ClearRoomID clears the value of the "room_id" field.
+func (u *FriendshipUpsertBulk) ClearRoomID() *FriendshipUpsertBulk {
+	return u.Update(func(s *FriendshipUpsert) {
+		s.ClearRoomID()
 	})
 }
 

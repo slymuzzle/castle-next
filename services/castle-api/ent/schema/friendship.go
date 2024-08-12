@@ -4,10 +4,11 @@ import (
 	"journeyhub/ent/schema/pulid"
 	"time"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"entgo.io/ent/schema/index"
 )
 
 // Friendship holds the edge schema definition of the Friendship relationship.
@@ -29,6 +30,9 @@ func (Friendship) Fields() []ent.Field {
 			GoType(pulid.ID("")),
 		field.String("friend_id").
 			GoType(pulid.ID("")),
+		field.String("room_id").
+			Optional().
+			GoType(pulid.ID("")),
 		field.Time("created_at").
 			Default(time.Now),
 	}
@@ -45,13 +49,22 @@ func (Friendship) Edges() []ent.Edge {
 			Required().
 			Unique().
 			Field("friend_id"),
+		edge.To("room", Room.Type).
+			Unique().
+			Field("room_id"),
 	}
 }
 
 // Indexes of the Friendship.
 func (Friendship) Indexes() []ent.Index {
-	return []ent.Index{
-		index.Fields("user_id", "friend_id").
-			Unique(),
+	return []ent.Index{}
+}
+
+// Annotations of the Friendship.
+func (Friendship) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.MultiOrder(),
+		entgql.RelayConnection(),
 	}
 }

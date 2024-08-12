@@ -7,9 +7,8 @@ scalar Upload
 CreateMessageInput is used for create Message object.
 """
 input SendMessageInput {
+  targetUserId: ID
   content: String!
-  userID: ID
-  roomID: ID
 }
 
 """

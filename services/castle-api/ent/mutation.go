@@ -12,6 +12,7 @@ import (
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
+	"journeyhub/ent/schema/property/roomtype"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"sync"
@@ -742,6 +743,8 @@ type FriendshipMutation struct {
 	cleareduser   bool
 	friend        *pulid.ID
 	clearedfriend bool
+	room          *pulid.ID
+	clearedroom   bool
 	done          bool
 	oldValue      func(context.Context) (*Friendship, error)
 	predicates    []predicate.Friendship
@@ -923,6 +926,55 @@ func (m *FriendshipMutation) ResetFriendID() {
 	m.friend = nil
 }
 
+// SetRoomID sets the "room_id" field.
+func (m *FriendshipMutation) SetRoomID(pu pulid.ID) {
+	m.room = &pu
+}
+
+// RoomID returns the value of the "room_id" field in the mutation.
+func (m *FriendshipMutation) RoomID() (r pulid.ID, exists bool) {
+	v := m.room
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoomID returns the old "room_id" field's value of the Friendship entity.
+// If the Friendship object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FriendshipMutation) OldRoomID(ctx context.Context) (v pulid.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoomID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoomID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoomID: %w", err)
+	}
+	return oldValue.RoomID, nil
+}
+
+// ClearRoomID clears the value of the "room_id" field.
+func (m *FriendshipMutation) ClearRoomID() {
+	m.room = nil
+	m.clearedFields[friendship.FieldRoomID] = struct{}{}
+}
+
+// RoomIDCleared returns if the "room_id" field was cleared in this mutation.
+func (m *FriendshipMutation) RoomIDCleared() bool {
+	_, ok := m.clearedFields[friendship.FieldRoomID]
+	return ok
+}
+
+// ResetRoomID resets all changes to the "room_id" field.
+func (m *FriendshipMutation) ResetRoomID() {
+	m.room = nil
+	delete(m.clearedFields, friendship.FieldRoomID)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *FriendshipMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -1013,6 +1065,33 @@ func (m *FriendshipMutation) ResetFriend() {
 	m.clearedfriend = false
 }
 
+// ClearRoom clears the "room" edge to the Room entity.
+func (m *FriendshipMutation) ClearRoom() {
+	m.clearedroom = true
+	m.clearedFields[friendship.FieldRoomID] = struct{}{}
+}
+
+// RoomCleared reports if the "room" edge to the Room entity was cleared.
+func (m *FriendshipMutation) RoomCleared() bool {
+	return m.RoomIDCleared() || m.clearedroom
+}
+
+// RoomIDs returns the "room" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RoomID instead. It exists only for internal usage by the builders.
+func (m *FriendshipMutation) RoomIDs() (ids []pulid.ID) {
+	if id := m.room; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRoom resets all changes to the "room" edge.
+func (m *FriendshipMutation) ResetRoom() {
+	m.room = nil
+	m.clearedroom = false
+}
+
 // Where appends a list predicates to the FriendshipMutation builder.
 func (m *FriendshipMutation) Where(ps ...predicate.Friendship) {
 	m.predicates = append(m.predicates, ps...)
@@ -1047,12 +1126,15 @@ func (m *FriendshipMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FriendshipMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.user != nil {
 		fields = append(fields, friendship.FieldUserID)
 	}
 	if m.friend != nil {
 		fields = append(fields, friendship.FieldFriendID)
+	}
+	if m.room != nil {
+		fields = append(fields, friendship.FieldRoomID)
 	}
 	if m.created_at != nil {
 		fields = append(fields, friendship.FieldCreatedAt)
@@ -1069,6 +1151,8 @@ func (m *FriendshipMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case friendship.FieldFriendID:
 		return m.FriendID()
+	case friendship.FieldRoomID:
+		return m.RoomID()
 	case friendship.FieldCreatedAt:
 		return m.CreatedAt()
 	}
@@ -1084,6 +1168,8 @@ func (m *FriendshipMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldUserID(ctx)
 	case friendship.FieldFriendID:
 		return m.OldFriendID(ctx)
+	case friendship.FieldRoomID:
+		return m.OldRoomID(ctx)
 	case friendship.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	}
@@ -1108,6 +1194,13 @@ func (m *FriendshipMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetFriendID(v)
+		return nil
+	case friendship.FieldRoomID:
+		v, ok := value.(pulid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoomID(v)
 		return nil
 	case friendship.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -1145,7 +1238,11 @@ func (m *FriendshipMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *FriendshipMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(friendship.FieldRoomID) {
+		fields = append(fields, friendship.FieldRoomID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1158,6 +1255,11 @@ func (m *FriendshipMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *FriendshipMutation) ClearField(name string) error {
+	switch name {
+	case friendship.FieldRoomID:
+		m.ClearRoomID()
+		return nil
+	}
 	return fmt.Errorf("unknown Friendship nullable field %s", name)
 }
 
@@ -1171,6 +1273,9 @@ func (m *FriendshipMutation) ResetField(name string) error {
 	case friendship.FieldFriendID:
 		m.ResetFriendID()
 		return nil
+	case friendship.FieldRoomID:
+		m.ResetRoomID()
+		return nil
 	case friendship.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
@@ -1180,12 +1285,15 @@ func (m *FriendshipMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FriendshipMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.user != nil {
 		edges = append(edges, friendship.EdgeUser)
 	}
 	if m.friend != nil {
 		edges = append(edges, friendship.EdgeFriend)
+	}
+	if m.room != nil {
+		edges = append(edges, friendship.EdgeRoom)
 	}
 	return edges
 }
@@ -1202,13 +1310,17 @@ func (m *FriendshipMutation) AddedIDs(name string) []ent.Value {
 		if id := m.friend; id != nil {
 			return []ent.Value{*id}
 		}
+	case friendship.EdgeRoom:
+		if id := m.room; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FriendshipMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -1220,12 +1332,15 @@ func (m *FriendshipMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FriendshipMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.cleareduser {
 		edges = append(edges, friendship.EdgeUser)
 	}
 	if m.clearedfriend {
 		edges = append(edges, friendship.EdgeFriend)
+	}
+	if m.clearedroom {
+		edges = append(edges, friendship.EdgeRoom)
 	}
 	return edges
 }
@@ -1238,6 +1353,8 @@ func (m *FriendshipMutation) EdgeCleared(name string) bool {
 		return m.cleareduser
 	case friendship.EdgeFriend:
 		return m.clearedfriend
+	case friendship.EdgeRoom:
+		return m.clearedroom
 	}
 	return false
 }
@@ -1252,6 +1369,9 @@ func (m *FriendshipMutation) ClearEdge(name string) error {
 	case friendship.EdgeFriend:
 		m.ClearFriend()
 		return nil
+	case friendship.EdgeRoom:
+		m.ClearRoom()
+		return nil
 	}
 	return fmt.Errorf("unknown Friendship unique edge %s", name)
 }
@@ -1265,6 +1385,9 @@ func (m *FriendshipMutation) ResetEdge(name string) error {
 		return nil
 	case friendship.EdgeFriend:
 		m.ResetFriend()
+		return nil
+	case friendship.EdgeRoom:
+		m.ResetRoom()
 		return nil
 	}
 	return fmt.Errorf("unknown Friendship edge %s", name)
@@ -1845,6 +1968,7 @@ type RoomMutation struct {
 	name                *string
 	version             *uint64
 	addversion          *int64
+	_type               *roomtype.Type
 	created_at          *time.Time
 	updated_at          *time.Time
 	clearedFields       map[string]struct{}
@@ -2056,6 +2180,42 @@ func (m *RoomMutation) AddedVersion() (r int64, exists bool) {
 func (m *RoomMutation) ResetVersion() {
 	m.version = nil
 	m.addversion = nil
+}
+
+// SetType sets the "type" field.
+func (m *RoomMutation) SetType(r roomtype.Type) {
+	m._type = &r
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *RoomMutation) GetType() (r roomtype.Type, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldType(ctx context.Context) (v roomtype.Type, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *RoomMutation) ResetType() {
+	m._type = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -2326,12 +2486,15 @@ func (m *RoomMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoomMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, room.FieldName)
 	}
 	if m.version != nil {
 		fields = append(fields, room.FieldVersion)
+	}
+	if m._type != nil {
+		fields = append(fields, room.FieldType)
 	}
 	if m.created_at != nil {
 		fields = append(fields, room.FieldCreatedAt)
@@ -2351,6 +2514,8 @@ func (m *RoomMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case room.FieldVersion:
 		return m.Version()
+	case room.FieldType:
+		return m.GetType()
 	case room.FieldCreatedAt:
 		return m.CreatedAt()
 	case room.FieldUpdatedAt:
@@ -2368,6 +2533,8 @@ func (m *RoomMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldName(ctx)
 	case room.FieldVersion:
 		return m.OldVersion(ctx)
+	case room.FieldType:
+		return m.OldType(ctx)
 	case room.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case room.FieldUpdatedAt:
@@ -2394,6 +2561,13 @@ func (m *RoomMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetVersion(v)
+		return nil
+	case room.FieldType:
+		v, ok := value.(roomtype.Type)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
 		return nil
 	case room.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -2478,6 +2652,9 @@ func (m *RoomMutation) ResetField(name string) error {
 		return nil
 	case room.FieldVersion:
 		m.ResetVersion()
+		return nil
+	case room.FieldType:
+		m.ResetType()
 		return nil
 	case room.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -3175,7 +3352,7 @@ type UserMutation struct {
 	last_name          *string
 	nickname           *string
 	email              *string
-	hashed_password    *[]byte
+	password           *string
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -3447,40 +3624,40 @@ func (m *UserMutation) ResetEmail() {
 	m.email = nil
 }
 
-// SetHashedPassword sets the "hashed_password" field.
-func (m *UserMutation) SetHashedPassword(b []byte) {
-	m.hashed_password = &b
+// SetPassword sets the "password" field.
+func (m *UserMutation) SetPassword(s string) {
+	m.password = &s
 }
 
-// HashedPassword returns the value of the "hashed_password" field in the mutation.
-func (m *UserMutation) HashedPassword() (r []byte, exists bool) {
-	v := m.hashed_password
+// Password returns the value of the "password" field in the mutation.
+func (m *UserMutation) Password() (r string, exists bool) {
+	v := m.password
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldHashedPassword returns the old "hashed_password" field's value of the User entity.
+// OldPassword returns the old "password" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldHashedPassword(ctx context.Context) (v []byte, err error) {
+func (m *UserMutation) OldPassword(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldHashedPassword is only allowed on UpdateOne operations")
+		return v, errors.New("OldPassword is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldHashedPassword requires an ID field in the mutation")
+		return v, errors.New("OldPassword requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHashedPassword: %w", err)
+		return v, fmt.Errorf("querying old value for OldPassword: %w", err)
 	}
-	return oldValue.HashedPassword, nil
+	return oldValue.Password, nil
 }
 
-// ResetHashedPassword resets all changes to the "hashed_password" field.
-func (m *UserMutation) ResetHashedPassword() {
-	m.hashed_password = nil
+// ResetPassword resets all changes to the "password" field.
+func (m *UserMutation) ResetPassword() {
+	m.password = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -3872,8 +4049,8 @@ func (m *UserMutation) Fields() []string {
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
-	if m.hashed_password != nil {
-		fields = append(fields, user.FieldHashedPassword)
+	if m.password != nil {
+		fields = append(fields, user.FieldPassword)
 	}
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
@@ -3897,8 +4074,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Nickname()
 	case user.FieldEmail:
 		return m.Email()
-	case user.FieldHashedPassword:
-		return m.HashedPassword()
+	case user.FieldPassword:
+		return m.Password()
 	case user.FieldCreatedAt:
 		return m.CreatedAt()
 	case user.FieldUpdatedAt:
@@ -3920,8 +4097,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldNickname(ctx)
 	case user.FieldEmail:
 		return m.OldEmail(ctx)
-	case user.FieldHashedPassword:
-		return m.OldHashedPassword(ctx)
+	case user.FieldPassword:
+		return m.OldPassword(ctx)
 	case user.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case user.FieldUpdatedAt:
@@ -3963,12 +4140,12 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetEmail(v)
 		return nil
-	case user.FieldHashedPassword:
-		v, ok := value.([]byte)
+	case user.FieldPassword:
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetHashedPassword(v)
+		m.SetPassword(v)
 		return nil
 	case user.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -4045,8 +4222,8 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldEmail:
 		m.ResetEmail()
 		return nil
-	case user.FieldHashedPassword:
-		m.ResetHashedPassword()
+	case user.FieldPassword:
+		m.ResetPassword()
 		return nil
 	case user.FieldCreatedAt:
 		m.ResetCreatedAt()
