@@ -7,9 +7,12 @@ import (
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"journeyhub/graph/model"
+	"journeyhub/internal/auth/jwtauth"
 	"journeyhub/internal/config"
 	"journeyhub/internal/db"
 	"time"
+
+	"github.com/k0kubun/pp"
 )
 
 var (
@@ -37,20 +40,21 @@ type Service interface {
 		nicknameOrEmail string,
 		password string,
 	) (*model.LoginUser, error)
-	User(
-		ctx context.Context,
-		token string,
-	) (*ent.User, error)
+	Auth(ctx context.Context) (*ent.User, error)
+	JWTAuthClient() *jwtauth.JWTAuth
 }
 
 type service struct {
 	config    config.AuthConfig
+	jwtAuth   *jwtauth.JWTAuth
 	dbService db.Service
 }
 
 func NewService(config config.AuthConfig, dbService db.Service) Service {
+	jwtAuth := jwtauth.New("HS256", []byte(config.Secret), nil)
 	return &service{
 		config:    config,
+		jwtAuth:   jwtAuth,
 		dbService: dbService,
 	}
 }
@@ -126,31 +130,29 @@ func (s *service) Login(
 		return nil, ErrInvalidCredentials
 	}
 
-	token, err := GenerateJwtToken(
-		s.config.Secret,
-		string(existingUser.ID),
-		time.Now().Add(time.Hour*24),
-	)
+	claims := map[string]interface{}{
+		"sub": string(existingUser.ID),
+	}
+	jwtauth.SetIssuedNow(claims)
+	jwtauth.SetExpiryIn(claims, time.Hour*24)
+
+	_, token, err := s.jwtAuth.Encode(claims)
 	if err != nil {
-		return nil, ErrGenerateToken
+		return nil, err
 	}
 
 	return &model.LoginUser{User: existingUser, Token: token}, nil
 }
 
-func (s *service) User(
-	ctx context.Context,
-	token string,
-) (*ent.User, error) {
-	jwtToken, err := ParseJwtToken(s.config.Secret, token)
+func (s *service) Auth(ctx context.Context) (*ent.User, error) {
+	pp.Print("Hello")
+
+	jwtToken, _, err := jwtauth.FromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	subject, err := jwtToken.Claims.GetSubject()
-	if err != nil {
-		return nil, err
-	}
+	subject := jwtToken.Subject()
 
 	entClient := s.dbService.Client()
 
@@ -163,4 +165,8 @@ func (s *service) User(
 	}
 
 	return user, nil
+}
+
+func (s *service) JWTAuthClient() *jwtauth.JWTAuth {
+	return s.jwtAuth
 }

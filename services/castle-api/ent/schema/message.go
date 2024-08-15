@@ -58,6 +58,10 @@ func (Message) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 			),
+		edge.To("reply_to", Message.Type).
+			Unique(),
+		edge.To("attachments", MessageAttachment.Type),
+		edge.To("links", MessageLink.Type),
 	}
 }
 

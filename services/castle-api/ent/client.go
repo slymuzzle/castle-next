@@ -15,6 +15,9 @@ import (
 	"journeyhub/ent/file"
 	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/user"
@@ -36,6 +39,12 @@ type Client struct {
 	Friendship *FriendshipClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
+	// MessageAttachment is the client for interacting with the MessageAttachment builders.
+	MessageAttachment *MessageAttachmentClient
+	// MessageLink is the client for interacting with the MessageLink builders.
+	MessageLink *MessageLinkClient
+	// MessageVoice is the client for interacting with the MessageVoice builders.
+	MessageVoice *MessageVoiceClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
 	// RoomMember is the client for interacting with the RoomMember builders.
@@ -56,6 +65,9 @@ func (c *Client) init() {
 	c.File = NewFileClient(c.config)
 	c.Friendship = NewFriendshipClient(c.config)
 	c.Message = NewMessageClient(c.config)
+	c.MessageAttachment = NewMessageAttachmentClient(c.config)
+	c.MessageLink = NewMessageLinkClient(c.config)
+	c.MessageVoice = NewMessageVoiceClient(c.config)
 	c.Room = NewRoomClient(c.config)
 	c.RoomMember = NewRoomMemberClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -149,14 +161,17 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		File:       NewFileClient(cfg),
-		Friendship: NewFriendshipClient(cfg),
-		Message:    NewMessageClient(cfg),
-		Room:       NewRoomClient(cfg),
-		RoomMember: NewRoomMemberClient(cfg),
-		User:       NewUserClient(cfg),
+		ctx:               ctx,
+		config:            cfg,
+		File:              NewFileClient(cfg),
+		Friendship:        NewFriendshipClient(cfg),
+		Message:           NewMessageClient(cfg),
+		MessageAttachment: NewMessageAttachmentClient(cfg),
+		MessageLink:       NewMessageLinkClient(cfg),
+		MessageVoice:      NewMessageVoiceClient(cfg),
+		Room:              NewRoomClient(cfg),
+		RoomMember:        NewRoomMemberClient(cfg),
+		User:              NewUserClient(cfg),
 	}, nil
 }
 
@@ -174,14 +189,17 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		File:       NewFileClient(cfg),
-		Friendship: NewFriendshipClient(cfg),
-		Message:    NewMessageClient(cfg),
-		Room:       NewRoomClient(cfg),
-		RoomMember: NewRoomMemberClient(cfg),
-		User:       NewUserClient(cfg),
+		ctx:               ctx,
+		config:            cfg,
+		File:              NewFileClient(cfg),
+		Friendship:        NewFriendshipClient(cfg),
+		Message:           NewMessageClient(cfg),
+		MessageAttachment: NewMessageAttachmentClient(cfg),
+		MessageLink:       NewMessageLinkClient(cfg),
+		MessageVoice:      NewMessageVoiceClient(cfg),
+		Room:              NewRoomClient(cfg),
+		RoomMember:        NewRoomMemberClient(cfg),
+		User:              NewUserClient(cfg),
 	}, nil
 }
 
@@ -211,7 +229,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.File, c.Friendship, c.Message, c.Room, c.RoomMember, c.User,
+		c.File, c.Friendship, c.Message, c.MessageAttachment, c.MessageLink,
+		c.MessageVoice, c.Room, c.RoomMember, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -221,7 +240,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.File, c.Friendship, c.Message, c.Room, c.RoomMember, c.User,
+		c.File, c.Friendship, c.Message, c.MessageAttachment, c.MessageLink,
+		c.MessageVoice, c.Room, c.RoomMember, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -236,6 +256,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Friendship.mutate(ctx, m)
 	case *MessageMutation:
 		return c.Message.mutate(ctx, m)
+	case *MessageAttachmentMutation:
+		return c.MessageAttachment.mutate(ctx, m)
+	case *MessageLinkMutation:
+		return c.MessageLink.mutate(ctx, m)
+	case *MessageVoiceMutation:
+		return c.MessageVoice.mutate(ctx, m)
 	case *RoomMutation:
 		return c.Room.mutate(ctx, m)
 	case *RoomMemberMutation:
@@ -353,6 +379,38 @@ func (c *FileClient) GetX(ctx context.Context, id pulid.ID) *File {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryMessageAttachment queries the message_attachment edge of a File.
+func (c *FileClient) QueryMessageAttachment(f *File) *MessageAttachmentQuery {
+	query := (&MessageAttachmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(messageattachment.Table, messageattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.MessageAttachmentTable, file.MessageAttachmentColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMessageVoice queries the message_voice edge of a File.
+func (c *FileClient) QueryMessageVoice(f *File) *MessageVoiceQuery {
+	query := (&MessageVoiceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(messagevoice.Table, messagevoice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.MessageVoiceTable, file.MessageVoiceColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -701,6 +759,54 @@ func (c *MessageClient) QueryRoom(m *Message) *RoomQuery {
 	return query
 }
 
+// QueryReplyTo queries the reply_to edge of a Message.
+func (c *MessageClient) QueryReplyTo(m *Message) *MessageQuery {
+	query := (&MessageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, id),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, message.ReplyToTable, message.ReplyToColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAttachments queries the attachments edge of a Message.
+func (c *MessageClient) QueryAttachments(m *Message) *MessageAttachmentQuery {
+	query := (&MessageAttachmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, id),
+			sqlgraph.To(messageattachment.Table, messageattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, message.AttachmentsTable, message.AttachmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLinks queries the links edge of a Message.
+func (c *MessageClient) QueryLinks(m *Message) *MessageLinkQuery {
+	query := (&MessageLinkClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, id),
+			sqlgraph.To(messagelink.Table, messagelink.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, message.LinksTable, message.LinksColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *MessageClient) Hooks() []Hook {
 	return c.hooks.Message
@@ -723,6 +829,469 @@ func (c *MessageClient) mutate(ctx context.Context, m *MessageMutation) (Value, 
 		return (&MessageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Message mutation op: %q", m.Op())
+	}
+}
+
+// MessageAttachmentClient is a client for the MessageAttachment schema.
+type MessageAttachmentClient struct {
+	config
+}
+
+// NewMessageAttachmentClient returns a client for the MessageAttachment from the given config.
+func NewMessageAttachmentClient(c config) *MessageAttachmentClient {
+	return &MessageAttachmentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `messageattachment.Hooks(f(g(h())))`.
+func (c *MessageAttachmentClient) Use(hooks ...Hook) {
+	c.hooks.MessageAttachment = append(c.hooks.MessageAttachment, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `messageattachment.Intercept(f(g(h())))`.
+func (c *MessageAttachmentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MessageAttachment = append(c.inters.MessageAttachment, interceptors...)
+}
+
+// Create returns a builder for creating a MessageAttachment entity.
+func (c *MessageAttachmentClient) Create() *MessageAttachmentCreate {
+	mutation := newMessageAttachmentMutation(c.config, OpCreate)
+	return &MessageAttachmentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MessageAttachment entities.
+func (c *MessageAttachmentClient) CreateBulk(builders ...*MessageAttachmentCreate) *MessageAttachmentCreateBulk {
+	return &MessageAttachmentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MessageAttachmentClient) MapCreateBulk(slice any, setFunc func(*MessageAttachmentCreate, int)) *MessageAttachmentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MessageAttachmentCreateBulk{err: fmt.Errorf("calling to MessageAttachmentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MessageAttachmentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MessageAttachmentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MessageAttachment.
+func (c *MessageAttachmentClient) Update() *MessageAttachmentUpdate {
+	mutation := newMessageAttachmentMutation(c.config, OpUpdate)
+	return &MessageAttachmentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MessageAttachmentClient) UpdateOne(ma *MessageAttachment) *MessageAttachmentUpdateOne {
+	mutation := newMessageAttachmentMutation(c.config, OpUpdateOne, withMessageAttachment(ma))
+	return &MessageAttachmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MessageAttachmentClient) UpdateOneID(id pulid.ID) *MessageAttachmentUpdateOne {
+	mutation := newMessageAttachmentMutation(c.config, OpUpdateOne, withMessageAttachmentID(id))
+	return &MessageAttachmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MessageAttachment.
+func (c *MessageAttachmentClient) Delete() *MessageAttachmentDelete {
+	mutation := newMessageAttachmentMutation(c.config, OpDelete)
+	return &MessageAttachmentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MessageAttachmentClient) DeleteOne(ma *MessageAttachment) *MessageAttachmentDeleteOne {
+	return c.DeleteOneID(ma.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MessageAttachmentClient) DeleteOneID(id pulid.ID) *MessageAttachmentDeleteOne {
+	builder := c.Delete().Where(messageattachment.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MessageAttachmentDeleteOne{builder}
+}
+
+// Query returns a query builder for MessageAttachment.
+func (c *MessageAttachmentClient) Query() *MessageAttachmentQuery {
+	return &MessageAttachmentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessageAttachment},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MessageAttachment entity by its id.
+func (c *MessageAttachmentClient) Get(ctx context.Context, id pulid.ID) (*MessageAttachment, error) {
+	return c.Query().Where(messageattachment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MessageAttachmentClient) GetX(ctx context.Context, id pulid.ID) *MessageAttachment {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryMessage queries the message edge of a MessageAttachment.
+func (c *MessageAttachmentClient) QueryMessage(ma *MessageAttachment) *MessageQuery {
+	query := (&MessageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ma.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(messageattachment.Table, messageattachment.FieldID, id),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, messageattachment.MessageTable, messageattachment.MessageColumn),
+		)
+		fromV = sqlgraph.Neighbors(ma.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFile queries the file edge of a MessageAttachment.
+func (c *MessageAttachmentClient) QueryFile(ma *MessageAttachment) *FileQuery {
+	query := (&FileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ma.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(messageattachment.Table, messageattachment.FieldID, id),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, messageattachment.FileTable, messageattachment.FileColumn),
+		)
+		fromV = sqlgraph.Neighbors(ma.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MessageAttachmentClient) Hooks() []Hook {
+	return c.hooks.MessageAttachment
+}
+
+// Interceptors returns the client interceptors.
+func (c *MessageAttachmentClient) Interceptors() []Interceptor {
+	return c.inters.MessageAttachment
+}
+
+func (c *MessageAttachmentClient) mutate(ctx context.Context, m *MessageAttachmentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageAttachmentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageAttachmentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageAttachmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageAttachmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MessageAttachment mutation op: %q", m.Op())
+	}
+}
+
+// MessageLinkClient is a client for the MessageLink schema.
+type MessageLinkClient struct {
+	config
+}
+
+// NewMessageLinkClient returns a client for the MessageLink from the given config.
+func NewMessageLinkClient(c config) *MessageLinkClient {
+	return &MessageLinkClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `messagelink.Hooks(f(g(h())))`.
+func (c *MessageLinkClient) Use(hooks ...Hook) {
+	c.hooks.MessageLink = append(c.hooks.MessageLink, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `messagelink.Intercept(f(g(h())))`.
+func (c *MessageLinkClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MessageLink = append(c.inters.MessageLink, interceptors...)
+}
+
+// Create returns a builder for creating a MessageLink entity.
+func (c *MessageLinkClient) Create() *MessageLinkCreate {
+	mutation := newMessageLinkMutation(c.config, OpCreate)
+	return &MessageLinkCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MessageLink entities.
+func (c *MessageLinkClient) CreateBulk(builders ...*MessageLinkCreate) *MessageLinkCreateBulk {
+	return &MessageLinkCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MessageLinkClient) MapCreateBulk(slice any, setFunc func(*MessageLinkCreate, int)) *MessageLinkCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MessageLinkCreateBulk{err: fmt.Errorf("calling to MessageLinkClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MessageLinkCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MessageLinkCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MessageLink.
+func (c *MessageLinkClient) Update() *MessageLinkUpdate {
+	mutation := newMessageLinkMutation(c.config, OpUpdate)
+	return &MessageLinkUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MessageLinkClient) UpdateOne(ml *MessageLink) *MessageLinkUpdateOne {
+	mutation := newMessageLinkMutation(c.config, OpUpdateOne, withMessageLink(ml))
+	return &MessageLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MessageLinkClient) UpdateOneID(id pulid.ID) *MessageLinkUpdateOne {
+	mutation := newMessageLinkMutation(c.config, OpUpdateOne, withMessageLinkID(id))
+	return &MessageLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MessageLink.
+func (c *MessageLinkClient) Delete() *MessageLinkDelete {
+	mutation := newMessageLinkMutation(c.config, OpDelete)
+	return &MessageLinkDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MessageLinkClient) DeleteOne(ml *MessageLink) *MessageLinkDeleteOne {
+	return c.DeleteOneID(ml.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MessageLinkClient) DeleteOneID(id pulid.ID) *MessageLinkDeleteOne {
+	builder := c.Delete().Where(messagelink.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MessageLinkDeleteOne{builder}
+}
+
+// Query returns a query builder for MessageLink.
+func (c *MessageLinkClient) Query() *MessageLinkQuery {
+	return &MessageLinkQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessageLink},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MessageLink entity by its id.
+func (c *MessageLinkClient) Get(ctx context.Context, id pulid.ID) (*MessageLink, error) {
+	return c.Query().Where(messagelink.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MessageLinkClient) GetX(ctx context.Context, id pulid.ID) *MessageLink {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryMessage queries the message edge of a MessageLink.
+func (c *MessageLinkClient) QueryMessage(ml *MessageLink) *MessageQuery {
+	query := (&MessageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ml.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(messagelink.Table, messagelink.FieldID, id),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, messagelink.MessageTable, messagelink.MessageColumn),
+		)
+		fromV = sqlgraph.Neighbors(ml.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MessageLinkClient) Hooks() []Hook {
+	return c.hooks.MessageLink
+}
+
+// Interceptors returns the client interceptors.
+func (c *MessageLinkClient) Interceptors() []Interceptor {
+	return c.inters.MessageLink
+}
+
+func (c *MessageLinkClient) mutate(ctx context.Context, m *MessageLinkMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageLinkCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageLinkUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageLinkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MessageLink mutation op: %q", m.Op())
+	}
+}
+
+// MessageVoiceClient is a client for the MessageVoice schema.
+type MessageVoiceClient struct {
+	config
+}
+
+// NewMessageVoiceClient returns a client for the MessageVoice from the given config.
+func NewMessageVoiceClient(c config) *MessageVoiceClient {
+	return &MessageVoiceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `messagevoice.Hooks(f(g(h())))`.
+func (c *MessageVoiceClient) Use(hooks ...Hook) {
+	c.hooks.MessageVoice = append(c.hooks.MessageVoice, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `messagevoice.Intercept(f(g(h())))`.
+func (c *MessageVoiceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MessageVoice = append(c.inters.MessageVoice, interceptors...)
+}
+
+// Create returns a builder for creating a MessageVoice entity.
+func (c *MessageVoiceClient) Create() *MessageVoiceCreate {
+	mutation := newMessageVoiceMutation(c.config, OpCreate)
+	return &MessageVoiceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MessageVoice entities.
+func (c *MessageVoiceClient) CreateBulk(builders ...*MessageVoiceCreate) *MessageVoiceCreateBulk {
+	return &MessageVoiceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MessageVoiceClient) MapCreateBulk(slice any, setFunc func(*MessageVoiceCreate, int)) *MessageVoiceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MessageVoiceCreateBulk{err: fmt.Errorf("calling to MessageVoiceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MessageVoiceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MessageVoiceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MessageVoice.
+func (c *MessageVoiceClient) Update() *MessageVoiceUpdate {
+	mutation := newMessageVoiceMutation(c.config, OpUpdate)
+	return &MessageVoiceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MessageVoiceClient) UpdateOne(mv *MessageVoice) *MessageVoiceUpdateOne {
+	mutation := newMessageVoiceMutation(c.config, OpUpdateOne, withMessageVoice(mv))
+	return &MessageVoiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MessageVoiceClient) UpdateOneID(id pulid.ID) *MessageVoiceUpdateOne {
+	mutation := newMessageVoiceMutation(c.config, OpUpdateOne, withMessageVoiceID(id))
+	return &MessageVoiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MessageVoice.
+func (c *MessageVoiceClient) Delete() *MessageVoiceDelete {
+	mutation := newMessageVoiceMutation(c.config, OpDelete)
+	return &MessageVoiceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MessageVoiceClient) DeleteOne(mv *MessageVoice) *MessageVoiceDeleteOne {
+	return c.DeleteOneID(mv.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MessageVoiceClient) DeleteOneID(id pulid.ID) *MessageVoiceDeleteOne {
+	builder := c.Delete().Where(messagevoice.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MessageVoiceDeleteOne{builder}
+}
+
+// Query returns a query builder for MessageVoice.
+func (c *MessageVoiceClient) Query() *MessageVoiceQuery {
+	return &MessageVoiceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessageVoice},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MessageVoice entity by its id.
+func (c *MessageVoiceClient) Get(ctx context.Context, id pulid.ID) (*MessageVoice, error) {
+	return c.Query().Where(messagevoice.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MessageVoiceClient) GetX(ctx context.Context, id pulid.ID) *MessageVoice {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryFile queries the file edge of a MessageVoice.
+func (c *MessageVoiceClient) QueryFile(mv *MessageVoice) *FileQuery {
+	query := (&FileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := mv.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(messagevoice.Table, messagevoice.FieldID, id),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, messagevoice.FileTable, messagevoice.FileColumn),
+		)
+		fromV = sqlgraph.Neighbors(mv.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MessageVoiceClient) Hooks() []Hook {
+	return c.hooks.MessageVoice
+}
+
+// Interceptors returns the client interceptors.
+func (c *MessageVoiceClient) Interceptors() []Interceptor {
+	return c.inters.MessageVoice
+}
+
+func (c *MessageVoiceClient) mutate(ctx context.Context, m *MessageVoiceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageVoiceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageVoiceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageVoiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageVoiceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MessageVoice mutation op: %q", m.Op())
 	}
 }
 
@@ -1288,9 +1857,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		File, Friendship, Message, Room, RoomMember, User []ent.Hook
+		File, Friendship, Message, MessageAttachment, MessageLink, MessageVoice, Room,
+		RoomMember, User []ent.Hook
 	}
 	inters struct {
-		File, Friendship, Message, Room, RoomMember, User []ent.Interceptor
+		File, Friendship, Message, MessageAttachment, MessageLink, MessageVoice, Room,
+		RoomMember, User []ent.Interceptor
 	}
 )

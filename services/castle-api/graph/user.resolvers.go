@@ -39,3 +39,13 @@ func (r *mutationResolver) Login(ctx context.Context, input model.UserLoginInput
 		input.Password,
 	)
 }
+
+// Self is the resolver for the self field.
+func (r *queryResolver) Self(ctx context.Context) (*ent.User, error) {
+	user, err := r.authService.Auth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}

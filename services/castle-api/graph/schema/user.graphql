@@ -27,3 +27,7 @@ extend type Mutation {
   register(input: UserRegisterInput!): User
   login(input: UserLoginInput!): LoginUser
 }
+
+extend type Query {
+  self: User
+}

@@ -5,6 +5,8 @@ package ent
 import (
 	"fmt"
 	"journeyhub/ent/file"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/schema/pulid"
 	"strings"
 	"time"
@@ -20,8 +22,6 @@ type File struct {
 	ID pulid.ID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// FileName holds the value of the "file_name" field.
-	FileName string `json:"file_name,omitempty"`
 	// MimeType holds the value of the "mime_type" field.
 	MimeType string `json:"mime_type,omitempty"`
 	// Disk holds the value of the "disk" field.
@@ -31,8 +31,48 @@ type File struct {
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
-	selectValues sql.SelectValues
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the FileQuery when eager-loading is set.
+	Edges                   FileEdges `json:"edges"`
+	message_attachment_file *pulid.ID
+	message_voice_file      *pulid.ID
+	selectValues            sql.SelectValues
+}
+
+// FileEdges holds the relations/edges for other nodes in the graph.
+type FileEdges struct {
+	// MessageAttachment holds the value of the message_attachment edge.
+	MessageAttachment *MessageAttachment `json:"message_attachment,omitempty"`
+	// MessageVoice holds the value of the message_voice edge.
+	MessageVoice *MessageVoice `json:"message_voice,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+	// totalCount holds the count of the edges above.
+	totalCount [2]map[string]int
+}
+
+// MessageAttachmentOrErr returns the MessageAttachment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FileEdges) MessageAttachmentOrErr() (*MessageAttachment, error) {
+	if e.MessageAttachment != nil {
+		return e.MessageAttachment, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: messageattachment.Label}
+	}
+	return nil, &NotLoadedError{edge: "message_attachment"}
+}
+
+// MessageVoiceOrErr returns the MessageVoice value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FileEdges) MessageVoiceOrErr() (*MessageVoice, error) {
+	if e.MessageVoice != nil {
+		return e.MessageVoice, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: messagevoice.Label}
+	}
+	return nil, &NotLoadedError{edge: "message_voice"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -44,10 +84,14 @@ func (*File) scanValues(columns []string) ([]any, error) {
 			values[i] = new(pulid.ID)
 		case file.FieldSize:
 			values[i] = new(sql.NullInt64)
-		case file.FieldName, file.FieldFileName, file.FieldMimeType, file.FieldDisk:
+		case file.FieldName, file.FieldMimeType, file.FieldDisk:
 			values[i] = new(sql.NullString)
 		case file.FieldCreatedAt, file.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
+		case file.ForeignKeys[0]: // message_attachment_file
+			values[i] = &sql.NullScanner{S: new(pulid.ID)}
+		case file.ForeignKeys[1]: // message_voice_file
+			values[i] = &sql.NullScanner{S: new(pulid.ID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -74,12 +118,6 @@ func (f *File) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				f.Name = value.String
-			}
-		case file.FieldFileName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field file_name", values[i])
-			} else if value.Valid {
-				f.FileName = value.String
 			}
 		case file.FieldMimeType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -111,6 +149,20 @@ func (f *File) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				f.UpdatedAt = value.Time
 			}
+		case file.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field message_attachment_file", values[i])
+			} else if value.Valid {
+				f.message_attachment_file = new(pulid.ID)
+				*f.message_attachment_file = *value.S.(*pulid.ID)
+			}
+		case file.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field message_voice_file", values[i])
+			} else if value.Valid {
+				f.message_voice_file = new(pulid.ID)
+				*f.message_voice_file = *value.S.(*pulid.ID)
+			}
 		default:
 			f.selectValues.Set(columns[i], values[i])
 		}
@@ -122,6 +174,16 @@ func (f *File) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (f *File) Value(name string) (ent.Value, error) {
 	return f.selectValues.Get(name)
+}
+
+// QueryMessageAttachment queries the "message_attachment" edge of the File entity.
+func (f *File) QueryMessageAttachment() *MessageAttachmentQuery {
+	return NewFileClient(f.config).QueryMessageAttachment(f)
+}
+
+// QueryMessageVoice queries the "message_voice" edge of the File entity.
+func (f *File) QueryMessageVoice() *MessageVoiceQuery {
+	return NewFileClient(f.config).QueryMessageVoice(f)
 }
 
 // Update returns a builder for updating this File.
@@ -149,9 +211,6 @@ func (f *File) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", f.ID))
 	builder.WriteString("name=")
 	builder.WriteString(f.Name)
-	builder.WriteString(", ")
-	builder.WriteString("file_name=")
-	builder.WriteString(f.FileName)
 	builder.WriteString(", ")
 	builder.WriteString("mime_type=")
 	builder.WriteString(f.MimeType)

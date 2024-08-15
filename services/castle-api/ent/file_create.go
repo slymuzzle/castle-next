@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"journeyhub/ent/file"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/schema/pulid"
 	"time"
 
@@ -27,12 +29,6 @@ type FileCreate struct {
 // SetName sets the "name" field.
 func (fc *FileCreate) SetName(s string) *FileCreate {
 	fc.mutation.SetName(s)
-	return fc
-}
-
-// SetFileName sets the "file_name" field.
-func (fc *FileCreate) SetFileName(s string) *FileCreate {
-	fc.mutation.SetFileName(s)
 	return fc
 }
 
@@ -96,6 +92,44 @@ func (fc *FileCreate) SetNillableID(pu *pulid.ID) *FileCreate {
 	return fc
 }
 
+// SetMessageAttachmentID sets the "message_attachment" edge to the MessageAttachment entity by ID.
+func (fc *FileCreate) SetMessageAttachmentID(id pulid.ID) *FileCreate {
+	fc.mutation.SetMessageAttachmentID(id)
+	return fc
+}
+
+// SetNillableMessageAttachmentID sets the "message_attachment" edge to the MessageAttachment entity by ID if the given value is not nil.
+func (fc *FileCreate) SetNillableMessageAttachmentID(id *pulid.ID) *FileCreate {
+	if id != nil {
+		fc = fc.SetMessageAttachmentID(*id)
+	}
+	return fc
+}
+
+// SetMessageAttachment sets the "message_attachment" edge to the MessageAttachment entity.
+func (fc *FileCreate) SetMessageAttachment(m *MessageAttachment) *FileCreate {
+	return fc.SetMessageAttachmentID(m.ID)
+}
+
+// SetMessageVoiceID sets the "message_voice" edge to the MessageVoice entity by ID.
+func (fc *FileCreate) SetMessageVoiceID(id pulid.ID) *FileCreate {
+	fc.mutation.SetMessageVoiceID(id)
+	return fc
+}
+
+// SetNillableMessageVoiceID sets the "message_voice" edge to the MessageVoice entity by ID if the given value is not nil.
+func (fc *FileCreate) SetNillableMessageVoiceID(id *pulid.ID) *FileCreate {
+	if id != nil {
+		fc = fc.SetMessageVoiceID(*id)
+	}
+	return fc
+}
+
+// SetMessageVoice sets the "message_voice" edge to the MessageVoice entity.
+func (fc *FileCreate) SetMessageVoice(m *MessageVoice) *FileCreate {
+	return fc.SetMessageVoiceID(m.ID)
+}
+
 // Mutation returns the FileMutation object of the builder.
 func (fc *FileCreate) Mutation() *FileMutation {
 	return fc.mutation
@@ -149,9 +183,6 @@ func (fc *FileCreate) defaults() {
 func (fc *FileCreate) check() error {
 	if _, ok := fc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "File.name"`)}
-	}
-	if _, ok := fc.mutation.FileName(); !ok {
-		return &ValidationError{Name: "file_name", err: errors.New(`ent: missing required field "File.file_name"`)}
 	}
 	if _, ok := fc.mutation.MimeType(); !ok {
 		return &ValidationError{Name: "mime_type", err: errors.New(`ent: missing required field "File.mime_type"`)}
@@ -208,10 +239,6 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 		_spec.SetField(file.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := fc.mutation.FileName(); ok {
-		_spec.SetField(file.FieldFileName, field.TypeString, value)
-		_node.FileName = value
-	}
 	if value, ok := fc.mutation.MimeType(); ok {
 		_spec.SetField(file.FieldMimeType, field.TypeString, value)
 		_node.MimeType = value
@@ -231,6 +258,40 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 	if value, ok := fc.mutation.UpdatedAt(); ok {
 		_spec.SetField(file.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if nodes := fc.mutation.MessageAttachmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.MessageAttachmentTable,
+			Columns: []string{file.MessageAttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.message_attachment_file = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.MessageVoiceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.MessageVoiceTable,
+			Columns: []string{file.MessageVoiceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagevoice.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.message_voice_file = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -293,18 +354,6 @@ func (u *FileUpsert) SetName(v string) *FileUpsert {
 // UpdateName sets the "name" field to the value that was provided on create.
 func (u *FileUpsert) UpdateName() *FileUpsert {
 	u.SetExcluded(file.FieldName)
-	return u
-}
-
-// SetFileName sets the "file_name" field.
-func (u *FileUpsert) SetFileName(v string) *FileUpsert {
-	u.Set(file.FieldFileName, v)
-	return u
-}
-
-// UpdateFileName sets the "file_name" field to the value that was provided on create.
-func (u *FileUpsert) UpdateFileName() *FileUpsert {
-	u.SetExcluded(file.FieldFileName)
 	return u
 }
 
@@ -424,20 +473,6 @@ func (u *FileUpsertOne) SetName(v string) *FileUpsertOne {
 func (u *FileUpsertOne) UpdateName() *FileUpsertOne {
 	return u.Update(func(s *FileUpsert) {
 		s.UpdateName()
-	})
-}
-
-// SetFileName sets the "file_name" field.
-func (u *FileUpsertOne) SetFileName(v string) *FileUpsertOne {
-	return u.Update(func(s *FileUpsert) {
-		s.SetFileName(v)
-	})
-}
-
-// UpdateFileName sets the "file_name" field to the value that was provided on create.
-func (u *FileUpsertOne) UpdateFileName() *FileUpsertOne {
-	return u.Update(func(s *FileUpsert) {
-		s.UpdateFileName()
 	})
 }
 
@@ -733,20 +768,6 @@ func (u *FileUpsertBulk) SetName(v string) *FileUpsertBulk {
 func (u *FileUpsertBulk) UpdateName() *FileUpsertBulk {
 	return u.Update(func(s *FileUpsert) {
 		s.UpdateName()
-	})
-}
-
-// SetFileName sets the "file_name" field.
-func (u *FileUpsertBulk) SetFileName(v string) *FileUpsertBulk {
-	return u.Update(func(s *FileUpsert) {
-		s.SetFileName(v)
-	})
-}
-
-// UpdateFileName sets the "file_name" field to the value that was provided on create.
-func (u *FileUpsertBulk) UpdateFileName() *FileUpsertBulk {
-	return u.Update(func(s *FileUpsert) {
-		s.UpdateFileName()
 	})
 }
 

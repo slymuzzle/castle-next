@@ -4,7 +4,6 @@ package room
 
 import (
 	"journeyhub/ent/predicate"
-	"journeyhub/ent/schema/property/roomtype"
 	"journeyhub/ent/schema/pulid"
 	"time"
 
@@ -183,33 +182,23 @@ func VersionLTE(v uint64) predicate.Room {
 }
 
 // TypeEQ applies the EQ predicate on the "type" field.
-func TypeEQ(v roomtype.Type) predicate.Room {
-	vc := v
-	return predicate.Room(sql.FieldEQ(FieldType, vc))
+func TypeEQ(v Type) predicate.Room {
+	return predicate.Room(sql.FieldEQ(FieldType, v))
 }
 
 // TypeNEQ applies the NEQ predicate on the "type" field.
-func TypeNEQ(v roomtype.Type) predicate.Room {
-	vc := v
-	return predicate.Room(sql.FieldNEQ(FieldType, vc))
+func TypeNEQ(v Type) predicate.Room {
+	return predicate.Room(sql.FieldNEQ(FieldType, v))
 }
 
 // TypeIn applies the In predicate on the "type" field.
-func TypeIn(vs ...roomtype.Type) predicate.Room {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Room(sql.FieldIn(FieldType, v...))
+func TypeIn(vs ...Type) predicate.Room {
+	return predicate.Room(sql.FieldIn(FieldType, vs...))
 }
 
 // TypeNotIn applies the NotIn predicate on the "type" field.
-func TypeNotIn(vs ...roomtype.Type) predicate.Room {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Room(sql.FieldNotIn(FieldType, v...))
+func TypeNotIn(vs ...Type) predicate.Room {
+	return predicate.Room(sql.FieldNotIn(FieldType, vs...))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

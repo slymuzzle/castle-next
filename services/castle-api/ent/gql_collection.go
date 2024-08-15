@@ -9,6 +9,9 @@ import (
 	"journeyhub/ent/file"
 	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
@@ -40,15 +43,32 @@ func (f *FileQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+
+		case "messageAttachment":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&MessageAttachmentClient{config: f.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, messageattachmentImplementors)...); err != nil {
+				return err
+			}
+			f.withMessageAttachment = query
+
+		case "messageVoice":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&MessageVoiceClient{config: f.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, messagevoiceImplementors)...); err != nil {
+				return err
+			}
+			f.withMessageVoice = query
 		case "name":
 			if _, ok := fieldSeen[file.FieldName]; !ok {
 				selectedFields = append(selectedFields, file.FieldName)
 				fieldSeen[file.FieldName] = struct{}{}
-			}
-		case "fileName":
-			if _, ok := fieldSeen[file.FieldFileName]; !ok {
-				selectedFields = append(selectedFields, file.FieldFileName)
-				fieldSeen[file.FieldFileName] = struct{}{}
 			}
 		case "mimeType":
 			if _, ok := fieldSeen[file.FieldMimeType]; !ok {
@@ -308,6 +328,43 @@ func (m *MessageQuery) collectField(ctx context.Context, oneNode bool, opCtx *gr
 				return err
 			}
 			m.withRoom = query
+
+		case "replyTo":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&MessageClient{config: m.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, messageImplementors)...); err != nil {
+				return err
+			}
+			m.withReplyTo = query
+
+		case "attachments":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&MessageAttachmentClient{config: m.config}).Query()
+			)
+			if err := query.collectField(ctx, false, opCtx, field, path, mayAddCondition(satisfies, messageattachmentImplementors)...); err != nil {
+				return err
+			}
+			m.WithNamedAttachments(alias, func(wq *MessageAttachmentQuery) {
+				*wq = *query
+			})
+
+		case "links":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&MessageLinkClient{config: m.config}).Query()
+			)
+			if err := query.collectField(ctx, false, opCtx, field, path, mayAddCondition(satisfies, messagelinkImplementors)...); err != nil {
+				return err
+			}
+			m.WithNamedLinks(alias, func(wq *MessageLinkQuery) {
+				*wq = *query
+			})
 		case "content":
 			if _, ok := fieldSeen[message.FieldContent]; !ok {
 				selectedFields = append(selectedFields, message.FieldContent)
@@ -388,6 +445,342 @@ func newMessagePaginateArgs(rv map[string]any) *messagePaginateArgs {
 	}
 	if v, ok := rv[whereField].(*MessageWhereInput); ok {
 		args.opts = append(args.opts, WithMessageFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ma *MessageAttachmentQuery) CollectFields(ctx context.Context, satisfies ...string) (*MessageAttachmentQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ma, nil
+	}
+	if err := ma.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ma, nil
+}
+
+func (ma *MessageAttachmentQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(messageattachment.Columns))
+		selectedFields = []string{messageattachment.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+
+		case "message":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&MessageClient{config: ma.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, messageImplementors)...); err != nil {
+				return err
+			}
+			ma.withMessage = query
+
+		case "file":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&FileClient{config: ma.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, fileImplementors)...); err != nil {
+				return err
+			}
+			ma.withFile = query
+		case "type":
+			if _, ok := fieldSeen[messageattachment.FieldType]; !ok {
+				selectedFields = append(selectedFields, messageattachment.FieldType)
+				fieldSeen[messageattachment.FieldType] = struct{}{}
+			}
+		case "order":
+			if _, ok := fieldSeen[messageattachment.FieldOrder]; !ok {
+				selectedFields = append(selectedFields, messageattachment.FieldOrder)
+				fieldSeen[messageattachment.FieldOrder] = struct{}{}
+			}
+		case "attachedAt":
+			if _, ok := fieldSeen[messageattachment.FieldAttachedAt]; !ok {
+				selectedFields = append(selectedFields, messageattachment.FieldAttachedAt)
+				fieldSeen[messageattachment.FieldAttachedAt] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		ma.Select(selectedFields...)
+	}
+	return nil
+}
+
+type messageattachmentPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []MessageAttachmentPaginateOption
+}
+
+func newMessageAttachmentPaginateArgs(rv map[string]any) *messageattachmentPaginateArgs {
+	args := &messageattachmentPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &MessageAttachmentOrder{Field: &MessageAttachmentOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithMessageAttachmentOrder(order))
+			}
+		case *MessageAttachmentOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithMessageAttachmentOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*MessageAttachmentWhereInput); ok {
+		args.opts = append(args.opts, WithMessageAttachmentFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ml *MessageLinkQuery) CollectFields(ctx context.Context, satisfies ...string) (*MessageLinkQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ml, nil
+	}
+	if err := ml.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ml, nil
+}
+
+func (ml *MessageLinkQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(messagelink.Columns))
+		selectedFields = []string{messagelink.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+
+		case "message":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&MessageClient{config: ml.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, messageImplementors)...); err != nil {
+				return err
+			}
+			ml.withMessage = query
+		case "url":
+			if _, ok := fieldSeen[messagelink.FieldURL]; !ok {
+				selectedFields = append(selectedFields, messagelink.FieldURL)
+				fieldSeen[messagelink.FieldURL] = struct{}{}
+			}
+		case "createdAt":
+			if _, ok := fieldSeen[messagelink.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, messagelink.FieldCreatedAt)
+				fieldSeen[messagelink.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[messagelink.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, messagelink.FieldUpdatedAt)
+				fieldSeen[messagelink.FieldUpdatedAt] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		ml.Select(selectedFields...)
+	}
+	return nil
+}
+
+type messagelinkPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []MessageLinkPaginateOption
+}
+
+func newMessageLinkPaginateArgs(rv map[string]any) *messagelinkPaginateArgs {
+	args := &messagelinkPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &MessageLinkOrder{Field: &MessageLinkOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithMessageLinkOrder(order))
+			}
+		case *MessageLinkOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithMessageLinkOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*MessageLinkWhereInput); ok {
+		args.opts = append(args.opts, WithMessageLinkFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (mv *MessageVoiceQuery) CollectFields(ctx context.Context, satisfies ...string) (*MessageVoiceQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return mv, nil
+	}
+	if err := mv.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return mv, nil
+}
+
+func (mv *MessageVoiceQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(messagevoice.Columns))
+		selectedFields = []string{messagevoice.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+
+		case "file":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&FileClient{config: mv.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, fileImplementors)...); err != nil {
+				return err
+			}
+			mv.withFile = query
+		case "length":
+			if _, ok := fieldSeen[messagevoice.FieldLength]; !ok {
+				selectedFields = append(selectedFields, messagevoice.FieldLength)
+				fieldSeen[messagevoice.FieldLength] = struct{}{}
+			}
+		case "attachedAt":
+			if _, ok := fieldSeen[messagevoice.FieldAttachedAt]; !ok {
+				selectedFields = append(selectedFields, messagevoice.FieldAttachedAt)
+				fieldSeen[messagevoice.FieldAttachedAt] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		mv.Select(selectedFields...)
+	}
+	return nil
+}
+
+type messagevoicePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []MessageVoicePaginateOption
+}
+
+func newMessageVoicePaginateArgs(rv map[string]any) *messagevoicePaginateArgs {
+	args := &messagevoicePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &MessageVoiceOrder{Field: &MessageVoiceOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithMessageVoiceOrder(order))
+			}
+		case *MessageVoiceOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithMessageVoiceOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*MessageVoiceWhereInput); ok {
+		args.opts = append(args.opts, WithMessageVoiceFilter(v.Filter))
 	}
 	return args
 }
@@ -878,6 +1271,34 @@ func newRoomMemberPaginateArgs(rv map[string]any) *roommemberPaginateArgs {
 	}
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case []*RoomMemberOrder:
+			args.opts = append(args.opts, WithRoomMemberOrder(v))
+		case []any:
+			var orders []*RoomMemberOrder
+			for i := range v {
+				mv, ok := v[i].(map[string]any)
+				if !ok {
+					continue
+				}
+				var (
+					err1, err2 error
+					order      = &RoomMemberOrder{Field: &RoomMemberOrderField{}, Direction: entgql.OrderDirectionAsc}
+				)
+				if d, ok := mv[directionField]; ok {
+					err1 = order.Direction.UnmarshalGQL(d)
+				}
+				if f, ok := mv[fieldField]; ok {
+					err2 = order.Field.UnmarshalGQL(f)
+				}
+				if err1 == nil && err2 == nil {
+					orders = append(orders, order)
+				}
+			}
+			args.opts = append(args.opts, WithRoomMemberOrder(orders))
+		}
 	}
 	if v, ok := rv[whereField].(*RoomMemberWhereInput); ok {
 		args.opts = append(args.opts, WithRoomMemberFilter(v.Filter))

@@ -8,6 +8,9 @@ import (
 	"journeyhub/ent/file"
 	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
@@ -37,6 +40,21 @@ var messageImplementors = []string{"Message", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*Message) IsNode() {}
+
+var messageattachmentImplementors = []string{"MessageAttachment", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*MessageAttachment) IsNode() {}
+
+var messagelinkImplementors = []string{"MessageLink", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*MessageLink) IsNode() {}
+
+var messagevoiceImplementors = []string{"MessageVoice", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*MessageVoice) IsNode() {}
 
 var roomImplementors = []string{"Room", "Node"}
 
@@ -146,6 +164,45 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 			Where(message.ID(uid))
 		if fc := graphql.GetFieldContext(ctx); fc != nil {
 			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, messageImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case messageattachment.Table:
+		var uid pulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.MessageAttachment.Query().
+			Where(messageattachment.ID(uid))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, messageattachmentImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case messagelink.Table:
+		var uid pulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.MessageLink.Query().
+			Where(messagelink.ID(uid))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, messagelinkImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case messagevoice.Table:
+		var uid pulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.MessageVoice.Query().
+			Where(messagevoice.ID(uid))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, messagevoiceImplementors...); err != nil {
 				return nil, err
 			}
 		}
@@ -298,6 +355,54 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 		query := c.Message.Query().
 			Where(message.IDIn(ids...))
 		query, err := query.CollectFields(ctx, messageImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case messageattachment.Table:
+		query := c.MessageAttachment.Query().
+			Where(messageattachment.IDIn(ids...))
+		query, err := query.CollectFields(ctx, messageattachmentImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case messagelink.Table:
+		query := c.MessageLink.Query().
+			Where(messagelink.IDIn(ids...))
+		query, err := query.CollectFields(ctx, messagelinkImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case messagevoice.Table:
+		query := c.MessageVoice.Query().
+			Where(messagevoice.IDIn(ids...))
+		query, err := query.CollectFields(ctx, messagevoiceImplementors...)
 		if err != nil {
 			return nil, err
 		}

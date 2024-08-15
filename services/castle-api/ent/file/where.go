@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -58,11 +59,6 @@ func IDLTE(id pulid.ID) predicate.File {
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.File {
 	return predicate.File(sql.FieldEQ(FieldName, v))
-}
-
-// FileName applies equality check predicate on the "file_name" field. It's identical to FileNameEQ.
-func FileName(v string) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldFileName, v))
 }
 
 // MimeType applies equality check predicate on the "mime_type" field. It's identical to MimeTypeEQ.
@@ -153,71 +149,6 @@ func NameEqualFold(v string) predicate.File {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.File {
 	return predicate.File(sql.FieldContainsFold(FieldName, v))
-}
-
-// FileNameEQ applies the EQ predicate on the "file_name" field.
-func FileNameEQ(v string) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldFileName, v))
-}
-
-// FileNameNEQ applies the NEQ predicate on the "file_name" field.
-func FileNameNEQ(v string) predicate.File {
-	return predicate.File(sql.FieldNEQ(FieldFileName, v))
-}
-
-// FileNameIn applies the In predicate on the "file_name" field.
-func FileNameIn(vs ...string) predicate.File {
-	return predicate.File(sql.FieldIn(FieldFileName, vs...))
-}
-
-// FileNameNotIn applies the NotIn predicate on the "file_name" field.
-func FileNameNotIn(vs ...string) predicate.File {
-	return predicate.File(sql.FieldNotIn(FieldFileName, vs...))
-}
-
-// FileNameGT applies the GT predicate on the "file_name" field.
-func FileNameGT(v string) predicate.File {
-	return predicate.File(sql.FieldGT(FieldFileName, v))
-}
-
-// FileNameGTE applies the GTE predicate on the "file_name" field.
-func FileNameGTE(v string) predicate.File {
-	return predicate.File(sql.FieldGTE(FieldFileName, v))
-}
-
-// FileNameLT applies the LT predicate on the "file_name" field.
-func FileNameLT(v string) predicate.File {
-	return predicate.File(sql.FieldLT(FieldFileName, v))
-}
-
-// FileNameLTE applies the LTE predicate on the "file_name" field.
-func FileNameLTE(v string) predicate.File {
-	return predicate.File(sql.FieldLTE(FieldFileName, v))
-}
-
-// FileNameContains applies the Contains predicate on the "file_name" field.
-func FileNameContains(v string) predicate.File {
-	return predicate.File(sql.FieldContains(FieldFileName, v))
-}
-
-// FileNameHasPrefix applies the HasPrefix predicate on the "file_name" field.
-func FileNameHasPrefix(v string) predicate.File {
-	return predicate.File(sql.FieldHasPrefix(FieldFileName, v))
-}
-
-// FileNameHasSuffix applies the HasSuffix predicate on the "file_name" field.
-func FileNameHasSuffix(v string) predicate.File {
-	return predicate.File(sql.FieldHasSuffix(FieldFileName, v))
-}
-
-// FileNameEqualFold applies the EqualFold predicate on the "file_name" field.
-func FileNameEqualFold(v string) predicate.File {
-	return predicate.File(sql.FieldEqualFold(FieldFileName, v))
-}
-
-// FileNameContainsFold applies the ContainsFold predicate on the "file_name" field.
-func FileNameContainsFold(v string) predicate.File {
-	return predicate.File(sql.FieldContainsFold(FieldFileName, v))
 }
 
 // MimeTypeEQ applies the EQ predicate on the "mime_type" field.
@@ -468,6 +399,52 @@ func UpdatedAtLT(v time.Time) predicate.File {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.File {
 	return predicate.File(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// HasMessageAttachment applies the HasEdge predicate on the "message_attachment" edge.
+func HasMessageAttachment() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, MessageAttachmentTable, MessageAttachmentColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMessageAttachmentWith applies the HasEdge predicate on the "message_attachment" edge with a given conditions (other predicates).
+func HasMessageAttachmentWith(preds ...predicate.MessageAttachment) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := newMessageAttachmentStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasMessageVoice applies the HasEdge predicate on the "message_voice" edge.
+func HasMessageVoice() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, MessageVoiceTable, MessageVoiceColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMessageVoiceWith applies the HasEdge predicate on the "message_voice" edge with a given conditions (other predicates).
+func HasMessageVoiceWith(preds ...predicate.MessageVoice) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := newMessageVoiceStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

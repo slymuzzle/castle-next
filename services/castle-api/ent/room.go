@@ -5,7 +5,6 @@ package ent
 import (
 	"fmt"
 	"journeyhub/ent/room"
-	"journeyhub/ent/schema/property/roomtype"
 	"journeyhub/ent/schema/pulid"
 	"strings"
 	"time"
@@ -24,7 +23,7 @@ type Room struct {
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
 	// Type holds the value of the "type" field.
-	Type roomtype.Type `json:"type,omitempty"`
+	Type room.Type `json:"type,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -131,7 +130,7 @@ func (r *Room) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
-				r.Type = roomtype.Type(value.String)
+				r.Type = room.Type(value.String)
 			}
 		case room.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {

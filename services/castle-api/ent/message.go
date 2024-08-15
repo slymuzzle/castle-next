@@ -28,10 +28,11 @@ type Message struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MessageQuery when eager-loading is set.
-	Edges         MessageEdges `json:"edges"`
-	room_messages *pulid.ID
-	user_messages *pulid.ID
-	selectValues  sql.SelectValues
+	Edges            MessageEdges `json:"edges"`
+	message_reply_to *pulid.ID
+	room_messages    *pulid.ID
+	user_messages    *pulid.ID
+	selectValues     sql.SelectValues
 }
 
 // MessageEdges holds the relations/edges for other nodes in the graph.
@@ -40,11 +41,20 @@ type MessageEdges struct {
 	User *User `json:"user,omitempty"`
 	// Room holds the value of the room edge.
 	Room *Room `json:"room,omitempty"`
+	// ReplyTo holds the value of the reply_to edge.
+	ReplyTo *Message `json:"reply_to,omitempty"`
+	// Attachments holds the value of the attachments edge.
+	Attachments []*MessageAttachment `json:"attachments,omitempty"`
+	// Links holds the value of the links edge.
+	Links []*MessageLink `json:"links,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [5]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
+	totalCount [5]map[string]int
+
+	namedAttachments map[string][]*MessageAttachment
+	namedLinks       map[string][]*MessageLink
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -69,6 +79,35 @@ func (e MessageEdges) RoomOrErr() (*Room, error) {
 	return nil, &NotLoadedError{edge: "room"}
 }
 
+// ReplyToOrErr returns the ReplyTo value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e MessageEdges) ReplyToOrErr() (*Message, error) {
+	if e.ReplyTo != nil {
+		return e.ReplyTo, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: message.Label}
+	}
+	return nil, &NotLoadedError{edge: "reply_to"}
+}
+
+// AttachmentsOrErr returns the Attachments value or an error if the edge
+// was not loaded in eager-loading.
+func (e MessageEdges) AttachmentsOrErr() ([]*MessageAttachment, error) {
+	if e.loadedTypes[3] {
+		return e.Attachments, nil
+	}
+	return nil, &NotLoadedError{edge: "attachments"}
+}
+
+// LinksOrErr returns the Links value or an error if the edge
+// was not loaded in eager-loading.
+func (e MessageEdges) LinksOrErr() ([]*MessageLink, error) {
+	if e.loadedTypes[4] {
+		return e.Links, nil
+	}
+	return nil, &NotLoadedError{edge: "links"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Message) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -80,9 +119,11 @@ func (*Message) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case message.FieldCreatedAt, message.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case message.ForeignKeys[0]: // room_messages
+		case message.ForeignKeys[0]: // message_reply_to
 			values[i] = &sql.NullScanner{S: new(pulid.ID)}
-		case message.ForeignKeys[1]: // user_messages
+		case message.ForeignKeys[1]: // room_messages
+			values[i] = &sql.NullScanner{S: new(pulid.ID)}
+		case message.ForeignKeys[2]: // user_messages
 			values[i] = &sql.NullScanner{S: new(pulid.ID)}
 		default:
 			values[i] = new(sql.UnknownType)
@@ -125,12 +166,19 @@ func (m *Message) assignValues(columns []string, values []any) error {
 			}
 		case message.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field message_reply_to", values[i])
+			} else if value.Valid {
+				m.message_reply_to = new(pulid.ID)
+				*m.message_reply_to = *value.S.(*pulid.ID)
+			}
+		case message.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field room_messages", values[i])
 			} else if value.Valid {
 				m.room_messages = new(pulid.ID)
 				*m.room_messages = *value.S.(*pulid.ID)
 			}
-		case message.ForeignKeys[1]:
+		case message.ForeignKeys[2]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field user_messages", values[i])
 			} else if value.Valid {
@@ -158,6 +206,21 @@ func (m *Message) QueryUser() *UserQuery {
 // QueryRoom queries the "room" edge of the Message entity.
 func (m *Message) QueryRoom() *RoomQuery {
 	return NewMessageClient(m.config).QueryRoom(m)
+}
+
+// QueryReplyTo queries the "reply_to" edge of the Message entity.
+func (m *Message) QueryReplyTo() *MessageQuery {
+	return NewMessageClient(m.config).QueryReplyTo(m)
+}
+
+// QueryAttachments queries the "attachments" edge of the Message entity.
+func (m *Message) QueryAttachments() *MessageAttachmentQuery {
+	return NewMessageClient(m.config).QueryAttachments(m)
+}
+
+// QueryLinks queries the "links" edge of the Message entity.
+func (m *Message) QueryLinks() *MessageLinkQuery {
+	return NewMessageClient(m.config).QueryLinks(m)
 }
 
 // Update returns a builder for updating this Message.
@@ -193,6 +256,54 @@ func (m *Message) String() string {
 	builder.WriteString(m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedAttachments returns the Attachments named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (m *Message) NamedAttachments(name string) ([]*MessageAttachment, error) {
+	if m.Edges.namedAttachments == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := m.Edges.namedAttachments[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (m *Message) appendNamedAttachments(name string, edges ...*MessageAttachment) {
+	if m.Edges.namedAttachments == nil {
+		m.Edges.namedAttachments = make(map[string][]*MessageAttachment)
+	}
+	if len(edges) == 0 {
+		m.Edges.namedAttachments[name] = []*MessageAttachment{}
+	} else {
+		m.Edges.namedAttachments[name] = append(m.Edges.namedAttachments[name], edges...)
+	}
+}
+
+// NamedLinks returns the Links named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (m *Message) NamedLinks(name string) ([]*MessageLink, error) {
+	if m.Edges.namedLinks == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := m.Edges.namedLinks[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (m *Message) appendNamedLinks(name string, edges ...*MessageLink) {
+	if m.Edges.namedLinks == nil {
+		m.Edges.namedLinks = make(map[string][]*MessageLink)
+	}
+	if len(edges) == 0 {
+		m.Edges.namedLinks[name] = []*MessageLink{}
+	} else {
+		m.Edges.namedLinks[name] = append(m.Edges.namedLinks[name], edges...)
+	}
 }
 
 // Messages is a parsable slice of Message.

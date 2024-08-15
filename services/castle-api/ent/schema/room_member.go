@@ -33,7 +33,10 @@ func (RoomMember) Fields() []ent.Field {
 			GoType(pulid.ID("")),
 		field.Time("joined_at").
 			Immutable().
-			Default(time.Now),
+			Default(time.Now).
+			Annotations(
+				entgql.OrderField("JOINED_AT"),
+			),
 	}
 }
 

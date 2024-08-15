@@ -6,6 +6,8 @@ import (
 	"context"
 	"fmt"
 	"journeyhub/ent/file"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/schema/pulid"
 	"math"
@@ -19,12 +21,15 @@ import (
 // FileQuery is the builder for querying File entities.
 type FileQuery struct {
 	config
-	ctx        *QueryContext
-	order      []file.OrderOption
-	inters     []Interceptor
-	predicates []predicate.File
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*File) error
+	ctx                   *QueryContext
+	order                 []file.OrderOption
+	inters                []Interceptor
+	predicates            []predicate.File
+	withMessageAttachment *MessageAttachmentQuery
+	withMessageVoice      *MessageVoiceQuery
+	withFKs               bool
+	modifiers             []func(*sql.Selector)
+	loadTotal             []func(context.Context, []*File) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +64,50 @@ func (fq *FileQuery) Unique(unique bool) *FileQuery {
 func (fq *FileQuery) Order(o ...file.OrderOption) *FileQuery {
 	fq.order = append(fq.order, o...)
 	return fq
+}
+
+// QueryMessageAttachment chains the current query on the "message_attachment" edge.
+func (fq *FileQuery) QueryMessageAttachment() *MessageAttachmentQuery {
+	query := (&MessageAttachmentClient{config: fq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, selector),
+			sqlgraph.To(messageattachment.Table, messageattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.MessageAttachmentTable, file.MessageAttachmentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMessageVoice chains the current query on the "message_voice" edge.
+func (fq *FileQuery) QueryMessageVoice() *MessageVoiceQuery {
+	query := (&MessageVoiceClient{config: fq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, selector),
+			sqlgraph.To(messagevoice.Table, messagevoice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.MessageVoiceTable, file.MessageVoiceColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first File entity from the query.
@@ -248,15 +297,39 @@ func (fq *FileQuery) Clone() *FileQuery {
 		return nil
 	}
 	return &FileQuery{
-		config:     fq.config,
-		ctx:        fq.ctx.Clone(),
-		order:      append([]file.OrderOption{}, fq.order...),
-		inters:     append([]Interceptor{}, fq.inters...),
-		predicates: append([]predicate.File{}, fq.predicates...),
+		config:                fq.config,
+		ctx:                   fq.ctx.Clone(),
+		order:                 append([]file.OrderOption{}, fq.order...),
+		inters:                append([]Interceptor{}, fq.inters...),
+		predicates:            append([]predicate.File{}, fq.predicates...),
+		withMessageAttachment: fq.withMessageAttachment.Clone(),
+		withMessageVoice:      fq.withMessageVoice.Clone(),
 		// clone intermediate query.
 		sql:  fq.sql.Clone(),
 		path: fq.path,
 	}
+}
+
+// WithMessageAttachment tells the query-builder to eager-load the nodes that are connected to
+// the "message_attachment" edge. The optional arguments are used to configure the query builder of the edge.
+func (fq *FileQuery) WithMessageAttachment(opts ...func(*MessageAttachmentQuery)) *FileQuery {
+	query := (&MessageAttachmentClient{config: fq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withMessageAttachment = query
+	return fq
+}
+
+// WithMessageVoice tells the query-builder to eager-load the nodes that are connected to
+// the "message_voice" edge. The optional arguments are used to configure the query builder of the edge.
+func (fq *FileQuery) WithMessageVoice(opts ...func(*MessageVoiceQuery)) *FileQuery {
+	query := (&MessageVoiceClient{config: fq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withMessageVoice = query
+	return fq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -335,15 +408,27 @@ func (fq *FileQuery) prepareQuery(ctx context.Context) error {
 
 func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, error) {
 	var (
-		nodes = []*File{}
-		_spec = fq.querySpec()
+		nodes       = []*File{}
+		withFKs     = fq.withFKs
+		_spec       = fq.querySpec()
+		loadedTypes = [2]bool{
+			fq.withMessageAttachment != nil,
+			fq.withMessageVoice != nil,
+		}
 	)
+	if fq.withMessageAttachment != nil || fq.withMessageVoice != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, file.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*File).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &File{config: fq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(fq.modifiers) > 0 {
@@ -358,12 +443,89 @@ func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := fq.withMessageAttachment; query != nil {
+		if err := fq.loadMessageAttachment(ctx, query, nodes, nil,
+			func(n *File, e *MessageAttachment) { n.Edges.MessageAttachment = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := fq.withMessageVoice; query != nil {
+		if err := fq.loadMessageVoice(ctx, query, nodes, nil,
+			func(n *File, e *MessageVoice) { n.Edges.MessageVoice = e }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range fq.loadTotal {
 		if err := fq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (fq *FileQuery) loadMessageAttachment(ctx context.Context, query *MessageAttachmentQuery, nodes []*File, init func(*File), assign func(*File, *MessageAttachment)) error {
+	ids := make([]pulid.ID, 0, len(nodes))
+	nodeids := make(map[pulid.ID][]*File)
+	for i := range nodes {
+		if nodes[i].message_attachment_file == nil {
+			continue
+		}
+		fk := *nodes[i].message_attachment_file
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(messageattachment.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "message_attachment_file" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (fq *FileQuery) loadMessageVoice(ctx context.Context, query *MessageVoiceQuery, nodes []*File, init func(*File), assign func(*File, *MessageVoice)) error {
+	ids := make([]pulid.ID, 0, len(nodes))
+	nodeids := make(map[pulid.ID][]*File)
+	for i := range nodes {
+		if nodes[i].message_voice_file == nil {
+			continue
+		}
+		fk := *nodes[i].message_voice_file
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(messagevoice.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "message_voice_file" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (fq *FileQuery) sqlCount(ctx context.Context) (int, error) {

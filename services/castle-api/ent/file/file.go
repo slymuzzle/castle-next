@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -16,8 +17,6 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// FieldFileName holds the string denoting the file_name field in the database.
-	FieldFileName = "file_name"
 	// FieldMimeType holds the string denoting the mime_type field in the database.
 	FieldMimeType = "mime_type"
 	// FieldDisk holds the string denoting the disk field in the database.
@@ -28,15 +27,32 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeMessageAttachment holds the string denoting the message_attachment edge name in mutations.
+	EdgeMessageAttachment = "message_attachment"
+	// EdgeMessageVoice holds the string denoting the message_voice edge name in mutations.
+	EdgeMessageVoice = "message_voice"
 	// Table holds the table name of the file in the database.
 	Table = "files"
+	// MessageAttachmentTable is the table that holds the message_attachment relation/edge.
+	MessageAttachmentTable = "files"
+	// MessageAttachmentInverseTable is the table name for the MessageAttachment entity.
+	// It exists in this package in order to avoid circular dependency with the "messageattachment" package.
+	MessageAttachmentInverseTable = "message_attachments"
+	// MessageAttachmentColumn is the table column denoting the message_attachment relation/edge.
+	MessageAttachmentColumn = "message_attachment_file"
+	// MessageVoiceTable is the table that holds the message_voice relation/edge.
+	MessageVoiceTable = "files"
+	// MessageVoiceInverseTable is the table name for the MessageVoice entity.
+	// It exists in this package in order to avoid circular dependency with the "messagevoice" package.
+	MessageVoiceInverseTable = "message_voices"
+	// MessageVoiceColumn is the table column denoting the message_voice relation/edge.
+	MessageVoiceColumn = "message_voice_file"
 )
 
 // Columns holds all SQL columns for file fields.
 var Columns = []string{
 	FieldID,
 	FieldName,
-	FieldFileName,
 	FieldMimeType,
 	FieldDisk,
 	FieldSize,
@@ -44,10 +60,22 @@ var Columns = []string{
 	FieldUpdatedAt,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "files"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"message_attachment_file",
+	"message_voice_file",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -78,11 +106,6 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
-// ByFileName orders the results by the file_name field.
-func ByFileName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldFileName, opts...).ToFunc()
-}
-
 // ByMimeType orders the results by the mime_type field.
 func ByMimeType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMimeType, opts...).ToFunc()
@@ -106,4 +129,32 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByMessageAttachmentField orders the results by message_attachment field.
+func ByMessageAttachmentField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMessageAttachmentStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByMessageVoiceField orders the results by message_voice field.
+func ByMessageVoiceField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMessageVoiceStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newMessageAttachmentStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MessageAttachmentInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, MessageAttachmentTable, MessageAttachmentColumn),
+	)
+}
+func newMessageVoiceStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MessageVoiceInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, MessageVoiceTable, MessageVoiceColumn),
+	)
 }

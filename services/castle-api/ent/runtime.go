@@ -6,6 +6,9 @@ import (
 	"journeyhub/ent/file"
 	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema"
@@ -24,11 +27,11 @@ func init() {
 	fileFields := schema.File{}.Fields()
 	_ = fileFields
 	// fileDescCreatedAt is the schema descriptor for created_at field.
-	fileDescCreatedAt := fileFields[5].Descriptor()
+	fileDescCreatedAt := fileFields[4].Descriptor()
 	// file.DefaultCreatedAt holds the default value on creation for the created_at field.
 	file.DefaultCreatedAt = fileDescCreatedAt.Default.(func() time.Time)
 	// fileDescUpdatedAt is the schema descriptor for updated_at field.
-	fileDescUpdatedAt := fileFields[6].Descriptor()
+	fileDescUpdatedAt := fileFields[5].Descriptor()
 	// file.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	file.DefaultUpdatedAt = fileDescUpdatedAt.Default.(func() time.Time)
 	// file.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -69,6 +72,51 @@ func init() {
 	messageDescID := messageMixinFields0[0].Descriptor()
 	// message.DefaultID holds the default value on creation for the id field.
 	message.DefaultID = messageDescID.Default.(func() pulid.ID)
+	messageattachmentMixin := schema.MessageAttachment{}.Mixin()
+	messageattachmentMixinFields0 := messageattachmentMixin[0].Fields()
+	_ = messageattachmentMixinFields0
+	messageattachmentFields := schema.MessageAttachment{}.Fields()
+	_ = messageattachmentFields
+	// messageattachmentDescAttachedAt is the schema descriptor for attached_at field.
+	messageattachmentDescAttachedAt := messageattachmentFields[2].Descriptor()
+	// messageattachment.DefaultAttachedAt holds the default value on creation for the attached_at field.
+	messageattachment.DefaultAttachedAt = messageattachmentDescAttachedAt.Default.(func() time.Time)
+	// messageattachmentDescID is the schema descriptor for id field.
+	messageattachmentDescID := messageattachmentMixinFields0[0].Descriptor()
+	// messageattachment.DefaultID holds the default value on creation for the id field.
+	messageattachment.DefaultID = messageattachmentDescID.Default.(func() pulid.ID)
+	messagelinkMixin := schema.MessageLink{}.Mixin()
+	messagelinkMixinFields0 := messagelinkMixin[0].Fields()
+	_ = messagelinkMixinFields0
+	messagelinkFields := schema.MessageLink{}.Fields()
+	_ = messagelinkFields
+	// messagelinkDescCreatedAt is the schema descriptor for created_at field.
+	messagelinkDescCreatedAt := messagelinkFields[1].Descriptor()
+	// messagelink.DefaultCreatedAt holds the default value on creation for the created_at field.
+	messagelink.DefaultCreatedAt = messagelinkDescCreatedAt.Default.(func() time.Time)
+	// messagelinkDescUpdatedAt is the schema descriptor for updated_at field.
+	messagelinkDescUpdatedAt := messagelinkFields[2].Descriptor()
+	// messagelink.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	messagelink.DefaultUpdatedAt = messagelinkDescUpdatedAt.Default.(func() time.Time)
+	// messagelink.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	messagelink.UpdateDefaultUpdatedAt = messagelinkDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// messagelinkDescID is the schema descriptor for id field.
+	messagelinkDescID := messagelinkMixinFields0[0].Descriptor()
+	// messagelink.DefaultID holds the default value on creation for the id field.
+	messagelink.DefaultID = messagelinkDescID.Default.(func() pulid.ID)
+	messagevoiceMixin := schema.MessageVoice{}.Mixin()
+	messagevoiceMixinFields0 := messagevoiceMixin[0].Fields()
+	_ = messagevoiceMixinFields0
+	messagevoiceFields := schema.MessageVoice{}.Fields()
+	_ = messagevoiceFields
+	// messagevoiceDescAttachedAt is the schema descriptor for attached_at field.
+	messagevoiceDescAttachedAt := messagevoiceFields[1].Descriptor()
+	// messagevoice.DefaultAttachedAt holds the default value on creation for the attached_at field.
+	messagevoice.DefaultAttachedAt = messagevoiceDescAttachedAt.Default.(func() time.Time)
+	// messagevoiceDescID is the schema descriptor for id field.
+	messagevoiceDescID := messagevoiceMixinFields0[0].Descriptor()
+	// messagevoice.DefaultID holds the default value on creation for the id field.
+	messagevoice.DefaultID = messagevoiceDescID.Default.(func() pulid.ID)
 	roomMixin := schema.Room{}.Mixin()
 	roomMixinFields0 := roomMixin[0].Fields()
 	_ = roomMixinFields0

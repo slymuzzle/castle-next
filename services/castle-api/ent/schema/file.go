@@ -6,6 +6,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -17,17 +18,25 @@ type File struct {
 // Mixin returns File mixed-in schema.
 func (File) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		pulid.MixinWithPrefix("FE"),
+		pulid.MixinWithPrefix("FI"),
 	}
 }
 
 // Fields of the File.
 func (File) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name"),
-		field.String("file_name"),
-		field.String("mime_type"),
-		field.String("disk"),
+		field.String("name").
+			Annotations(
+				entgql.OrderField("NAME"),
+			),
+		field.String("mime_type").
+			Annotations(
+				entgql.OrderField("MIME_TYPE"),
+			),
+		field.String("disk").
+			Annotations(
+				entgql.OrderField("DISK"),
+			),
 		field.Uint64("size").
 			Annotations(
 				entgql.Type("Uint64"),
@@ -50,5 +59,12 @@ func (File) Fields() []ent.Field {
 
 // Edges of the File.
 func (File) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("message_attachment", MessageAttachment.Type).
+			Ref("file").
+			Unique(),
+		edge.From("message_voice", MessageVoice.Type).
+			Ref("file").
+			Unique(),
+	}
 }

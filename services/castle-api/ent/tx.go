@@ -18,6 +18,12 @@ type Tx struct {
 	Friendship *FriendshipClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
+	// MessageAttachment is the client for interacting with the MessageAttachment builders.
+	MessageAttachment *MessageAttachmentClient
+	// MessageLink is the client for interacting with the MessageLink builders.
+	MessageLink *MessageLinkClient
+	// MessageVoice is the client for interacting with the MessageVoice builders.
+	MessageVoice *MessageVoiceClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
 	// RoomMember is the client for interacting with the RoomMember builders.
@@ -158,6 +164,9 @@ func (tx *Tx) init() {
 	tx.File = NewFileClient(tx.config)
 	tx.Friendship = NewFriendshipClient(tx.config)
 	tx.Message = NewMessageClient(tx.config)
+	tx.MessageAttachment = NewMessageAttachmentClient(tx.config)
+	tx.MessageLink = NewMessageLinkClient(tx.config)
+	tx.MessageVoice = NewMessageVoiceClient(tx.config)
 	tx.Room = NewRoomClient(tx.config)
 	tx.RoomMember = NewRoomMemberClient(tx.config)
 	tx.User = NewUserClient(tx.config)

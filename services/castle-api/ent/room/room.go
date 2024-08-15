@@ -4,13 +4,13 @@ package room
 
 import (
 	"fmt"
-	"journeyhub/ent/schema/property/roomtype"
+	"io"
 	"journeyhub/ent/schema/pulid"
+	"strconv"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/99designs/gqlgen/graphql"
 )
 
 const (
@@ -98,10 +98,23 @@ var (
 	DefaultID func() pulid.ID
 )
 
+// Type defines the type for the "type" enum field.
+type Type string
+
+// Type values.
+const (
+	TypePersonal Type = "Personal"
+	TypeGroup    Type = "Group"
+)
+
+func (_type Type) String() string {
+	return string(_type)
+}
+
 // TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
-func TypeValidator(_type roomtype.Type) error {
+func TypeValidator(_type Type) error {
 	switch _type {
-	case "personal", "group":
+	case TypePersonal, TypeGroup:
 		return nil
 	default:
 		return fmt.Errorf("room: invalid enum value for type field: %q", _type)
@@ -204,9 +217,20 @@ func newRoomMembersStep() *sqlgraph.Step {
 	)
 }
 
-var (
-	// roomtype.Type must implement graphql.Marshaler.
-	_ graphql.Marshaler = (*roomtype.Type)(nil)
-	// roomtype.Type must implement graphql.Unmarshaler.
-	_ graphql.Unmarshaler = (*roomtype.Type)(nil)
-)
+// MarshalGQL implements graphql.Marshaler interface.
+func (e Type) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *Type) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = Type(str)
+	if err := TypeValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid Type", str)
+	}
+	return nil
+}

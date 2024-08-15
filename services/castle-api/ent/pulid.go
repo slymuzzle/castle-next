@@ -8,6 +8,9 @@ import (
 	"journeyhub/ent/file"
 	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
@@ -16,9 +19,12 @@ import (
 
 // prefixMap maps PULID prefixes to table names.
 var prefixMap = map[pulid.ID]string{
-	"FE": file.Table,
+	"FI": file.Table,
 	"FS": friendship.Table,
 	"ME": message.Table,
+	"MA": messageattachment.Table,
+	"ML": messagelink.Table,
+	"MV": messagevoice.Table,
 	"RO": room.Table,
 	"RM": roommember.Table,
 	"UR": user.Table,

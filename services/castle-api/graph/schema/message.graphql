@@ -7,7 +7,8 @@ scalar Upload
 CreateMessageInput is used for create Message object.
 """
 input SendMessageInput {
-  targetUserId: ID
+  targetUserID: ID!
+  replyTo: ID
   content: String!
 }
 
@@ -20,6 +21,12 @@ input UpdateMessageInput {
 
 extend type Mutation {
   sendMessage(input: SendMessageInput!): Message
-  updateMessage(input: UpdateMessageInput!): Message
-  deleteMessage(roomId: ID!): Room
+  updateMessage(messageID: ID!, input: UpdateMessageInput!): Message
+  deleteMessage(messageID: ID!): Message
+}
+
+extend type Subscription {
+  messageAdded(roomID: ID!): Message!
+  messageUpdated(roomID: ID!): Message!
+  messageDeleted(roomID: ID!): Message!
 }

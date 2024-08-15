@@ -9,7 +9,6 @@ import (
 	"journeyhub/ent/message"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
-	"journeyhub/ent/schema/property/roomtype"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"time"
@@ -49,7 +48,7 @@ func (rc *RoomCreate) SetNillableVersion(u *uint64) *RoomCreate {
 }
 
 // SetType sets the "type" field.
-func (rc *RoomCreate) SetType(r roomtype.Type) *RoomCreate {
+func (rc *RoomCreate) SetType(r room.Type) *RoomCreate {
 	rc.mutation.SetType(r)
 	return rc
 }
@@ -415,7 +414,7 @@ func (u *RoomUpsert) AddVersion(v uint64) *RoomUpsert {
 }
 
 // SetType sets the "type" field.
-func (u *RoomUpsert) SetType(v roomtype.Type) *RoomUpsert {
+func (u *RoomUpsert) SetType(v room.Type) *RoomUpsert {
 	u.Set(room.FieldType, v)
 	return u
 }
@@ -525,7 +524,7 @@ func (u *RoomUpsertOne) UpdateVersion() *RoomUpsertOne {
 }
 
 // SetType sets the "type" field.
-func (u *RoomUpsertOne) SetType(v roomtype.Type) *RoomUpsertOne {
+func (u *RoomUpsertOne) SetType(v room.Type) *RoomUpsertOne {
 	return u.Update(func(s *RoomUpsert) {
 		s.SetType(v)
 	})
@@ -806,7 +805,7 @@ func (u *RoomUpsertBulk) UpdateVersion() *RoomUpsertBulk {
 }
 
 // SetType sets the "type" field.
-func (u *RoomUpsertBulk) SetType(v roomtype.Type) *RoomUpsertBulk {
+func (u *RoomUpsertBulk) SetType(v room.Type) *RoomUpsertBulk {
 	return u.Update(func(s *RoomUpsert) {
 		s.SetType(v)
 	})

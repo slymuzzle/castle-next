@@ -29,7 +29,6 @@ func (User) Fields() []ent.Field {
 		field.String("first_name").
 			Annotations(
 				entgql.OrderField("FIRST_NAME"),
-				entgql.Directives(entgql.Deprecated("Hello")),
 			),
 		field.String("last_name").
 			Annotations(

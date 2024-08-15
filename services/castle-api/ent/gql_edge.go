@@ -8,6 +8,22 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+func (f *File) MessageAttachment(ctx context.Context) (*MessageAttachment, error) {
+	result, err := f.Edges.MessageAttachmentOrErr()
+	if IsNotLoaded(err) {
+		result, err = f.QueryMessageAttachment().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (f *File) MessageVoice(ctx context.Context) (*MessageVoice, error) {
+	result, err := f.Edges.MessageVoiceOrErr()
+	if IsNotLoaded(err) {
+		result, err = f.QueryMessageVoice().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (f *Friendship) User(ctx context.Context) (*User, error) {
 	result, err := f.Edges.UserOrErr()
 	if IsNotLoaded(err) {
@@ -46,6 +62,70 @@ func (m *Message) Room(ctx context.Context) (*Room, error) {
 		result, err = m.QueryRoom().Only(ctx)
 	}
 	return result, MaskNotFound(err)
+}
+
+func (m *Message) ReplyTo(ctx context.Context) (*Message, error) {
+	result, err := m.Edges.ReplyToOrErr()
+	if IsNotLoaded(err) {
+		result, err = m.QueryReplyTo().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (m *Message) Attachments(ctx context.Context) (result []*MessageAttachment, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = m.NamedAttachments(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = m.Edges.AttachmentsOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = m.QueryAttachments().All(ctx)
+	}
+	return result, err
+}
+
+func (m *Message) Links(ctx context.Context) (result []*MessageLink, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = m.NamedLinks(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = m.Edges.LinksOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = m.QueryLinks().All(ctx)
+	}
+	return result, err
+}
+
+func (ma *MessageAttachment) Message(ctx context.Context) (*Message, error) {
+	result, err := ma.Edges.MessageOrErr()
+	if IsNotLoaded(err) {
+		result, err = ma.QueryMessage().Only(ctx)
+	}
+	return result, err
+}
+
+func (ma *MessageAttachment) File(ctx context.Context) (*File, error) {
+	result, err := ma.Edges.FileOrErr()
+	if IsNotLoaded(err) {
+		result, err = ma.QueryFile().Only(ctx)
+	}
+	return result, err
+}
+
+func (ml *MessageLink) Message(ctx context.Context) (*Message, error) {
+	result, err := ml.Edges.MessageOrErr()
+	if IsNotLoaded(err) {
+		result, err = ml.QueryMessage().Only(ctx)
+	}
+	return result, err
+}
+
+func (mv *MessageVoice) File(ctx context.Context) (*File, error) {
+	result, err := mv.Edges.FileOrErr()
+	if IsNotLoaded(err) {
+		result, err = mv.QueryFile().Only(ctx)
+	}
+	return result, err
 }
 
 func (r *Room) Users(
@@ -91,9 +171,10 @@ func (r *Room) Messages(
 }
 
 func (r *Room) RoomMembers(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *RoomMemberWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*RoomMemberOrder, where *RoomMemberWhereInput,
 ) (*RoomMemberConnection, error) {
 	opts := []RoomMemberPaginateOption{
+		WithRoomMemberOrder(orderBy),
 		WithRoomMemberFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
@@ -210,9 +291,10 @@ func (u *User) Friendships(
 }
 
 func (u *User) Memberships(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *RoomMemberWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*RoomMemberOrder, where *RoomMemberWhereInput,
 ) (*RoomMemberConnection, error) {
 	opts := []RoomMemberPaginateOption{
+		WithRoomMemberOrder(orderBy),
 		WithRoomMemberFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias

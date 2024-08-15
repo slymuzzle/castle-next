@@ -10,7 +10,6 @@ import (
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
-	"journeyhub/ent/schema/property/roomtype"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"time"
@@ -69,13 +68,13 @@ func (ru *RoomUpdate) AddVersion(u int64) *RoomUpdate {
 }
 
 // SetType sets the "type" field.
-func (ru *RoomUpdate) SetType(r roomtype.Type) *RoomUpdate {
+func (ru *RoomUpdate) SetType(r room.Type) *RoomUpdate {
 	ru.mutation.SetType(r)
 	return ru
 }
 
 // SetNillableType sets the "type" field if the given value is not nil.
-func (ru *RoomUpdate) SetNillableType(r *roomtype.Type) *RoomUpdate {
+func (ru *RoomUpdate) SetNillableType(r *room.Type) *RoomUpdate {
 	if r != nil {
 		ru.SetType(*r)
 	}
@@ -491,13 +490,13 @@ func (ruo *RoomUpdateOne) AddVersion(u int64) *RoomUpdateOne {
 }
 
 // SetType sets the "type" field.
-func (ruo *RoomUpdateOne) SetType(r roomtype.Type) *RoomUpdateOne {
+func (ruo *RoomUpdateOne) SetType(r room.Type) *RoomUpdateOne {
 	ruo.mutation.SetType(r)
 	return ruo
 }
 
 // SetNillableType sets the "type" field if the given value is not nil.
-func (ruo *RoomUpdateOne) SetNillableType(r *roomtype.Type) *RoomUpdateOne {
+func (ruo *RoomUpdateOne) SetNillableType(r *room.Type) *RoomUpdateOne {
 	if r != nil {
 		ruo.SetType(*r)
 	}

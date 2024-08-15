@@ -4,8 +4,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
@@ -21,15 +24,20 @@ import (
 // MessageQuery is the builder for querying Message entities.
 type MessageQuery struct {
 	config
-	ctx        *QueryContext
-	order      []message.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Message
-	withUser   *UserQuery
-	withRoom   *RoomQuery
-	withFKs    bool
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*Message) error
+	ctx                  *QueryContext
+	order                []message.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.Message
+	withUser             *UserQuery
+	withRoom             *RoomQuery
+	withReplyTo          *MessageQuery
+	withAttachments      *MessageAttachmentQuery
+	withLinks            *MessageLinkQuery
+	withFKs              bool
+	modifiers            []func(*sql.Selector)
+	loadTotal            []func(context.Context, []*Message) error
+	withNamedAttachments map[string]*MessageAttachmentQuery
+	withNamedLinks       map[string]*MessageLinkQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -103,6 +111,72 @@ func (mq *MessageQuery) QueryRoom() *RoomQuery {
 			sqlgraph.From(message.Table, message.FieldID, selector),
 			sqlgraph.To(room.Table, room.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, message.RoomTable, message.RoomColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryReplyTo chains the current query on the "reply_to" edge.
+func (mq *MessageQuery) QueryReplyTo() *MessageQuery {
+	query := (&MessageClient{config: mq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, selector),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, message.ReplyToTable, message.ReplyToColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAttachments chains the current query on the "attachments" edge.
+func (mq *MessageQuery) QueryAttachments() *MessageAttachmentQuery {
+	query := (&MessageAttachmentClient{config: mq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, selector),
+			sqlgraph.To(messageattachment.Table, messageattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, message.AttachmentsTable, message.AttachmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLinks chains the current query on the "links" edge.
+func (mq *MessageQuery) QueryLinks() *MessageLinkQuery {
+	query := (&MessageLinkClient{config: mq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, selector),
+			sqlgraph.To(messagelink.Table, messagelink.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, message.LinksTable, message.LinksColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
 		return fromU, nil
@@ -297,13 +371,16 @@ func (mq *MessageQuery) Clone() *MessageQuery {
 		return nil
 	}
 	return &MessageQuery{
-		config:     mq.config,
-		ctx:        mq.ctx.Clone(),
-		order:      append([]message.OrderOption{}, mq.order...),
-		inters:     append([]Interceptor{}, mq.inters...),
-		predicates: append([]predicate.Message{}, mq.predicates...),
-		withUser:   mq.withUser.Clone(),
-		withRoom:   mq.withRoom.Clone(),
+		config:          mq.config,
+		ctx:             mq.ctx.Clone(),
+		order:           append([]message.OrderOption{}, mq.order...),
+		inters:          append([]Interceptor{}, mq.inters...),
+		predicates:      append([]predicate.Message{}, mq.predicates...),
+		withUser:        mq.withUser.Clone(),
+		withRoom:        mq.withRoom.Clone(),
+		withReplyTo:     mq.withReplyTo.Clone(),
+		withAttachments: mq.withAttachments.Clone(),
+		withLinks:       mq.withLinks.Clone(),
 		// clone intermediate query.
 		sql:  mq.sql.Clone(),
 		path: mq.path,
@@ -329,6 +406,39 @@ func (mq *MessageQuery) WithRoom(opts ...func(*RoomQuery)) *MessageQuery {
 		opt(query)
 	}
 	mq.withRoom = query
+	return mq
+}
+
+// WithReplyTo tells the query-builder to eager-load the nodes that are connected to
+// the "reply_to" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithReplyTo(opts ...func(*MessageQuery)) *MessageQuery {
+	query := (&MessageClient{config: mq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withReplyTo = query
+	return mq
+}
+
+// WithAttachments tells the query-builder to eager-load the nodes that are connected to
+// the "attachments" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithAttachments(opts ...func(*MessageAttachmentQuery)) *MessageQuery {
+	query := (&MessageAttachmentClient{config: mq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withAttachments = query
+	return mq
+}
+
+// WithLinks tells the query-builder to eager-load the nodes that are connected to
+// the "links" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithLinks(opts ...func(*MessageLinkQuery)) *MessageQuery {
+	query := (&MessageLinkClient{config: mq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withLinks = query
 	return mq
 }
 
@@ -411,12 +521,15 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 		nodes       = []*Message{}
 		withFKs     = mq.withFKs
 		_spec       = mq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [5]bool{
 			mq.withUser != nil,
 			mq.withRoom != nil,
+			mq.withReplyTo != nil,
+			mq.withAttachments != nil,
+			mq.withLinks != nil,
 		}
 	)
-	if mq.withUser != nil || mq.withRoom != nil {
+	if mq.withUser != nil || mq.withRoom != nil || mq.withReplyTo != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -452,6 +565,40 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 	if query := mq.withRoom; query != nil {
 		if err := mq.loadRoom(ctx, query, nodes, nil,
 			func(n *Message, e *Room) { n.Edges.Room = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := mq.withReplyTo; query != nil {
+		if err := mq.loadReplyTo(ctx, query, nodes, nil,
+			func(n *Message, e *Message) { n.Edges.ReplyTo = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := mq.withAttachments; query != nil {
+		if err := mq.loadAttachments(ctx, query, nodes,
+			func(n *Message) { n.Edges.Attachments = []*MessageAttachment{} },
+			func(n *Message, e *MessageAttachment) { n.Edges.Attachments = append(n.Edges.Attachments, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := mq.withLinks; query != nil {
+		if err := mq.loadLinks(ctx, query, nodes,
+			func(n *Message) { n.Edges.Links = []*MessageLink{} },
+			func(n *Message, e *MessageLink) { n.Edges.Links = append(n.Edges.Links, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range mq.withNamedAttachments {
+		if err := mq.loadAttachments(ctx, query, nodes,
+			func(n *Message) { n.appendNamedAttachments(name) },
+			func(n *Message, e *MessageAttachment) { n.appendNamedAttachments(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range mq.withNamedLinks {
+		if err := mq.loadLinks(ctx, query, nodes,
+			func(n *Message) { n.appendNamedLinks(name) },
+			func(n *Message, e *MessageLink) { n.appendNamedLinks(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -524,6 +671,100 @@ func (mq *MessageQuery) loadRoom(ctx context.Context, query *RoomQuery, nodes []
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (mq *MessageQuery) loadReplyTo(ctx context.Context, query *MessageQuery, nodes []*Message, init func(*Message), assign func(*Message, *Message)) error {
+	ids := make([]pulid.ID, 0, len(nodes))
+	nodeids := make(map[pulid.ID][]*Message)
+	for i := range nodes {
+		if nodes[i].message_reply_to == nil {
+			continue
+		}
+		fk := *nodes[i].message_reply_to
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(message.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "message_reply_to" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (mq *MessageQuery) loadAttachments(ctx context.Context, query *MessageAttachmentQuery, nodes []*Message, init func(*Message), assign func(*Message, *MessageAttachment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[pulid.ID]*Message)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.MessageAttachment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(message.AttachmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.message_attachments
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "message_attachments" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "message_attachments" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (mq *MessageQuery) loadLinks(ctx context.Context, query *MessageLinkQuery, nodes []*Message, init func(*Message), assign func(*Message, *MessageLink)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[pulid.ID]*Message)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.MessageLink(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(message.LinksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.message_links
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "message_links" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "message_links" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -610,6 +851,34 @@ func (mq *MessageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedAttachments tells the query-builder to eager-load the nodes that are connected to the "attachments"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithNamedAttachments(name string, opts ...func(*MessageAttachmentQuery)) *MessageQuery {
+	query := (&MessageAttachmentClient{config: mq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if mq.withNamedAttachments == nil {
+		mq.withNamedAttachments = make(map[string]*MessageAttachmentQuery)
+	}
+	mq.withNamedAttachments[name] = query
+	return mq
+}
+
+// WithNamedLinks tells the query-builder to eager-load the nodes that are connected to the "links"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithNamedLinks(name string, opts ...func(*MessageLinkQuery)) *MessageQuery {
+	query := (&MessageLinkClient{config: mq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if mq.withNamedLinks == nil {
+		mq.withNamedLinks = make(map[string]*MessageLinkQuery)
+	}
+	mq.withNamedLinks[name] = query
+	return mq
 }
 
 // MessageGroupBy is the group-by builder for Message entities.

@@ -15,6 +15,15 @@ type Friendship func(*sql.Selector)
 // Message is the predicate function for message builders.
 type Message func(*sql.Selector)
 
+// MessageAttachment is the predicate function for messageattachment builders.
+type MessageAttachment func(*sql.Selector)
+
+// MessageLink is the predicate function for messagelink builders.
+type MessageLink func(*sql.Selector)
+
+// MessageVoice is the predicate function for messagevoice builders.
+type MessageVoice func(*sql.Selector)
+
 // Room is the predicate function for room builders.
 type Room func(*sql.Selector)
 

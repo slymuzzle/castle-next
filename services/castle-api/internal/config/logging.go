@@ -21,6 +21,7 @@ func (s *loggingService) LoadConfig() (cfg Config, err error) {
 		level.Debug(s.logger).Log(
 			"method", "LoadConfig",
 			"path", configFilePath,
+			"config", cfg,
 			"took", time.Since(begin),
 			"err", err,
 		)

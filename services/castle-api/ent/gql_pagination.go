@@ -10,6 +10,9 @@ import (
 	"journeyhub/ent/file"
 	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
@@ -313,6 +316,48 @@ func (f *FileQuery) Paginate(
 }
 
 var (
+	// FileOrderFieldName orders File by name.
+	FileOrderFieldName = &FileOrderField{
+		Value: func(f *File) (ent.Value, error) {
+			return f.Name, nil
+		},
+		column: file.FieldName,
+		toTerm: file.ByName,
+		toCursor: func(f *File) Cursor {
+			return Cursor{
+				ID:    f.ID,
+				Value: f.Name,
+			}
+		},
+	}
+	// FileOrderFieldMimeType orders File by mime_type.
+	FileOrderFieldMimeType = &FileOrderField{
+		Value: func(f *File) (ent.Value, error) {
+			return f.MimeType, nil
+		},
+		column: file.FieldMimeType,
+		toTerm: file.ByMimeType,
+		toCursor: func(f *File) Cursor {
+			return Cursor{
+				ID:    f.ID,
+				Value: f.MimeType,
+			}
+		},
+	}
+	// FileOrderFieldDisk orders File by disk.
+	FileOrderFieldDisk = &FileOrderField{
+		Value: func(f *File) (ent.Value, error) {
+			return f.Disk, nil
+		},
+		column: file.FieldDisk,
+		toTerm: file.ByDisk,
+		toCursor: func(f *File) Cursor {
+			return Cursor{
+				ID:    f.ID,
+				Value: f.Disk,
+			}
+		},
+	}
 	// FileOrderFieldSize orders File by size.
 	FileOrderFieldSize = &FileOrderField{
 		Value: func(f *File) (ent.Value, error) {
@@ -361,6 +406,12 @@ var (
 func (f FileOrderField) String() string {
 	var str string
 	switch f.column {
+	case FileOrderFieldName.column:
+		str = "NAME"
+	case FileOrderFieldMimeType.column:
+		str = "MIME_TYPE"
+	case FileOrderFieldDisk.column:
+		str = "DISK"
 	case FileOrderFieldSize.column:
 		str = "SIZE"
 	case FileOrderFieldCreatedAt.column:
@@ -383,6 +434,12 @@ func (f *FileOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("FileOrderField %T must be a string", v)
 	}
 	switch str {
+	case "NAME":
+		*f = *FileOrderFieldName
+	case "MIME_TYPE":
+		*f = *FileOrderFieldMimeType
+	case "DISK":
+		*f = *FileOrderFieldDisk
 	case "SIZE":
 		*f = *FileOrderFieldSize
 	case "CREATED_AT":
@@ -1071,6 +1128,984 @@ func (m *Message) ToEdge(order *MessageOrder) *MessageEdge {
 	}
 }
 
+// MessageAttachmentEdge is the edge representation of MessageAttachment.
+type MessageAttachmentEdge struct {
+	Node   *MessageAttachment `json:"node"`
+	Cursor Cursor             `json:"cursor"`
+}
+
+// MessageAttachmentConnection is the connection containing edges to MessageAttachment.
+type MessageAttachmentConnection struct {
+	Edges      []*MessageAttachmentEdge `json:"edges"`
+	PageInfo   PageInfo                 `json:"pageInfo"`
+	TotalCount int                      `json:"totalCount"`
+}
+
+func (c *MessageAttachmentConnection) build(nodes []*MessageAttachment, pager *messageattachmentPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *MessageAttachment
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *MessageAttachment {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *MessageAttachment {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*MessageAttachmentEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &MessageAttachmentEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// MessageAttachmentPaginateOption enables pagination customization.
+type MessageAttachmentPaginateOption func(*messageattachmentPager) error
+
+// WithMessageAttachmentOrder configures pagination ordering.
+func WithMessageAttachmentOrder(order *MessageAttachmentOrder) MessageAttachmentPaginateOption {
+	if order == nil {
+		order = DefaultMessageAttachmentOrder
+	}
+	o := *order
+	return func(pager *messageattachmentPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultMessageAttachmentOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithMessageAttachmentFilter configures pagination filter.
+func WithMessageAttachmentFilter(filter func(*MessageAttachmentQuery) (*MessageAttachmentQuery, error)) MessageAttachmentPaginateOption {
+	return func(pager *messageattachmentPager) error {
+		if filter == nil {
+			return errors.New("MessageAttachmentQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type messageattachmentPager struct {
+	reverse bool
+	order   *MessageAttachmentOrder
+	filter  func(*MessageAttachmentQuery) (*MessageAttachmentQuery, error)
+}
+
+func newMessageAttachmentPager(opts []MessageAttachmentPaginateOption, reverse bool) (*messageattachmentPager, error) {
+	pager := &messageattachmentPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultMessageAttachmentOrder
+	}
+	return pager, nil
+}
+
+func (p *messageattachmentPager) applyFilter(query *MessageAttachmentQuery) (*MessageAttachmentQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *messageattachmentPager) toCursor(ma *MessageAttachment) Cursor {
+	return p.order.Field.toCursor(ma)
+}
+
+func (p *messageattachmentPager) applyCursors(query *MessageAttachmentQuery, after, before *Cursor) (*MessageAttachmentQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultMessageAttachmentOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *messageattachmentPager) applyOrder(query *MessageAttachmentQuery) *MessageAttachmentQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultMessageAttachmentOrder.Field {
+		query = query.Order(DefaultMessageAttachmentOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *messageattachmentPager) orderExpr(query *MessageAttachmentQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultMessageAttachmentOrder.Field {
+			b.Comma().Ident(DefaultMessageAttachmentOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to MessageAttachment.
+func (ma *MessageAttachmentQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...MessageAttachmentPaginateOption,
+) (*MessageAttachmentConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newMessageAttachmentPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if ma, err = pager.applyFilter(ma); err != nil {
+		return nil, err
+	}
+	conn := &MessageAttachmentConnection{Edges: []*MessageAttachmentEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := ma.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if ma, err = pager.applyCursors(ma, after, before); err != nil {
+		return nil, err
+	}
+	limit := paginateLimit(first, last)
+	if limit != 0 {
+		ma.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ma.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	ma = pager.applyOrder(ma)
+	nodes, err := ma.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// MessageAttachmentOrderFieldType orders MessageAttachment by type.
+	MessageAttachmentOrderFieldType = &MessageAttachmentOrderField{
+		Value: func(ma *MessageAttachment) (ent.Value, error) {
+			return ma.Type, nil
+		},
+		column: messageattachment.FieldType,
+		toTerm: messageattachment.ByType,
+		toCursor: func(ma *MessageAttachment) Cursor {
+			return Cursor{
+				ID:    ma.ID,
+				Value: ma.Type,
+			}
+		},
+	}
+	// MessageAttachmentOrderFieldOrder orders MessageAttachment by order.
+	MessageAttachmentOrderFieldOrder = &MessageAttachmentOrderField{
+		Value: func(ma *MessageAttachment) (ent.Value, error) {
+			return ma.Order, nil
+		},
+		column: messageattachment.FieldOrder,
+		toTerm: messageattachment.ByOrder,
+		toCursor: func(ma *MessageAttachment) Cursor {
+			return Cursor{
+				ID:    ma.ID,
+				Value: ma.Order,
+			}
+		},
+	}
+	// MessageAttachmentOrderFieldAttachedAt orders MessageAttachment by attached_at.
+	MessageAttachmentOrderFieldAttachedAt = &MessageAttachmentOrderField{
+		Value: func(ma *MessageAttachment) (ent.Value, error) {
+			return ma.AttachedAt, nil
+		},
+		column: messageattachment.FieldAttachedAt,
+		toTerm: messageattachment.ByAttachedAt,
+		toCursor: func(ma *MessageAttachment) Cursor {
+			return Cursor{
+				ID:    ma.ID,
+				Value: ma.AttachedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f MessageAttachmentOrderField) String() string {
+	var str string
+	switch f.column {
+	case MessageAttachmentOrderFieldType.column:
+		str = "TYPE"
+	case MessageAttachmentOrderFieldOrder.column:
+		str = "ORDER"
+	case MessageAttachmentOrderFieldAttachedAt.column:
+		str = "ATTACHED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f MessageAttachmentOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *MessageAttachmentOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("MessageAttachmentOrderField %T must be a string", v)
+	}
+	switch str {
+	case "TYPE":
+		*f = *MessageAttachmentOrderFieldType
+	case "ORDER":
+		*f = *MessageAttachmentOrderFieldOrder
+	case "ATTACHED_AT":
+		*f = *MessageAttachmentOrderFieldAttachedAt
+	default:
+		return fmt.Errorf("%s is not a valid MessageAttachmentOrderField", str)
+	}
+	return nil
+}
+
+// MessageAttachmentOrderField defines the ordering field of MessageAttachment.
+type MessageAttachmentOrderField struct {
+	// Value extracts the ordering value from the given MessageAttachment.
+	Value    func(*MessageAttachment) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) messageattachment.OrderOption
+	toCursor func(*MessageAttachment) Cursor
+}
+
+// MessageAttachmentOrder defines the ordering of MessageAttachment.
+type MessageAttachmentOrder struct {
+	Direction OrderDirection               `json:"direction"`
+	Field     *MessageAttachmentOrderField `json:"field"`
+}
+
+// DefaultMessageAttachmentOrder is the default ordering of MessageAttachment.
+var DefaultMessageAttachmentOrder = &MessageAttachmentOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &MessageAttachmentOrderField{
+		Value: func(ma *MessageAttachment) (ent.Value, error) {
+			return ma.ID, nil
+		},
+		column: messageattachment.FieldID,
+		toTerm: messageattachment.ByID,
+		toCursor: func(ma *MessageAttachment) Cursor {
+			return Cursor{ID: ma.ID}
+		},
+	},
+}
+
+// ToEdge converts MessageAttachment into MessageAttachmentEdge.
+func (ma *MessageAttachment) ToEdge(order *MessageAttachmentOrder) *MessageAttachmentEdge {
+	if order == nil {
+		order = DefaultMessageAttachmentOrder
+	}
+	return &MessageAttachmentEdge{
+		Node:   ma,
+		Cursor: order.Field.toCursor(ma),
+	}
+}
+
+// MessageLinkEdge is the edge representation of MessageLink.
+type MessageLinkEdge struct {
+	Node   *MessageLink `json:"node"`
+	Cursor Cursor       `json:"cursor"`
+}
+
+// MessageLinkConnection is the connection containing edges to MessageLink.
+type MessageLinkConnection struct {
+	Edges      []*MessageLinkEdge `json:"edges"`
+	PageInfo   PageInfo           `json:"pageInfo"`
+	TotalCount int                `json:"totalCount"`
+}
+
+func (c *MessageLinkConnection) build(nodes []*MessageLink, pager *messagelinkPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *MessageLink
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *MessageLink {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *MessageLink {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*MessageLinkEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &MessageLinkEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// MessageLinkPaginateOption enables pagination customization.
+type MessageLinkPaginateOption func(*messagelinkPager) error
+
+// WithMessageLinkOrder configures pagination ordering.
+func WithMessageLinkOrder(order *MessageLinkOrder) MessageLinkPaginateOption {
+	if order == nil {
+		order = DefaultMessageLinkOrder
+	}
+	o := *order
+	return func(pager *messagelinkPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultMessageLinkOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithMessageLinkFilter configures pagination filter.
+func WithMessageLinkFilter(filter func(*MessageLinkQuery) (*MessageLinkQuery, error)) MessageLinkPaginateOption {
+	return func(pager *messagelinkPager) error {
+		if filter == nil {
+			return errors.New("MessageLinkQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type messagelinkPager struct {
+	reverse bool
+	order   *MessageLinkOrder
+	filter  func(*MessageLinkQuery) (*MessageLinkQuery, error)
+}
+
+func newMessageLinkPager(opts []MessageLinkPaginateOption, reverse bool) (*messagelinkPager, error) {
+	pager := &messagelinkPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultMessageLinkOrder
+	}
+	return pager, nil
+}
+
+func (p *messagelinkPager) applyFilter(query *MessageLinkQuery) (*MessageLinkQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *messagelinkPager) toCursor(ml *MessageLink) Cursor {
+	return p.order.Field.toCursor(ml)
+}
+
+func (p *messagelinkPager) applyCursors(query *MessageLinkQuery, after, before *Cursor) (*MessageLinkQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultMessageLinkOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *messagelinkPager) applyOrder(query *MessageLinkQuery) *MessageLinkQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultMessageLinkOrder.Field {
+		query = query.Order(DefaultMessageLinkOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *messagelinkPager) orderExpr(query *MessageLinkQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultMessageLinkOrder.Field {
+			b.Comma().Ident(DefaultMessageLinkOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to MessageLink.
+func (ml *MessageLinkQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...MessageLinkPaginateOption,
+) (*MessageLinkConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newMessageLinkPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if ml, err = pager.applyFilter(ml); err != nil {
+		return nil, err
+	}
+	conn := &MessageLinkConnection{Edges: []*MessageLinkEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := ml.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if ml, err = pager.applyCursors(ml, after, before); err != nil {
+		return nil, err
+	}
+	limit := paginateLimit(first, last)
+	if limit != 0 {
+		ml.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ml.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	ml = pager.applyOrder(ml)
+	nodes, err := ml.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// MessageLinkOrderFieldURL orders MessageLink by url.
+	MessageLinkOrderFieldURL = &MessageLinkOrderField{
+		Value: func(ml *MessageLink) (ent.Value, error) {
+			return ml.URL, nil
+		},
+		column: messagelink.FieldURL,
+		toTerm: messagelink.ByURL,
+		toCursor: func(ml *MessageLink) Cursor {
+			return Cursor{
+				ID:    ml.ID,
+				Value: ml.URL,
+			}
+		},
+	}
+	// MessageLinkOrderFieldCreatedAt orders MessageLink by created_at.
+	MessageLinkOrderFieldCreatedAt = &MessageLinkOrderField{
+		Value: func(ml *MessageLink) (ent.Value, error) {
+			return ml.CreatedAt, nil
+		},
+		column: messagelink.FieldCreatedAt,
+		toTerm: messagelink.ByCreatedAt,
+		toCursor: func(ml *MessageLink) Cursor {
+			return Cursor{
+				ID:    ml.ID,
+				Value: ml.CreatedAt,
+			}
+		},
+	}
+	// MessageLinkOrderFieldUpdatedAt orders MessageLink by updated_at.
+	MessageLinkOrderFieldUpdatedAt = &MessageLinkOrderField{
+		Value: func(ml *MessageLink) (ent.Value, error) {
+			return ml.UpdatedAt, nil
+		},
+		column: messagelink.FieldUpdatedAt,
+		toTerm: messagelink.ByUpdatedAt,
+		toCursor: func(ml *MessageLink) Cursor {
+			return Cursor{
+				ID:    ml.ID,
+				Value: ml.UpdatedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f MessageLinkOrderField) String() string {
+	var str string
+	switch f.column {
+	case MessageLinkOrderFieldURL.column:
+		str = "URL"
+	case MessageLinkOrderFieldCreatedAt.column:
+		str = "CREATED_AT"
+	case MessageLinkOrderFieldUpdatedAt.column:
+		str = "UPDATED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f MessageLinkOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *MessageLinkOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("MessageLinkOrderField %T must be a string", v)
+	}
+	switch str {
+	case "URL":
+		*f = *MessageLinkOrderFieldURL
+	case "CREATED_AT":
+		*f = *MessageLinkOrderFieldCreatedAt
+	case "UPDATED_AT":
+		*f = *MessageLinkOrderFieldUpdatedAt
+	default:
+		return fmt.Errorf("%s is not a valid MessageLinkOrderField", str)
+	}
+	return nil
+}
+
+// MessageLinkOrderField defines the ordering field of MessageLink.
+type MessageLinkOrderField struct {
+	// Value extracts the ordering value from the given MessageLink.
+	Value    func(*MessageLink) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) messagelink.OrderOption
+	toCursor func(*MessageLink) Cursor
+}
+
+// MessageLinkOrder defines the ordering of MessageLink.
+type MessageLinkOrder struct {
+	Direction OrderDirection         `json:"direction"`
+	Field     *MessageLinkOrderField `json:"field"`
+}
+
+// DefaultMessageLinkOrder is the default ordering of MessageLink.
+var DefaultMessageLinkOrder = &MessageLinkOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &MessageLinkOrderField{
+		Value: func(ml *MessageLink) (ent.Value, error) {
+			return ml.ID, nil
+		},
+		column: messagelink.FieldID,
+		toTerm: messagelink.ByID,
+		toCursor: func(ml *MessageLink) Cursor {
+			return Cursor{ID: ml.ID}
+		},
+	},
+}
+
+// ToEdge converts MessageLink into MessageLinkEdge.
+func (ml *MessageLink) ToEdge(order *MessageLinkOrder) *MessageLinkEdge {
+	if order == nil {
+		order = DefaultMessageLinkOrder
+	}
+	return &MessageLinkEdge{
+		Node:   ml,
+		Cursor: order.Field.toCursor(ml),
+	}
+}
+
+// MessageVoiceEdge is the edge representation of MessageVoice.
+type MessageVoiceEdge struct {
+	Node   *MessageVoice `json:"node"`
+	Cursor Cursor        `json:"cursor"`
+}
+
+// MessageVoiceConnection is the connection containing edges to MessageVoice.
+type MessageVoiceConnection struct {
+	Edges      []*MessageVoiceEdge `json:"edges"`
+	PageInfo   PageInfo            `json:"pageInfo"`
+	TotalCount int                 `json:"totalCount"`
+}
+
+func (c *MessageVoiceConnection) build(nodes []*MessageVoice, pager *messagevoicePager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *MessageVoice
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *MessageVoice {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *MessageVoice {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*MessageVoiceEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &MessageVoiceEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// MessageVoicePaginateOption enables pagination customization.
+type MessageVoicePaginateOption func(*messagevoicePager) error
+
+// WithMessageVoiceOrder configures pagination ordering.
+func WithMessageVoiceOrder(order *MessageVoiceOrder) MessageVoicePaginateOption {
+	if order == nil {
+		order = DefaultMessageVoiceOrder
+	}
+	o := *order
+	return func(pager *messagevoicePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultMessageVoiceOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithMessageVoiceFilter configures pagination filter.
+func WithMessageVoiceFilter(filter func(*MessageVoiceQuery) (*MessageVoiceQuery, error)) MessageVoicePaginateOption {
+	return func(pager *messagevoicePager) error {
+		if filter == nil {
+			return errors.New("MessageVoiceQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type messagevoicePager struct {
+	reverse bool
+	order   *MessageVoiceOrder
+	filter  func(*MessageVoiceQuery) (*MessageVoiceQuery, error)
+}
+
+func newMessageVoicePager(opts []MessageVoicePaginateOption, reverse bool) (*messagevoicePager, error) {
+	pager := &messagevoicePager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultMessageVoiceOrder
+	}
+	return pager, nil
+}
+
+func (p *messagevoicePager) applyFilter(query *MessageVoiceQuery) (*MessageVoiceQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *messagevoicePager) toCursor(mv *MessageVoice) Cursor {
+	return p.order.Field.toCursor(mv)
+}
+
+func (p *messagevoicePager) applyCursors(query *MessageVoiceQuery, after, before *Cursor) (*MessageVoiceQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultMessageVoiceOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *messagevoicePager) applyOrder(query *MessageVoiceQuery) *MessageVoiceQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultMessageVoiceOrder.Field {
+		query = query.Order(DefaultMessageVoiceOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *messagevoicePager) orderExpr(query *MessageVoiceQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultMessageVoiceOrder.Field {
+			b.Comma().Ident(DefaultMessageVoiceOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to MessageVoice.
+func (mv *MessageVoiceQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...MessageVoicePaginateOption,
+) (*MessageVoiceConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newMessageVoicePager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if mv, err = pager.applyFilter(mv); err != nil {
+		return nil, err
+	}
+	conn := &MessageVoiceConnection{Edges: []*MessageVoiceEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := mv.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if mv, err = pager.applyCursors(mv, after, before); err != nil {
+		return nil, err
+	}
+	limit := paginateLimit(first, last)
+	if limit != 0 {
+		mv.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := mv.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	mv = pager.applyOrder(mv)
+	nodes, err := mv.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// MessageVoiceOrderFieldLength orders MessageVoice by length.
+	MessageVoiceOrderFieldLength = &MessageVoiceOrderField{
+		Value: func(mv *MessageVoice) (ent.Value, error) {
+			return mv.Length, nil
+		},
+		column: messagevoice.FieldLength,
+		toTerm: messagevoice.ByLength,
+		toCursor: func(mv *MessageVoice) Cursor {
+			return Cursor{
+				ID:    mv.ID,
+				Value: mv.Length,
+			}
+		},
+	}
+	// MessageVoiceOrderFieldAttachedAt orders MessageVoice by attached_at.
+	MessageVoiceOrderFieldAttachedAt = &MessageVoiceOrderField{
+		Value: func(mv *MessageVoice) (ent.Value, error) {
+			return mv.AttachedAt, nil
+		},
+		column: messagevoice.FieldAttachedAt,
+		toTerm: messagevoice.ByAttachedAt,
+		toCursor: func(mv *MessageVoice) Cursor {
+			return Cursor{
+				ID:    mv.ID,
+				Value: mv.AttachedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f MessageVoiceOrderField) String() string {
+	var str string
+	switch f.column {
+	case MessageVoiceOrderFieldLength.column:
+		str = "LENGTH"
+	case MessageVoiceOrderFieldAttachedAt.column:
+		str = "ATTACHED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f MessageVoiceOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *MessageVoiceOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("MessageVoiceOrderField %T must be a string", v)
+	}
+	switch str {
+	case "LENGTH":
+		*f = *MessageVoiceOrderFieldLength
+	case "ATTACHED_AT":
+		*f = *MessageVoiceOrderFieldAttachedAt
+	default:
+		return fmt.Errorf("%s is not a valid MessageVoiceOrderField", str)
+	}
+	return nil
+}
+
+// MessageVoiceOrderField defines the ordering field of MessageVoice.
+type MessageVoiceOrderField struct {
+	// Value extracts the ordering value from the given MessageVoice.
+	Value    func(*MessageVoice) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) messagevoice.OrderOption
+	toCursor func(*MessageVoice) Cursor
+}
+
+// MessageVoiceOrder defines the ordering of MessageVoice.
+type MessageVoiceOrder struct {
+	Direction OrderDirection          `json:"direction"`
+	Field     *MessageVoiceOrderField `json:"field"`
+}
+
+// DefaultMessageVoiceOrder is the default ordering of MessageVoice.
+var DefaultMessageVoiceOrder = &MessageVoiceOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &MessageVoiceOrderField{
+		Value: func(mv *MessageVoice) (ent.Value, error) {
+			return mv.ID, nil
+		},
+		column: messagevoice.FieldID,
+		toTerm: messagevoice.ByID,
+		toCursor: func(mv *MessageVoice) Cursor {
+			return Cursor{ID: mv.ID}
+		},
+	},
+}
+
+// ToEdge converts MessageVoice into MessageVoiceEdge.
+func (mv *MessageVoice) ToEdge(order *MessageVoiceOrder) *MessageVoiceEdge {
+	if order == nil {
+		order = DefaultMessageVoiceOrder
+	}
+	return &MessageVoiceEdge{
+		Node:   mv,
+		Cursor: order.Field.toCursor(mv),
+	}
+}
+
 // RoomEdge is the edge representation of Room.
 type RoomEdge struct {
 	Node   *Room  `json:"node"`
@@ -1344,6 +2379,20 @@ var (
 			}
 		},
 	}
+	// RoomOrderFieldType orders Room by type.
+	RoomOrderFieldType = &RoomOrderField{
+		Value: func(r *Room) (ent.Value, error) {
+			return r.Type, nil
+		},
+		column: room.FieldType,
+		toTerm: room.ByType,
+		toCursor: func(r *Room) Cursor {
+			return Cursor{
+				ID:    r.ID,
+				Value: r.Type,
+			}
+		},
+	}
 	// RoomOrderFieldCreatedAt orders Room by created_at.
 	RoomOrderFieldCreatedAt = &RoomOrderField{
 		Value: func(r *Room) (ent.Value, error) {
@@ -1382,6 +2431,8 @@ func (f RoomOrderField) String() string {
 		str = "NAME"
 	case RoomOrderFieldVersion.column:
 		str = "VERSION"
+	case RoomOrderFieldType.column:
+		str = "TYPE"
 	case RoomOrderFieldCreatedAt.column:
 		str = "CREATED_AT"
 	case RoomOrderFieldUpdatedAt.column:
@@ -1406,6 +2457,8 @@ func (f *RoomOrderField) UnmarshalGQL(v interface{}) error {
 		*f = *RoomOrderFieldName
 	case "VERSION":
 		*f = *RoomOrderFieldVersion
+	case "TYPE":
+		*f = *RoomOrderFieldType
 	case "CREATED_AT":
 		*f = *RoomOrderFieldCreatedAt
 	case "UPDATED_AT":
@@ -1699,6 +2752,53 @@ func (rm *RoomMemberQuery) Paginate(
 	}
 	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
+}
+
+var (
+	// RoomMemberOrderFieldJoinedAt orders RoomMember by joined_at.
+	RoomMemberOrderFieldJoinedAt = &RoomMemberOrderField{
+		Value: func(rm *RoomMember) (ent.Value, error) {
+			return rm.JoinedAt, nil
+		},
+		column: roommember.FieldJoinedAt,
+		toTerm: roommember.ByJoinedAt,
+		toCursor: func(rm *RoomMember) Cursor {
+			return Cursor{
+				ID:    rm.ID,
+				Value: rm.JoinedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f RoomMemberOrderField) String() string {
+	var str string
+	switch f.column {
+	case RoomMemberOrderFieldJoinedAt.column:
+		str = "JOINED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f RoomMemberOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *RoomMemberOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("RoomMemberOrderField %T must be a string", v)
+	}
+	switch str {
+	case "JOINED_AT":
+		*f = *RoomMemberOrderFieldJoinedAt
+	default:
+		return fmt.Errorf("%s is not a valid RoomMemberOrderField", str)
+	}
+	return nil
 }
 
 // RoomMemberOrderField defines the ordering field of RoomMember.

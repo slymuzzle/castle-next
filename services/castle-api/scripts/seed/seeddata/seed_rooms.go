@@ -2,6 +2,7 @@ package seeddata
 
 import (
 	"context"
+	"journeyhub/ent/room"
 	"journeyhub/internal/db"
 )
 
@@ -11,7 +12,8 @@ func SeedRooms(dbService db.Service) error {
 	return entClient.Room.CreateBulk(
 		entClient.Room.
 			Create().
-			SetName("Support"),
+			SetName("Support").
+			SetType(room.TypePersonal),
 	).OnConflict().
 		DoNothing().
 		Exec(context.Background())

@@ -18,10 +18,10 @@ input UpdateRoomInput {
 
 extend type Mutation {
   createRoom(input: CreateRoomInput!): Room
-  updateRoom(input: UpdateRoomInput!): Room
-  deleteRoom(roomId: ID!): Room
+  updateRoom(roomID: ID!, input: UpdateRoomInput!): Room
+  deleteRoom(roomID: ID!): Room
 }
 
 extend type Subscription {
-  messageAdded(roomId: ID!): Message!
+  roomChanged: Message!
 }

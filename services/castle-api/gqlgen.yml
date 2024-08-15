@@ -37,6 +37,12 @@ models:
     model:
       - journeyhub/ent/schema/pulid.ID
       - github.com/99designs/gqlgen/graphql.IntID
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
+  Uint:
+    model:
+      - github.com/99designs/gqlgen/graphql.Uint
   Uint64:
     model:
       - github.com/99designs/gqlgen/graphql.Uint64

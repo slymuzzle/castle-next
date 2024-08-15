@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
-	"journeyhub/graph/generated"
-	"journeyhub/graph/middleware"
 	"journeyhub/graph/model"
 )
 
@@ -20,7 +18,7 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, input model.CreateRoo
 }
 
 // UpdateRoom is the resolver for the updateRoom field.
-func (r *mutationResolver) UpdateRoom(ctx context.Context, input model.UpdateRoomInput) (*ent.Room, error) {
+func (r *mutationResolver) UpdateRoom(ctx context.Context, roomID pulid.ID, input model.UpdateRoomInput) (*ent.Room, error) {
 	panic(fmt.Errorf("not implemented: UpdateRoom - updateRoom"))
 }
 
@@ -29,16 +27,7 @@ func (r *mutationResolver) DeleteRoom(ctx context.Context, roomID pulid.ID) (*en
 	panic(fmt.Errorf("not implemented: DeleteRoom - deleteRoom"))
 }
 
-// MessageAdded is the resolver for the messageAdded field.
-func (r *subscriptionResolver) MessageAdded(ctx context.Context, roomID pulid.ID) (<-chan *ent.Message, error) {
-	if user := middleware.JwtUserForContext(ctx); user == nil {
-		return nil, middleware.ErrAccessDenied
-	}
-
-	return r.chatService.Subscribe(roomID)
+// RoomChanged is the resolver for the roomChanged field.
+func (r *subscriptionResolver) RoomChanged(ctx context.Context) (<-chan *ent.Message, error) {
+	panic(fmt.Errorf("not implemented: RoomChanged - roomChanged"))
 }
-
-// Subscription returns generated.SubscriptionResolver implementation.
-func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
-
-type subscriptionResolver struct{ *Resolver }

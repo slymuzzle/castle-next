@@ -9,10 +9,12 @@ import (
 	"journeyhub/ent/file"
 	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
-	"journeyhub/ent/schema/property/roomtype"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"sync"
@@ -31,32 +33,38 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeFile       = "File"
-	TypeFriendship = "Friendship"
-	TypeMessage    = "Message"
-	TypeRoom       = "Room"
-	TypeRoomMember = "RoomMember"
-	TypeUser       = "User"
+	TypeFile              = "File"
+	TypeFriendship        = "Friendship"
+	TypeMessage           = "Message"
+	TypeMessageAttachment = "MessageAttachment"
+	TypeMessageLink       = "MessageLink"
+	TypeMessageVoice      = "MessageVoice"
+	TypeRoom              = "Room"
+	TypeRoomMember        = "RoomMember"
+	TypeUser              = "User"
 )
 
 // FileMutation represents an operation that mutates the File nodes in the graph.
 type FileMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *pulid.ID
-	name          *string
-	file_name     *string
-	mime_type     *string
-	disk          *string
-	size          *uint64
-	addsize       *int64
-	created_at    *time.Time
-	updated_at    *time.Time
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*File, error)
-	predicates    []predicate.File
+	op                        Op
+	typ                       string
+	id                        *pulid.ID
+	name                      *string
+	mime_type                 *string
+	disk                      *string
+	size                      *uint64
+	addsize                   *int64
+	created_at                *time.Time
+	updated_at                *time.Time
+	clearedFields             map[string]struct{}
+	message_attachment        *pulid.ID
+	clearedmessage_attachment bool
+	message_voice             *pulid.ID
+	clearedmessage_voice      bool
+	done                      bool
+	oldValue                  func(context.Context) (*File, error)
+	predicates                []predicate.File
 }
 
 var _ ent.Mutation = (*FileMutation)(nil)
@@ -197,42 +205,6 @@ func (m *FileMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *FileMutation) ResetName() {
 	m.name = nil
-}
-
-// SetFileName sets the "file_name" field.
-func (m *FileMutation) SetFileName(s string) {
-	m.file_name = &s
-}
-
-// FileName returns the value of the "file_name" field in the mutation.
-func (m *FileMutation) FileName() (r string, exists bool) {
-	v := m.file_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFileName returns the old "file_name" field's value of the File entity.
-// If the File object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileMutation) OldFileName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFileName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFileName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFileName: %w", err)
-	}
-	return oldValue.FileName, nil
-}
-
-// ResetFileName resets all changes to the "file_name" field.
-func (m *FileMutation) ResetFileName() {
-	m.file_name = nil
 }
 
 // SetMimeType sets the "mime_type" field.
@@ -435,6 +407,84 @@ func (m *FileMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
+// SetMessageAttachmentID sets the "message_attachment" edge to the MessageAttachment entity by id.
+func (m *FileMutation) SetMessageAttachmentID(id pulid.ID) {
+	m.message_attachment = &id
+}
+
+// ClearMessageAttachment clears the "message_attachment" edge to the MessageAttachment entity.
+func (m *FileMutation) ClearMessageAttachment() {
+	m.clearedmessage_attachment = true
+}
+
+// MessageAttachmentCleared reports if the "message_attachment" edge to the MessageAttachment entity was cleared.
+func (m *FileMutation) MessageAttachmentCleared() bool {
+	return m.clearedmessage_attachment
+}
+
+// MessageAttachmentID returns the "message_attachment" edge ID in the mutation.
+func (m *FileMutation) MessageAttachmentID() (id pulid.ID, exists bool) {
+	if m.message_attachment != nil {
+		return *m.message_attachment, true
+	}
+	return
+}
+
+// MessageAttachmentIDs returns the "message_attachment" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MessageAttachmentID instead. It exists only for internal usage by the builders.
+func (m *FileMutation) MessageAttachmentIDs() (ids []pulid.ID) {
+	if id := m.message_attachment; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMessageAttachment resets all changes to the "message_attachment" edge.
+func (m *FileMutation) ResetMessageAttachment() {
+	m.message_attachment = nil
+	m.clearedmessage_attachment = false
+}
+
+// SetMessageVoiceID sets the "message_voice" edge to the MessageVoice entity by id.
+func (m *FileMutation) SetMessageVoiceID(id pulid.ID) {
+	m.message_voice = &id
+}
+
+// ClearMessageVoice clears the "message_voice" edge to the MessageVoice entity.
+func (m *FileMutation) ClearMessageVoice() {
+	m.clearedmessage_voice = true
+}
+
+// MessageVoiceCleared reports if the "message_voice" edge to the MessageVoice entity was cleared.
+func (m *FileMutation) MessageVoiceCleared() bool {
+	return m.clearedmessage_voice
+}
+
+// MessageVoiceID returns the "message_voice" edge ID in the mutation.
+func (m *FileMutation) MessageVoiceID() (id pulid.ID, exists bool) {
+	if m.message_voice != nil {
+		return *m.message_voice, true
+	}
+	return
+}
+
+// MessageVoiceIDs returns the "message_voice" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MessageVoiceID instead. It exists only for internal usage by the builders.
+func (m *FileMutation) MessageVoiceIDs() (ids []pulid.ID) {
+	if id := m.message_voice; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMessageVoice resets all changes to the "message_voice" edge.
+func (m *FileMutation) ResetMessageVoice() {
+	m.message_voice = nil
+	m.clearedmessage_voice = false
+}
+
 // Where appends a list predicates to the FileMutation builder.
 func (m *FileMutation) Where(ps ...predicate.File) {
 	m.predicates = append(m.predicates, ps...)
@@ -469,12 +519,9 @@ func (m *FileMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FileMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 6)
 	if m.name != nil {
 		fields = append(fields, file.FieldName)
-	}
-	if m.file_name != nil {
-		fields = append(fields, file.FieldFileName)
 	}
 	if m.mime_type != nil {
 		fields = append(fields, file.FieldMimeType)
@@ -501,8 +548,6 @@ func (m *FileMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case file.FieldName:
 		return m.Name()
-	case file.FieldFileName:
-		return m.FileName()
 	case file.FieldMimeType:
 		return m.MimeType()
 	case file.FieldDisk:
@@ -524,8 +569,6 @@ func (m *FileMutation) OldField(ctx context.Context, name string) (ent.Value, er
 	switch name {
 	case file.FieldName:
 		return m.OldName(ctx)
-	case file.FieldFileName:
-		return m.OldFileName(ctx)
 	case file.FieldMimeType:
 		return m.OldMimeType(ctx)
 	case file.FieldDisk:
@@ -551,13 +594,6 @@ func (m *FileMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
-		return nil
-	case file.FieldFileName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFileName(v)
 		return nil
 	case file.FieldMimeType:
 		v, ok := value.(string)
@@ -661,9 +697,6 @@ func (m *FileMutation) ResetField(name string) error {
 	case file.FieldName:
 		m.ResetName()
 		return nil
-	case file.FieldFileName:
-		m.ResetFileName()
-		return nil
 	case file.FieldMimeType:
 		m.ResetMimeType()
 		return nil
@@ -685,19 +718,35 @@ func (m *FileMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FileMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.message_attachment != nil {
+		edges = append(edges, file.EdgeMessageAttachment)
+	}
+	if m.message_voice != nil {
+		edges = append(edges, file.EdgeMessageVoice)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *FileMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case file.EdgeMessageAttachment:
+		if id := m.message_attachment; id != nil {
+			return []ent.Value{*id}
+		}
+	case file.EdgeMessageVoice:
+		if id := m.message_voice; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FileMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -709,25 +758,53 @@ func (m *FileMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FileMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.clearedmessage_attachment {
+		edges = append(edges, file.EdgeMessageAttachment)
+	}
+	if m.clearedmessage_voice {
+		edges = append(edges, file.EdgeMessageVoice)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *FileMutation) EdgeCleared(name string) bool {
+	switch name {
+	case file.EdgeMessageAttachment:
+		return m.clearedmessage_attachment
+	case file.EdgeMessageVoice:
+		return m.clearedmessage_voice
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *FileMutation) ClearEdge(name string) error {
+	switch name {
+	case file.EdgeMessageAttachment:
+		m.ClearMessageAttachment()
+		return nil
+	case file.EdgeMessageVoice:
+		m.ClearMessageVoice()
+		return nil
+	}
 	return fmt.Errorf("unknown File unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *FileMutation) ResetEdge(name string) error {
+	switch name {
+	case file.EdgeMessageAttachment:
+		m.ResetMessageAttachment()
+		return nil
+	case file.EdgeMessageVoice:
+		m.ResetMessageVoice()
+		return nil
+	}
 	return fmt.Errorf("unknown File edge %s", name)
 }
 
@@ -1396,20 +1473,28 @@ func (m *FriendshipMutation) ResetEdge(name string) error {
 // MessageMutation represents an operation that mutates the Message nodes in the graph.
 type MessageMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *pulid.ID
-	content       *string
-	created_at    *time.Time
-	updated_at    *time.Time
-	clearedFields map[string]struct{}
-	user          *pulid.ID
-	cleareduser   bool
-	room          *pulid.ID
-	clearedroom   bool
-	done          bool
-	oldValue      func(context.Context) (*Message, error)
-	predicates    []predicate.Message
+	op                 Op
+	typ                string
+	id                 *pulid.ID
+	content            *string
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	user               *pulid.ID
+	cleareduser        bool
+	room               *pulid.ID
+	clearedroom        bool
+	reply_to           *pulid.ID
+	clearedreply_to    bool
+	attachments        map[pulid.ID]struct{}
+	removedattachments map[pulid.ID]struct{}
+	clearedattachments bool
+	links              map[pulid.ID]struct{}
+	removedlinks       map[pulid.ID]struct{}
+	clearedlinks       bool
+	done               bool
+	oldValue           func(context.Context) (*Message, error)
+	predicates         []predicate.Message
 }
 
 var _ ent.Mutation = (*MessageMutation)(nil)
@@ -1702,6 +1787,153 @@ func (m *MessageMutation) ResetRoom() {
 	m.clearedroom = false
 }
 
+// SetReplyToID sets the "reply_to" edge to the Message entity by id.
+func (m *MessageMutation) SetReplyToID(id pulid.ID) {
+	m.reply_to = &id
+}
+
+// ClearReplyTo clears the "reply_to" edge to the Message entity.
+func (m *MessageMutation) ClearReplyTo() {
+	m.clearedreply_to = true
+}
+
+// ReplyToCleared reports if the "reply_to" edge to the Message entity was cleared.
+func (m *MessageMutation) ReplyToCleared() bool {
+	return m.clearedreply_to
+}
+
+// ReplyToID returns the "reply_to" edge ID in the mutation.
+func (m *MessageMutation) ReplyToID() (id pulid.ID, exists bool) {
+	if m.reply_to != nil {
+		return *m.reply_to, true
+	}
+	return
+}
+
+// ReplyToIDs returns the "reply_to" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ReplyToID instead. It exists only for internal usage by the builders.
+func (m *MessageMutation) ReplyToIDs() (ids []pulid.ID) {
+	if id := m.reply_to; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetReplyTo resets all changes to the "reply_to" edge.
+func (m *MessageMutation) ResetReplyTo() {
+	m.reply_to = nil
+	m.clearedreply_to = false
+}
+
+// AddAttachmentIDs adds the "attachments" edge to the MessageAttachment entity by ids.
+func (m *MessageMutation) AddAttachmentIDs(ids ...pulid.ID) {
+	if m.attachments == nil {
+		m.attachments = make(map[pulid.ID]struct{})
+	}
+	for i := range ids {
+		m.attachments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAttachments clears the "attachments" edge to the MessageAttachment entity.
+func (m *MessageMutation) ClearAttachments() {
+	m.clearedattachments = true
+}
+
+// AttachmentsCleared reports if the "attachments" edge to the MessageAttachment entity was cleared.
+func (m *MessageMutation) AttachmentsCleared() bool {
+	return m.clearedattachments
+}
+
+// RemoveAttachmentIDs removes the "attachments" edge to the MessageAttachment entity by IDs.
+func (m *MessageMutation) RemoveAttachmentIDs(ids ...pulid.ID) {
+	if m.removedattachments == nil {
+		m.removedattachments = make(map[pulid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.attachments, ids[i])
+		m.removedattachments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAttachments returns the removed IDs of the "attachments" edge to the MessageAttachment entity.
+func (m *MessageMutation) RemovedAttachmentsIDs() (ids []pulid.ID) {
+	for id := range m.removedattachments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AttachmentsIDs returns the "attachments" edge IDs in the mutation.
+func (m *MessageMutation) AttachmentsIDs() (ids []pulid.ID) {
+	for id := range m.attachments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAttachments resets all changes to the "attachments" edge.
+func (m *MessageMutation) ResetAttachments() {
+	m.attachments = nil
+	m.clearedattachments = false
+	m.removedattachments = nil
+}
+
+// AddLinkIDs adds the "links" edge to the MessageLink entity by ids.
+func (m *MessageMutation) AddLinkIDs(ids ...pulid.ID) {
+	if m.links == nil {
+		m.links = make(map[pulid.ID]struct{})
+	}
+	for i := range ids {
+		m.links[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLinks clears the "links" edge to the MessageLink entity.
+func (m *MessageMutation) ClearLinks() {
+	m.clearedlinks = true
+}
+
+// LinksCleared reports if the "links" edge to the MessageLink entity was cleared.
+func (m *MessageMutation) LinksCleared() bool {
+	return m.clearedlinks
+}
+
+// RemoveLinkIDs removes the "links" edge to the MessageLink entity by IDs.
+func (m *MessageMutation) RemoveLinkIDs(ids ...pulid.ID) {
+	if m.removedlinks == nil {
+		m.removedlinks = make(map[pulid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.links, ids[i])
+		m.removedlinks[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLinks returns the removed IDs of the "links" edge to the MessageLink entity.
+func (m *MessageMutation) RemovedLinksIDs() (ids []pulid.ID) {
+	for id := range m.removedlinks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LinksIDs returns the "links" edge IDs in the mutation.
+func (m *MessageMutation) LinksIDs() (ids []pulid.ID) {
+	for id := range m.links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLinks resets all changes to the "links" edge.
+func (m *MessageMutation) ResetLinks() {
+	m.links = nil
+	m.clearedlinks = false
+	m.removedlinks = nil
+}
+
 // Where appends a list predicates to the MessageMutation builder.
 func (m *MessageMutation) Where(ps ...predicate.Message) {
 	m.predicates = append(m.predicates, ps...)
@@ -1869,12 +2101,21 @@ func (m *MessageMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *MessageMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 5)
 	if m.user != nil {
 		edges = append(edges, message.EdgeUser)
 	}
 	if m.room != nil {
 		edges = append(edges, message.EdgeRoom)
+	}
+	if m.reply_to != nil {
+		edges = append(edges, message.EdgeReplyTo)
+	}
+	if m.attachments != nil {
+		edges = append(edges, message.EdgeAttachments)
+	}
+	if m.links != nil {
+		edges = append(edges, message.EdgeLinks)
 	}
 	return edges
 }
@@ -1891,30 +2132,75 @@ func (m *MessageMutation) AddedIDs(name string) []ent.Value {
 		if id := m.room; id != nil {
 			return []ent.Value{*id}
 		}
+	case message.EdgeReplyTo:
+		if id := m.reply_to; id != nil {
+			return []ent.Value{*id}
+		}
+	case message.EdgeAttachments:
+		ids := make([]ent.Value, 0, len(m.attachments))
+		for id := range m.attachments {
+			ids = append(ids, id)
+		}
+		return ids
+	case message.EdgeLinks:
+		ids := make([]ent.Value, 0, len(m.links))
+		for id := range m.links {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *MessageMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 5)
+	if m.removedattachments != nil {
+		edges = append(edges, message.EdgeAttachments)
+	}
+	if m.removedlinks != nil {
+		edges = append(edges, message.EdgeLinks)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *MessageMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case message.EdgeAttachments:
+		ids := make([]ent.Value, 0, len(m.removedattachments))
+		for id := range m.removedattachments {
+			ids = append(ids, id)
+		}
+		return ids
+	case message.EdgeLinks:
+		ids := make([]ent.Value, 0, len(m.removedlinks))
+		for id := range m.removedlinks {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *MessageMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 5)
 	if m.cleareduser {
 		edges = append(edges, message.EdgeUser)
 	}
 	if m.clearedroom {
 		edges = append(edges, message.EdgeRoom)
+	}
+	if m.clearedreply_to {
+		edges = append(edges, message.EdgeReplyTo)
+	}
+	if m.clearedattachments {
+		edges = append(edges, message.EdgeAttachments)
+	}
+	if m.clearedlinks {
+		edges = append(edges, message.EdgeLinks)
 	}
 	return edges
 }
@@ -1927,6 +2213,12 @@ func (m *MessageMutation) EdgeCleared(name string) bool {
 		return m.cleareduser
 	case message.EdgeRoom:
 		return m.clearedroom
+	case message.EdgeReplyTo:
+		return m.clearedreply_to
+	case message.EdgeAttachments:
+		return m.clearedattachments
+	case message.EdgeLinks:
+		return m.clearedlinks
 	}
 	return false
 }
@@ -1940,6 +2232,9 @@ func (m *MessageMutation) ClearEdge(name string) error {
 		return nil
 	case message.EdgeRoom:
 		m.ClearRoom()
+		return nil
+	case message.EdgeReplyTo:
+		m.ClearReplyTo()
 		return nil
 	}
 	return fmt.Errorf("unknown Message unique edge %s", name)
@@ -1955,8 +2250,1615 @@ func (m *MessageMutation) ResetEdge(name string) error {
 	case message.EdgeRoom:
 		m.ResetRoom()
 		return nil
+	case message.EdgeReplyTo:
+		m.ResetReplyTo()
+		return nil
+	case message.EdgeAttachments:
+		m.ResetAttachments()
+		return nil
+	case message.EdgeLinks:
+		m.ResetLinks()
+		return nil
 	}
 	return fmt.Errorf("unknown Message edge %s", name)
+}
+
+// MessageAttachmentMutation represents an operation that mutates the MessageAttachment nodes in the graph.
+type MessageAttachmentMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *pulid.ID
+	_type          *messageattachment.Type
+	_order         *uint64
+	add_order      *int64
+	attached_at    *time.Time
+	clearedFields  map[string]struct{}
+	message        *pulid.ID
+	clearedmessage bool
+	file           *pulid.ID
+	clearedfile    bool
+	done           bool
+	oldValue       func(context.Context) (*MessageAttachment, error)
+	predicates     []predicate.MessageAttachment
+}
+
+var _ ent.Mutation = (*MessageAttachmentMutation)(nil)
+
+// messageattachmentOption allows management of the mutation configuration using functional options.
+type messageattachmentOption func(*MessageAttachmentMutation)
+
+// newMessageAttachmentMutation creates new mutation for the MessageAttachment entity.
+func newMessageAttachmentMutation(c config, op Op, opts ...messageattachmentOption) *MessageAttachmentMutation {
+	m := &MessageAttachmentMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeMessageAttachment,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withMessageAttachmentID sets the ID field of the mutation.
+func withMessageAttachmentID(id pulid.ID) messageattachmentOption {
+	return func(m *MessageAttachmentMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *MessageAttachment
+		)
+		m.oldValue = func(ctx context.Context) (*MessageAttachment, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().MessageAttachment.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withMessageAttachment sets the old MessageAttachment of the mutation.
+func withMessageAttachment(node *MessageAttachment) messageattachmentOption {
+	return func(m *MessageAttachmentMutation) {
+		m.oldValue = func(context.Context) (*MessageAttachment, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m MessageAttachmentMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m MessageAttachmentMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of MessageAttachment entities.
+func (m *MessageAttachmentMutation) SetID(id pulid.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *MessageAttachmentMutation) ID() (id pulid.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *MessageAttachmentMutation) IDs(ctx context.Context) ([]pulid.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []pulid.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().MessageAttachment.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetType sets the "type" field.
+func (m *MessageAttachmentMutation) SetType(value messageattachment.Type) {
+	m._type = &value
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *MessageAttachmentMutation) GetType() (r messageattachment.Type, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the MessageAttachment entity.
+// If the MessageAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageAttachmentMutation) OldType(ctx context.Context) (v messageattachment.Type, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *MessageAttachmentMutation) ResetType() {
+	m._type = nil
+}
+
+// SetOrder sets the "order" field.
+func (m *MessageAttachmentMutation) SetOrder(u uint64) {
+	m._order = &u
+	m.add_order = nil
+}
+
+// Order returns the value of the "order" field in the mutation.
+func (m *MessageAttachmentMutation) Order() (r uint64, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrder returns the old "order" field's value of the MessageAttachment entity.
+// If the MessageAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageAttachmentMutation) OldOrder(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrder: %w", err)
+	}
+	return oldValue.Order, nil
+}
+
+// AddOrder adds u to the "order" field.
+func (m *MessageAttachmentMutation) AddOrder(u int64) {
+	if m.add_order != nil {
+		*m.add_order += u
+	} else {
+		m.add_order = &u
+	}
+}
+
+// AddedOrder returns the value that was added to the "order" field in this mutation.
+func (m *MessageAttachmentMutation) AddedOrder() (r int64, exists bool) {
+	v := m.add_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOrder resets all changes to the "order" field.
+func (m *MessageAttachmentMutation) ResetOrder() {
+	m._order = nil
+	m.add_order = nil
+}
+
+// SetAttachedAt sets the "attached_at" field.
+func (m *MessageAttachmentMutation) SetAttachedAt(t time.Time) {
+	m.attached_at = &t
+}
+
+// AttachedAt returns the value of the "attached_at" field in the mutation.
+func (m *MessageAttachmentMutation) AttachedAt() (r time.Time, exists bool) {
+	v := m.attached_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAttachedAt returns the old "attached_at" field's value of the MessageAttachment entity.
+// If the MessageAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageAttachmentMutation) OldAttachedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAttachedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAttachedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAttachedAt: %w", err)
+	}
+	return oldValue.AttachedAt, nil
+}
+
+// ResetAttachedAt resets all changes to the "attached_at" field.
+func (m *MessageAttachmentMutation) ResetAttachedAt() {
+	m.attached_at = nil
+}
+
+// SetMessageID sets the "message" edge to the Message entity by id.
+func (m *MessageAttachmentMutation) SetMessageID(id pulid.ID) {
+	m.message = &id
+}
+
+// ClearMessage clears the "message" edge to the Message entity.
+func (m *MessageAttachmentMutation) ClearMessage() {
+	m.clearedmessage = true
+}
+
+// MessageCleared reports if the "message" edge to the Message entity was cleared.
+func (m *MessageAttachmentMutation) MessageCleared() bool {
+	return m.clearedmessage
+}
+
+// MessageID returns the "message" edge ID in the mutation.
+func (m *MessageAttachmentMutation) MessageID() (id pulid.ID, exists bool) {
+	if m.message != nil {
+		return *m.message, true
+	}
+	return
+}
+
+// MessageIDs returns the "message" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MessageID instead. It exists only for internal usage by the builders.
+func (m *MessageAttachmentMutation) MessageIDs() (ids []pulid.ID) {
+	if id := m.message; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMessage resets all changes to the "message" edge.
+func (m *MessageAttachmentMutation) ResetMessage() {
+	m.message = nil
+	m.clearedmessage = false
+}
+
+// SetFileID sets the "file" edge to the File entity by id.
+func (m *MessageAttachmentMutation) SetFileID(id pulid.ID) {
+	m.file = &id
+}
+
+// ClearFile clears the "file" edge to the File entity.
+func (m *MessageAttachmentMutation) ClearFile() {
+	m.clearedfile = true
+}
+
+// FileCleared reports if the "file" edge to the File entity was cleared.
+func (m *MessageAttachmentMutation) FileCleared() bool {
+	return m.clearedfile
+}
+
+// FileID returns the "file" edge ID in the mutation.
+func (m *MessageAttachmentMutation) FileID() (id pulid.ID, exists bool) {
+	if m.file != nil {
+		return *m.file, true
+	}
+	return
+}
+
+// FileIDs returns the "file" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// FileID instead. It exists only for internal usage by the builders.
+func (m *MessageAttachmentMutation) FileIDs() (ids []pulid.ID) {
+	if id := m.file; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetFile resets all changes to the "file" edge.
+func (m *MessageAttachmentMutation) ResetFile() {
+	m.file = nil
+	m.clearedfile = false
+}
+
+// Where appends a list predicates to the MessageAttachmentMutation builder.
+func (m *MessageAttachmentMutation) Where(ps ...predicate.MessageAttachment) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the MessageAttachmentMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MessageAttachmentMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MessageAttachment, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *MessageAttachmentMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MessageAttachmentMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (MessageAttachment).
+func (m *MessageAttachmentMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *MessageAttachmentMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m._type != nil {
+		fields = append(fields, messageattachment.FieldType)
+	}
+	if m._order != nil {
+		fields = append(fields, messageattachment.FieldOrder)
+	}
+	if m.attached_at != nil {
+		fields = append(fields, messageattachment.FieldAttachedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *MessageAttachmentMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case messageattachment.FieldType:
+		return m.GetType()
+	case messageattachment.FieldOrder:
+		return m.Order()
+	case messageattachment.FieldAttachedAt:
+		return m.AttachedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *MessageAttachmentMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case messageattachment.FieldType:
+		return m.OldType(ctx)
+	case messageattachment.FieldOrder:
+		return m.OldOrder(ctx)
+	case messageattachment.FieldAttachedAt:
+		return m.OldAttachedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown MessageAttachment field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MessageAttachmentMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case messageattachment.FieldType:
+		v, ok := value.(messageattachment.Type)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case messageattachment.FieldOrder:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrder(v)
+		return nil
+	case messageattachment.FieldAttachedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAttachedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MessageAttachment field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *MessageAttachmentMutation) AddedFields() []string {
+	var fields []string
+	if m.add_order != nil {
+		fields = append(fields, messageattachment.FieldOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *MessageAttachmentMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case messageattachment.FieldOrder:
+		return m.AddedOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MessageAttachmentMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case messageattachment.FieldOrder:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MessageAttachment numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *MessageAttachmentMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *MessageAttachmentMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *MessageAttachmentMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown MessageAttachment nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *MessageAttachmentMutation) ResetField(name string) error {
+	switch name {
+	case messageattachment.FieldType:
+		m.ResetType()
+		return nil
+	case messageattachment.FieldOrder:
+		m.ResetOrder()
+		return nil
+	case messageattachment.FieldAttachedAt:
+		m.ResetAttachedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown MessageAttachment field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *MessageAttachmentMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.message != nil {
+		edges = append(edges, messageattachment.EdgeMessage)
+	}
+	if m.file != nil {
+		edges = append(edges, messageattachment.EdgeFile)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *MessageAttachmentMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case messageattachment.EdgeMessage:
+		if id := m.message; id != nil {
+			return []ent.Value{*id}
+		}
+	case messageattachment.EdgeFile:
+		if id := m.file; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *MessageAttachmentMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *MessageAttachmentMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *MessageAttachmentMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedmessage {
+		edges = append(edges, messageattachment.EdgeMessage)
+	}
+	if m.clearedfile {
+		edges = append(edges, messageattachment.EdgeFile)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *MessageAttachmentMutation) EdgeCleared(name string) bool {
+	switch name {
+	case messageattachment.EdgeMessage:
+		return m.clearedmessage
+	case messageattachment.EdgeFile:
+		return m.clearedfile
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *MessageAttachmentMutation) ClearEdge(name string) error {
+	switch name {
+	case messageattachment.EdgeMessage:
+		m.ClearMessage()
+		return nil
+	case messageattachment.EdgeFile:
+		m.ClearFile()
+		return nil
+	}
+	return fmt.Errorf("unknown MessageAttachment unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *MessageAttachmentMutation) ResetEdge(name string) error {
+	switch name {
+	case messageattachment.EdgeMessage:
+		m.ResetMessage()
+		return nil
+	case messageattachment.EdgeFile:
+		m.ResetFile()
+		return nil
+	}
+	return fmt.Errorf("unknown MessageAttachment edge %s", name)
+}
+
+// MessageLinkMutation represents an operation that mutates the MessageLink nodes in the graph.
+type MessageLinkMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *pulid.ID
+	url            *string
+	created_at     *time.Time
+	updated_at     *time.Time
+	clearedFields  map[string]struct{}
+	message        *pulid.ID
+	clearedmessage bool
+	done           bool
+	oldValue       func(context.Context) (*MessageLink, error)
+	predicates     []predicate.MessageLink
+}
+
+var _ ent.Mutation = (*MessageLinkMutation)(nil)
+
+// messagelinkOption allows management of the mutation configuration using functional options.
+type messagelinkOption func(*MessageLinkMutation)
+
+// newMessageLinkMutation creates new mutation for the MessageLink entity.
+func newMessageLinkMutation(c config, op Op, opts ...messagelinkOption) *MessageLinkMutation {
+	m := &MessageLinkMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeMessageLink,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withMessageLinkID sets the ID field of the mutation.
+func withMessageLinkID(id pulid.ID) messagelinkOption {
+	return func(m *MessageLinkMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *MessageLink
+		)
+		m.oldValue = func(ctx context.Context) (*MessageLink, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().MessageLink.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withMessageLink sets the old MessageLink of the mutation.
+func withMessageLink(node *MessageLink) messagelinkOption {
+	return func(m *MessageLinkMutation) {
+		m.oldValue = func(context.Context) (*MessageLink, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m MessageLinkMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m MessageLinkMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of MessageLink entities.
+func (m *MessageLinkMutation) SetID(id pulid.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *MessageLinkMutation) ID() (id pulid.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *MessageLinkMutation) IDs(ctx context.Context) ([]pulid.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []pulid.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().MessageLink.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetURL sets the "url" field.
+func (m *MessageLinkMutation) SetURL(s string) {
+	m.url = &s
+}
+
+// URL returns the value of the "url" field in the mutation.
+func (m *MessageLinkMutation) URL() (r string, exists bool) {
+	v := m.url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldURL returns the old "url" field's value of the MessageLink entity.
+// If the MessageLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLinkMutation) OldURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldURL: %w", err)
+	}
+	return oldValue.URL, nil
+}
+
+// ResetURL resets all changes to the "url" field.
+func (m *MessageLinkMutation) ResetURL() {
+	m.url = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *MessageLinkMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *MessageLinkMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the MessageLink entity.
+// If the MessageLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLinkMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *MessageLinkMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *MessageLinkMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *MessageLinkMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the MessageLink entity.
+// If the MessageLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLinkMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *MessageLinkMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetMessageID sets the "message" edge to the Message entity by id.
+func (m *MessageLinkMutation) SetMessageID(id pulid.ID) {
+	m.message = &id
+}
+
+// ClearMessage clears the "message" edge to the Message entity.
+func (m *MessageLinkMutation) ClearMessage() {
+	m.clearedmessage = true
+}
+
+// MessageCleared reports if the "message" edge to the Message entity was cleared.
+func (m *MessageLinkMutation) MessageCleared() bool {
+	return m.clearedmessage
+}
+
+// MessageID returns the "message" edge ID in the mutation.
+func (m *MessageLinkMutation) MessageID() (id pulid.ID, exists bool) {
+	if m.message != nil {
+		return *m.message, true
+	}
+	return
+}
+
+// MessageIDs returns the "message" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MessageID instead. It exists only for internal usage by the builders.
+func (m *MessageLinkMutation) MessageIDs() (ids []pulid.ID) {
+	if id := m.message; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMessage resets all changes to the "message" edge.
+func (m *MessageLinkMutation) ResetMessage() {
+	m.message = nil
+	m.clearedmessage = false
+}
+
+// Where appends a list predicates to the MessageLinkMutation builder.
+func (m *MessageLinkMutation) Where(ps ...predicate.MessageLink) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the MessageLinkMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MessageLinkMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MessageLink, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *MessageLinkMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MessageLinkMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (MessageLink).
+func (m *MessageLinkMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *MessageLinkMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.url != nil {
+		fields = append(fields, messagelink.FieldURL)
+	}
+	if m.created_at != nil {
+		fields = append(fields, messagelink.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, messagelink.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *MessageLinkMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case messagelink.FieldURL:
+		return m.URL()
+	case messagelink.FieldCreatedAt:
+		return m.CreatedAt()
+	case messagelink.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *MessageLinkMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case messagelink.FieldURL:
+		return m.OldURL(ctx)
+	case messagelink.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case messagelink.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown MessageLink field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MessageLinkMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case messagelink.FieldURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetURL(v)
+		return nil
+	case messagelink.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case messagelink.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MessageLink field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *MessageLinkMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *MessageLinkMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MessageLinkMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown MessageLink numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *MessageLinkMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *MessageLinkMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *MessageLinkMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown MessageLink nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *MessageLinkMutation) ResetField(name string) error {
+	switch name {
+	case messagelink.FieldURL:
+		m.ResetURL()
+		return nil
+	case messagelink.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case messagelink.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown MessageLink field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *MessageLinkMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.message != nil {
+		edges = append(edges, messagelink.EdgeMessage)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *MessageLinkMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case messagelink.EdgeMessage:
+		if id := m.message; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *MessageLinkMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *MessageLinkMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *MessageLinkMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedmessage {
+		edges = append(edges, messagelink.EdgeMessage)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *MessageLinkMutation) EdgeCleared(name string) bool {
+	switch name {
+	case messagelink.EdgeMessage:
+		return m.clearedmessage
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *MessageLinkMutation) ClearEdge(name string) error {
+	switch name {
+	case messagelink.EdgeMessage:
+		m.ClearMessage()
+		return nil
+	}
+	return fmt.Errorf("unknown MessageLink unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *MessageLinkMutation) ResetEdge(name string) error {
+	switch name {
+	case messagelink.EdgeMessage:
+		m.ResetMessage()
+		return nil
+	}
+	return fmt.Errorf("unknown MessageLink edge %s", name)
+}
+
+// MessageVoiceMutation represents an operation that mutates the MessageVoice nodes in the graph.
+type MessageVoiceMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *pulid.ID
+	length        *int
+	addlength     *int
+	attached_at   *time.Time
+	clearedFields map[string]struct{}
+	file          *pulid.ID
+	clearedfile   bool
+	done          bool
+	oldValue      func(context.Context) (*MessageVoice, error)
+	predicates    []predicate.MessageVoice
+}
+
+var _ ent.Mutation = (*MessageVoiceMutation)(nil)
+
+// messagevoiceOption allows management of the mutation configuration using functional options.
+type messagevoiceOption func(*MessageVoiceMutation)
+
+// newMessageVoiceMutation creates new mutation for the MessageVoice entity.
+func newMessageVoiceMutation(c config, op Op, opts ...messagevoiceOption) *MessageVoiceMutation {
+	m := &MessageVoiceMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeMessageVoice,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withMessageVoiceID sets the ID field of the mutation.
+func withMessageVoiceID(id pulid.ID) messagevoiceOption {
+	return func(m *MessageVoiceMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *MessageVoice
+		)
+		m.oldValue = func(ctx context.Context) (*MessageVoice, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().MessageVoice.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withMessageVoice sets the old MessageVoice of the mutation.
+func withMessageVoice(node *MessageVoice) messagevoiceOption {
+	return func(m *MessageVoiceMutation) {
+		m.oldValue = func(context.Context) (*MessageVoice, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m MessageVoiceMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m MessageVoiceMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of MessageVoice entities.
+func (m *MessageVoiceMutation) SetID(id pulid.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *MessageVoiceMutation) ID() (id pulid.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *MessageVoiceMutation) IDs(ctx context.Context) ([]pulid.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []pulid.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().MessageVoice.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetLength sets the "length" field.
+func (m *MessageVoiceMutation) SetLength(i int) {
+	m.length = &i
+	m.addlength = nil
+}
+
+// Length returns the value of the "length" field in the mutation.
+func (m *MessageVoiceMutation) Length() (r int, exists bool) {
+	v := m.length
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLength returns the old "length" field's value of the MessageVoice entity.
+// If the MessageVoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageVoiceMutation) OldLength(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLength is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLength requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLength: %w", err)
+	}
+	return oldValue.Length, nil
+}
+
+// AddLength adds i to the "length" field.
+func (m *MessageVoiceMutation) AddLength(i int) {
+	if m.addlength != nil {
+		*m.addlength += i
+	} else {
+		m.addlength = &i
+	}
+}
+
+// AddedLength returns the value that was added to the "length" field in this mutation.
+func (m *MessageVoiceMutation) AddedLength() (r int, exists bool) {
+	v := m.addlength
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLength resets all changes to the "length" field.
+func (m *MessageVoiceMutation) ResetLength() {
+	m.length = nil
+	m.addlength = nil
+}
+
+// SetAttachedAt sets the "attached_at" field.
+func (m *MessageVoiceMutation) SetAttachedAt(t time.Time) {
+	m.attached_at = &t
+}
+
+// AttachedAt returns the value of the "attached_at" field in the mutation.
+func (m *MessageVoiceMutation) AttachedAt() (r time.Time, exists bool) {
+	v := m.attached_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAttachedAt returns the old "attached_at" field's value of the MessageVoice entity.
+// If the MessageVoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageVoiceMutation) OldAttachedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAttachedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAttachedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAttachedAt: %w", err)
+	}
+	return oldValue.AttachedAt, nil
+}
+
+// ResetAttachedAt resets all changes to the "attached_at" field.
+func (m *MessageVoiceMutation) ResetAttachedAt() {
+	m.attached_at = nil
+}
+
+// SetFileID sets the "file" edge to the File entity by id.
+func (m *MessageVoiceMutation) SetFileID(id pulid.ID) {
+	m.file = &id
+}
+
+// ClearFile clears the "file" edge to the File entity.
+func (m *MessageVoiceMutation) ClearFile() {
+	m.clearedfile = true
+}
+
+// FileCleared reports if the "file" edge to the File entity was cleared.
+func (m *MessageVoiceMutation) FileCleared() bool {
+	return m.clearedfile
+}
+
+// FileID returns the "file" edge ID in the mutation.
+func (m *MessageVoiceMutation) FileID() (id pulid.ID, exists bool) {
+	if m.file != nil {
+		return *m.file, true
+	}
+	return
+}
+
+// FileIDs returns the "file" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// FileID instead. It exists only for internal usage by the builders.
+func (m *MessageVoiceMutation) FileIDs() (ids []pulid.ID) {
+	if id := m.file; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetFile resets all changes to the "file" edge.
+func (m *MessageVoiceMutation) ResetFile() {
+	m.file = nil
+	m.clearedfile = false
+}
+
+// Where appends a list predicates to the MessageVoiceMutation builder.
+func (m *MessageVoiceMutation) Where(ps ...predicate.MessageVoice) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the MessageVoiceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MessageVoiceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MessageVoice, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *MessageVoiceMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MessageVoiceMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (MessageVoice).
+func (m *MessageVoiceMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *MessageVoiceMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.length != nil {
+		fields = append(fields, messagevoice.FieldLength)
+	}
+	if m.attached_at != nil {
+		fields = append(fields, messagevoice.FieldAttachedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *MessageVoiceMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case messagevoice.FieldLength:
+		return m.Length()
+	case messagevoice.FieldAttachedAt:
+		return m.AttachedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *MessageVoiceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case messagevoice.FieldLength:
+		return m.OldLength(ctx)
+	case messagevoice.FieldAttachedAt:
+		return m.OldAttachedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown MessageVoice field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MessageVoiceMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case messagevoice.FieldLength:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLength(v)
+		return nil
+	case messagevoice.FieldAttachedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAttachedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MessageVoice field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *MessageVoiceMutation) AddedFields() []string {
+	var fields []string
+	if m.addlength != nil {
+		fields = append(fields, messagevoice.FieldLength)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *MessageVoiceMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case messagevoice.FieldLength:
+		return m.AddedLength()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MessageVoiceMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case messagevoice.FieldLength:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLength(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MessageVoice numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *MessageVoiceMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *MessageVoiceMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *MessageVoiceMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown MessageVoice nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *MessageVoiceMutation) ResetField(name string) error {
+	switch name {
+	case messagevoice.FieldLength:
+		m.ResetLength()
+		return nil
+	case messagevoice.FieldAttachedAt:
+		m.ResetAttachedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown MessageVoice field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *MessageVoiceMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.file != nil {
+		edges = append(edges, messagevoice.EdgeFile)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *MessageVoiceMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case messagevoice.EdgeFile:
+		if id := m.file; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *MessageVoiceMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *MessageVoiceMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *MessageVoiceMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedfile {
+		edges = append(edges, messagevoice.EdgeFile)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *MessageVoiceMutation) EdgeCleared(name string) bool {
+	switch name {
+	case messagevoice.EdgeFile:
+		return m.clearedfile
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *MessageVoiceMutation) ClearEdge(name string) error {
+	switch name {
+	case messagevoice.EdgeFile:
+		m.ClearFile()
+		return nil
+	}
+	return fmt.Errorf("unknown MessageVoice unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *MessageVoiceMutation) ResetEdge(name string) error {
+	switch name {
+	case messagevoice.EdgeFile:
+		m.ResetFile()
+		return nil
+	}
+	return fmt.Errorf("unknown MessageVoice edge %s", name)
 }
 
 // RoomMutation represents an operation that mutates the Room nodes in the graph.
@@ -1968,7 +3870,7 @@ type RoomMutation struct {
 	name                *string
 	version             *uint64
 	addversion          *int64
-	_type               *roomtype.Type
+	_type               *room.Type
 	created_at          *time.Time
 	updated_at          *time.Time
 	clearedFields       map[string]struct{}
@@ -2183,12 +4085,12 @@ func (m *RoomMutation) ResetVersion() {
 }
 
 // SetType sets the "type" field.
-func (m *RoomMutation) SetType(r roomtype.Type) {
+func (m *RoomMutation) SetType(r room.Type) {
 	m._type = &r
 }
 
 // GetType returns the value of the "type" field in the mutation.
-func (m *RoomMutation) GetType() (r roomtype.Type, exists bool) {
+func (m *RoomMutation) GetType() (r room.Type, exists bool) {
 	v := m._type
 	if v == nil {
 		return
@@ -2199,7 +4101,7 @@ func (m *RoomMutation) GetType() (r roomtype.Type, exists bool) {
 // OldType returns the old "type" field's value of the Room entity.
 // If the Room object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RoomMutation) OldType(ctx context.Context) (v roomtype.Type, err error) {
+func (m *RoomMutation) OldType(ctx context.Context) (v room.Type, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldType is only allowed on UpdateOne operations")
 	}
@@ -2563,7 +4465,7 @@ func (m *RoomMutation) SetField(name string, value ent.Value) error {
 		m.SetVersion(v)
 		return nil
 	case room.FieldType:
-		v, ok := value.(roomtype.Type)
+		v, ok := value.(room.Type)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

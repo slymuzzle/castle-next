@@ -7,7 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"journeyhub/ent/file"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/predicate"
+	"journeyhub/ent/schema/pulid"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -38,20 +41,6 @@ func (fu *FileUpdate) SetName(s string) *FileUpdate {
 func (fu *FileUpdate) SetNillableName(s *string) *FileUpdate {
 	if s != nil {
 		fu.SetName(*s)
-	}
-	return fu
-}
-
-// SetFileName sets the "file_name" field.
-func (fu *FileUpdate) SetFileName(s string) *FileUpdate {
-	fu.mutation.SetFileName(s)
-	return fu
-}
-
-// SetNillableFileName sets the "file_name" field if the given value is not nil.
-func (fu *FileUpdate) SetNillableFileName(s *string) *FileUpdate {
-	if s != nil {
-		fu.SetFileName(*s)
 	}
 	return fu
 }
@@ -111,9 +100,59 @@ func (fu *FileUpdate) SetUpdatedAt(t time.Time) *FileUpdate {
 	return fu
 }
 
+// SetMessageAttachmentID sets the "message_attachment" edge to the MessageAttachment entity by ID.
+func (fu *FileUpdate) SetMessageAttachmentID(id pulid.ID) *FileUpdate {
+	fu.mutation.SetMessageAttachmentID(id)
+	return fu
+}
+
+// SetNillableMessageAttachmentID sets the "message_attachment" edge to the MessageAttachment entity by ID if the given value is not nil.
+func (fu *FileUpdate) SetNillableMessageAttachmentID(id *pulid.ID) *FileUpdate {
+	if id != nil {
+		fu = fu.SetMessageAttachmentID(*id)
+	}
+	return fu
+}
+
+// SetMessageAttachment sets the "message_attachment" edge to the MessageAttachment entity.
+func (fu *FileUpdate) SetMessageAttachment(m *MessageAttachment) *FileUpdate {
+	return fu.SetMessageAttachmentID(m.ID)
+}
+
+// SetMessageVoiceID sets the "message_voice" edge to the MessageVoice entity by ID.
+func (fu *FileUpdate) SetMessageVoiceID(id pulid.ID) *FileUpdate {
+	fu.mutation.SetMessageVoiceID(id)
+	return fu
+}
+
+// SetNillableMessageVoiceID sets the "message_voice" edge to the MessageVoice entity by ID if the given value is not nil.
+func (fu *FileUpdate) SetNillableMessageVoiceID(id *pulid.ID) *FileUpdate {
+	if id != nil {
+		fu = fu.SetMessageVoiceID(*id)
+	}
+	return fu
+}
+
+// SetMessageVoice sets the "message_voice" edge to the MessageVoice entity.
+func (fu *FileUpdate) SetMessageVoice(m *MessageVoice) *FileUpdate {
+	return fu.SetMessageVoiceID(m.ID)
+}
+
 // Mutation returns the FileMutation object of the builder.
 func (fu *FileUpdate) Mutation() *FileMutation {
 	return fu.mutation
+}
+
+// ClearMessageAttachment clears the "message_attachment" edge to the MessageAttachment entity.
+func (fu *FileUpdate) ClearMessageAttachment() *FileUpdate {
+	fu.mutation.ClearMessageAttachment()
+	return fu
+}
+
+// ClearMessageVoice clears the "message_voice" edge to the MessageVoice entity.
+func (fu *FileUpdate) ClearMessageVoice() *FileUpdate {
+	fu.mutation.ClearMessageVoice()
+	return fu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -164,9 +203,6 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := fu.mutation.Name(); ok {
 		_spec.SetField(file.FieldName, field.TypeString, value)
 	}
-	if value, ok := fu.mutation.FileName(); ok {
-		_spec.SetField(file.FieldFileName, field.TypeString, value)
-	}
 	if value, ok := fu.mutation.MimeType(); ok {
 		_spec.SetField(file.FieldMimeType, field.TypeString, value)
 	}
@@ -181,6 +217,64 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := fu.mutation.UpdatedAt(); ok {
 		_spec.SetField(file.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if fu.mutation.MessageAttachmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.MessageAttachmentTable,
+			Columns: []string{file.MessageAttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.MessageAttachmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.MessageAttachmentTable,
+			Columns: []string{file.MessageAttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fu.mutation.MessageVoiceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.MessageVoiceTable,
+			Columns: []string{file.MessageVoiceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagevoice.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.MessageVoiceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.MessageVoiceTable,
+			Columns: []string{file.MessageVoiceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagevoice.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -212,20 +306,6 @@ func (fuo *FileUpdateOne) SetName(s string) *FileUpdateOne {
 func (fuo *FileUpdateOne) SetNillableName(s *string) *FileUpdateOne {
 	if s != nil {
 		fuo.SetName(*s)
-	}
-	return fuo
-}
-
-// SetFileName sets the "file_name" field.
-func (fuo *FileUpdateOne) SetFileName(s string) *FileUpdateOne {
-	fuo.mutation.SetFileName(s)
-	return fuo
-}
-
-// SetNillableFileName sets the "file_name" field if the given value is not nil.
-func (fuo *FileUpdateOne) SetNillableFileName(s *string) *FileUpdateOne {
-	if s != nil {
-		fuo.SetFileName(*s)
 	}
 	return fuo
 }
@@ -285,9 +365,59 @@ func (fuo *FileUpdateOne) SetUpdatedAt(t time.Time) *FileUpdateOne {
 	return fuo
 }
 
+// SetMessageAttachmentID sets the "message_attachment" edge to the MessageAttachment entity by ID.
+func (fuo *FileUpdateOne) SetMessageAttachmentID(id pulid.ID) *FileUpdateOne {
+	fuo.mutation.SetMessageAttachmentID(id)
+	return fuo
+}
+
+// SetNillableMessageAttachmentID sets the "message_attachment" edge to the MessageAttachment entity by ID if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableMessageAttachmentID(id *pulid.ID) *FileUpdateOne {
+	if id != nil {
+		fuo = fuo.SetMessageAttachmentID(*id)
+	}
+	return fuo
+}
+
+// SetMessageAttachment sets the "message_attachment" edge to the MessageAttachment entity.
+func (fuo *FileUpdateOne) SetMessageAttachment(m *MessageAttachment) *FileUpdateOne {
+	return fuo.SetMessageAttachmentID(m.ID)
+}
+
+// SetMessageVoiceID sets the "message_voice" edge to the MessageVoice entity by ID.
+func (fuo *FileUpdateOne) SetMessageVoiceID(id pulid.ID) *FileUpdateOne {
+	fuo.mutation.SetMessageVoiceID(id)
+	return fuo
+}
+
+// SetNillableMessageVoiceID sets the "message_voice" edge to the MessageVoice entity by ID if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableMessageVoiceID(id *pulid.ID) *FileUpdateOne {
+	if id != nil {
+		fuo = fuo.SetMessageVoiceID(*id)
+	}
+	return fuo
+}
+
+// SetMessageVoice sets the "message_voice" edge to the MessageVoice entity.
+func (fuo *FileUpdateOne) SetMessageVoice(m *MessageVoice) *FileUpdateOne {
+	return fuo.SetMessageVoiceID(m.ID)
+}
+
 // Mutation returns the FileMutation object of the builder.
 func (fuo *FileUpdateOne) Mutation() *FileMutation {
 	return fuo.mutation
+}
+
+// ClearMessageAttachment clears the "message_attachment" edge to the MessageAttachment entity.
+func (fuo *FileUpdateOne) ClearMessageAttachment() *FileUpdateOne {
+	fuo.mutation.ClearMessageAttachment()
+	return fuo
+}
+
+// ClearMessageVoice clears the "message_voice" edge to the MessageVoice entity.
+func (fuo *FileUpdateOne) ClearMessageVoice() *FileUpdateOne {
+	fuo.mutation.ClearMessageVoice()
+	return fuo
 }
 
 // Where appends a list predicates to the FileUpdate builder.
@@ -368,9 +498,6 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 	if value, ok := fuo.mutation.Name(); ok {
 		_spec.SetField(file.FieldName, field.TypeString, value)
 	}
-	if value, ok := fuo.mutation.FileName(); ok {
-		_spec.SetField(file.FieldFileName, field.TypeString, value)
-	}
 	if value, ok := fuo.mutation.MimeType(); ok {
 		_spec.SetField(file.FieldMimeType, field.TypeString, value)
 	}
@@ -385,6 +512,64 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 	}
 	if value, ok := fuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(file.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if fuo.mutation.MessageAttachmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.MessageAttachmentTable,
+			Columns: []string{file.MessageAttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.MessageAttachmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.MessageAttachmentTable,
+			Columns: []string{file.MessageAttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.MessageVoiceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.MessageVoiceTable,
+			Columns: []string{file.MessageVoiceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagevoice.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.MessageVoiceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.MessageVoiceTable,
+			Columns: []string{file.MessageVoiceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagevoice.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &File{config: fuo.config}
 	_spec.Assign = _node.assignValues

@@ -44,6 +44,42 @@ func (f MessageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageMutation", m)
 }
 
+// The MessageAttachmentFunc type is an adapter to allow the use of ordinary
+// function as MessageAttachment mutator.
+type MessageAttachmentFunc func(context.Context, *ent.MessageAttachmentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MessageAttachmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MessageAttachmentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageAttachmentMutation", m)
+}
+
+// The MessageLinkFunc type is an adapter to allow the use of ordinary
+// function as MessageLink mutator.
+type MessageLinkFunc func(context.Context, *ent.MessageLinkMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MessageLinkFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MessageLinkMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageLinkMutation", m)
+}
+
+// The MessageVoiceFunc type is an adapter to allow the use of ordinary
+// function as MessageVoice mutator.
+type MessageVoiceFunc func(context.Context, *ent.MessageVoiceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MessageVoiceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MessageVoiceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageVoiceMutation", m)
+}
+
 // The RoomFunc type is an adapter to allow the use of ordinary
 // function as Room mutator.
 type RoomFunc func(context.Context, *ent.RoomMutation) (ent.Value, error)

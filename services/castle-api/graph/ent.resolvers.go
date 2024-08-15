@@ -10,10 +10,14 @@ import (
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/graph/generated"
-	"journeyhub/graph/middleware"
 
 	"entgo.io/contrib/entgql"
 )
+
+// Order is the resolver for the order field.
+func (r *messageAttachmentResolver) Order(ctx context.Context, obj *ent.MessageAttachment) (uint, error) {
+	panic(fmt.Errorf("not implemented: Order - order"))
+}
 
 // Node is the resolver for the node field.
 func (r *queryResolver) Node(ctx context.Context, id pulid.ID) (ent.Noder, error) {
@@ -32,8 +36,9 @@ func (r *queryResolver) Friendships(ctx context.Context, after *entgql.Cursor[pu
 
 // Messages is the resolver for the messages field.
 func (r *queryResolver) Messages(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) (*ent.MessageConnection, error) {
-	if user := middleware.JwtUserForContext(ctx); user == nil {
-		return nil, middleware.ErrAccessDenied
+	_, err := r.authService.Auth(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	return r.dbService.Client().Message.Query().
@@ -44,13 +49,15 @@ func (r *queryResolver) Messages(ctx context.Context, after *entgql.Cursor[pulid
 			before,
 			last,
 			ent.WithMessageOrder(orderBy),
+			ent.WithMessageFilter(where.Filter),
 		)
 }
 
 // Rooms is the resolver for the rooms field.
 func (r *queryResolver) Rooms(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomOrder, where *ent.RoomWhereInput) (*ent.RoomConnection, error) {
-	if user := middleware.JwtUserForContext(ctx); user == nil {
-		return nil, middleware.ErrAccessDenied
+	_, err := r.authService.Auth(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	return r.dbService.Client().Room.Query().
@@ -61,13 +68,15 @@ func (r *queryResolver) Rooms(ctx context.Context, after *entgql.Cursor[pulid.ID
 			before,
 			last,
 			ent.WithRoomOrder(orderBy),
+			ent.WithRoomFilter(where.Filter),
 		)
 }
 
 // RoomMembers is the resolver for the roomMembers field.
-func (r *queryResolver) RoomMembers(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, where *ent.RoomMemberWhereInput) (*ent.RoomMemberConnection, error) {
-	if user := middleware.JwtUserForContext(ctx); user == nil {
-		return nil, middleware.ErrAccessDenied
+func (r *queryResolver) RoomMembers(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) (*ent.RoomMemberConnection, error) {
+	_, err := r.authService.Auth(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	return r.dbService.Client().RoomMember.Query().
@@ -77,13 +86,15 @@ func (r *queryResolver) RoomMembers(ctx context.Context, after *entgql.Cursor[pu
 			first,
 			before,
 			last,
+			ent.WithRoomMemberFilter(where.Filter),
 		)
 }
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error) {
-	if user := middleware.JwtUserForContext(ctx); user == nil {
-		return nil, middleware.ErrAccessDenied
+	_, err := r.authService.Auth(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	return r.dbService.Client().User.Query().
@@ -94,10 +105,73 @@ func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[pulid.ID
 			before,
 			last,
 			ent.WithUserOrder(orderBy),
+			ent.WithUserFilter(where.Filter),
 		)
+}
+
+// Order is the resolver for the order field.
+func (r *messageAttachmentWhereInputResolver) Order(ctx context.Context, obj *ent.MessageAttachmentWhereInput, data *uint) error {
+	panic(fmt.Errorf("not implemented: Order - order"))
+}
+
+// OrderNeq is the resolver for the orderNEQ field.
+func (r *messageAttachmentWhereInputResolver) OrderNeq(ctx context.Context, obj *ent.MessageAttachmentWhereInput, data *uint) error {
+	panic(fmt.Errorf("not implemented: OrderNeq - orderNEQ"))
+}
+
+// OrderIn is the resolver for the orderIn field.
+func (r *messageAttachmentWhereInputResolver) OrderIn(ctx context.Context, obj *ent.MessageAttachmentWhereInput, data []uint) error {
+	panic(fmt.Errorf("not implemented: OrderIn - orderIn"))
+}
+
+// OrderNotIn is the resolver for the orderNotIn field.
+func (r *messageAttachmentWhereInputResolver) OrderNotIn(ctx context.Context, obj *ent.MessageAttachmentWhereInput, data []uint) error {
+	panic(fmt.Errorf("not implemented: OrderNotIn - orderNotIn"))
+}
+
+// OrderGt is the resolver for the orderGT field.
+func (r *messageAttachmentWhereInputResolver) OrderGt(ctx context.Context, obj *ent.MessageAttachmentWhereInput, data *uint) error {
+	panic(fmt.Errorf("not implemented: OrderGt - orderGT"))
+}
+
+// OrderGte is the resolver for the orderGTE field.
+func (r *messageAttachmentWhereInputResolver) OrderGte(ctx context.Context, obj *ent.MessageAttachmentWhereInput, data *uint) error {
+	panic(fmt.Errorf("not implemented: OrderGte - orderGTE"))
+}
+
+// OrderLt is the resolver for the orderLT field.
+func (r *messageAttachmentWhereInputResolver) OrderLt(ctx context.Context, obj *ent.MessageAttachmentWhereInput, data *uint) error {
+	panic(fmt.Errorf("not implemented: OrderLt - orderLT"))
+}
+
+// OrderLte is the resolver for the orderLTE field.
+func (r *messageAttachmentWhereInputResolver) OrderLte(ctx context.Context, obj *ent.MessageAttachmentWhereInput, data *uint) error {
+	panic(fmt.Errorf("not implemented: OrderLte - orderLTE"))
+}
+
+// MessageAttachment returns generated.MessageAttachmentResolver implementation.
+func (r *Resolver) MessageAttachment() generated.MessageAttachmentResolver {
+	return &messageAttachmentResolver{r}
 }
 
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// MessageAttachmentWhereInput returns generated.MessageAttachmentWhereInputResolver implementation.
+func (r *Resolver) MessageAttachmentWhereInput() generated.MessageAttachmentWhereInputResolver {
+	return &messageAttachmentWhereInputResolver{r}
+}
+
+type messageAttachmentResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type messageAttachmentWhereInputResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *queryResolver) MessageAttachments(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageAttachmentOrder, where *ent.MessageAttachmentWhereInput) (*ent.MessageAttachmentConnection, error) {
+	panic(fmt.Errorf("not implemented: MessageAttachments - messageAttachments"))
+}

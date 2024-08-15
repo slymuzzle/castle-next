@@ -8,10 +8,12 @@ import (
 	"journeyhub/ent/file"
 	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
-	"journeyhub/ent/schema/property/roomtype"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"time"
@@ -48,21 +50,6 @@ type FileWhereInput struct {
 	NameHasSuffix    *string  `json:"nameHasSuffix,omitempty"`
 	NameEqualFold    *string  `json:"nameEqualFold,omitempty"`
 	NameContainsFold *string  `json:"nameContainsFold,omitempty"`
-
-	// "file_name" field predicates.
-	FileName             *string  `json:"fileName,omitempty"`
-	FileNameNEQ          *string  `json:"fileNameNEQ,omitempty"`
-	FileNameIn           []string `json:"fileNameIn,omitempty"`
-	FileNameNotIn        []string `json:"fileNameNotIn,omitempty"`
-	FileNameGT           *string  `json:"fileNameGT,omitempty"`
-	FileNameGTE          *string  `json:"fileNameGTE,omitempty"`
-	FileNameLT           *string  `json:"fileNameLT,omitempty"`
-	FileNameLTE          *string  `json:"fileNameLTE,omitempty"`
-	FileNameContains     *string  `json:"fileNameContains,omitempty"`
-	FileNameHasPrefix    *string  `json:"fileNameHasPrefix,omitempty"`
-	FileNameHasSuffix    *string  `json:"fileNameHasSuffix,omitempty"`
-	FileNameEqualFold    *string  `json:"fileNameEqualFold,omitempty"`
-	FileNameContainsFold *string  `json:"fileNameContainsFold,omitempty"`
 
 	// "mime_type" field predicates.
 	MimeType             *string  `json:"mimeType,omitempty"`
@@ -123,6 +110,14 @@ type FileWhereInput struct {
 	UpdatedAtGTE   *time.Time  `json:"updatedAtGTE,omitempty"`
 	UpdatedAtLT    *time.Time  `json:"updatedAtLT,omitempty"`
 	UpdatedAtLTE   *time.Time  `json:"updatedAtLTE,omitempty"`
+
+	// "message_attachment" edge predicates.
+	HasMessageAttachment     *bool                          `json:"hasMessageAttachment,omitempty"`
+	HasMessageAttachmentWith []*MessageAttachmentWhereInput `json:"hasMessageAttachmentWith,omitempty"`
+
+	// "message_voice" edge predicates.
+	HasMessageVoice     *bool                     `json:"hasMessageVoice,omitempty"`
+	HasMessageVoiceWith []*MessageVoiceWhereInput `json:"hasMessageVoiceWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -258,45 +253,6 @@ func (i *FileWhereInput) P() (predicate.File, error) {
 	}
 	if i.NameContainsFold != nil {
 		predicates = append(predicates, file.NameContainsFold(*i.NameContainsFold))
-	}
-	if i.FileName != nil {
-		predicates = append(predicates, file.FileNameEQ(*i.FileName))
-	}
-	if i.FileNameNEQ != nil {
-		predicates = append(predicates, file.FileNameNEQ(*i.FileNameNEQ))
-	}
-	if len(i.FileNameIn) > 0 {
-		predicates = append(predicates, file.FileNameIn(i.FileNameIn...))
-	}
-	if len(i.FileNameNotIn) > 0 {
-		predicates = append(predicates, file.FileNameNotIn(i.FileNameNotIn...))
-	}
-	if i.FileNameGT != nil {
-		predicates = append(predicates, file.FileNameGT(*i.FileNameGT))
-	}
-	if i.FileNameGTE != nil {
-		predicates = append(predicates, file.FileNameGTE(*i.FileNameGTE))
-	}
-	if i.FileNameLT != nil {
-		predicates = append(predicates, file.FileNameLT(*i.FileNameLT))
-	}
-	if i.FileNameLTE != nil {
-		predicates = append(predicates, file.FileNameLTE(*i.FileNameLTE))
-	}
-	if i.FileNameContains != nil {
-		predicates = append(predicates, file.FileNameContains(*i.FileNameContains))
-	}
-	if i.FileNameHasPrefix != nil {
-		predicates = append(predicates, file.FileNameHasPrefix(*i.FileNameHasPrefix))
-	}
-	if i.FileNameHasSuffix != nil {
-		predicates = append(predicates, file.FileNameHasSuffix(*i.FileNameHasSuffix))
-	}
-	if i.FileNameEqualFold != nil {
-		predicates = append(predicates, file.FileNameEqualFold(*i.FileNameEqualFold))
-	}
-	if i.FileNameContainsFold != nil {
-		predicates = append(predicates, file.FileNameContainsFold(*i.FileNameContainsFold))
 	}
 	if i.MimeType != nil {
 		predicates = append(predicates, file.MimeTypeEQ(*i.MimeType))
@@ -449,6 +405,42 @@ func (i *FileWhereInput) P() (predicate.File, error) {
 		predicates = append(predicates, file.UpdatedAtLTE(*i.UpdatedAtLTE))
 	}
 
+	if i.HasMessageAttachment != nil {
+		p := file.HasMessageAttachment()
+		if !*i.HasMessageAttachment {
+			p = file.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasMessageAttachmentWith) > 0 {
+		with := make([]predicate.MessageAttachment, 0, len(i.HasMessageAttachmentWith))
+		for _, w := range i.HasMessageAttachmentWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasMessageAttachmentWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, file.HasMessageAttachmentWith(with...))
+	}
+	if i.HasMessageVoice != nil {
+		p := file.HasMessageVoice()
+		if !*i.HasMessageVoice {
+			p = file.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasMessageVoiceWith) > 0 {
+		with := make([]predicate.MessageVoice, 0, len(i.HasMessageVoiceWith))
+		for _, w := range i.HasMessageVoiceWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasMessageVoiceWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, file.HasMessageVoiceWith(with...))
+	}
 	switch len(predicates) {
 	case 0:
 		return nil, ErrEmptyFileWhereInput
@@ -912,6 +904,18 @@ type MessageWhereInput struct {
 	// "room" edge predicates.
 	HasRoom     *bool             `json:"hasRoom,omitempty"`
 	HasRoomWith []*RoomWhereInput `json:"hasRoomWith,omitempty"`
+
+	// "reply_to" edge predicates.
+	HasReplyTo     *bool                `json:"hasReplyTo,omitempty"`
+	HasReplyToWith []*MessageWhereInput `json:"hasReplyToWith,omitempty"`
+
+	// "attachments" edge predicates.
+	HasAttachments     *bool                          `json:"hasAttachments,omitempty"`
+	HasAttachmentsWith []*MessageAttachmentWhereInput `json:"hasAttachmentsWith,omitempty"`
+
+	// "links" edge predicates.
+	HasLinks     *bool                    `json:"hasLinks,omitempty"`
+	HasLinksWith []*MessageLinkWhereInput `json:"hasLinksWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -1133,6 +1137,60 @@ func (i *MessageWhereInput) P() (predicate.Message, error) {
 		}
 		predicates = append(predicates, message.HasRoomWith(with...))
 	}
+	if i.HasReplyTo != nil {
+		p := message.HasReplyTo()
+		if !*i.HasReplyTo {
+			p = message.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasReplyToWith) > 0 {
+		with := make([]predicate.Message, 0, len(i.HasReplyToWith))
+		for _, w := range i.HasReplyToWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasReplyToWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, message.HasReplyToWith(with...))
+	}
+	if i.HasAttachments != nil {
+		p := message.HasAttachments()
+		if !*i.HasAttachments {
+			p = message.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasAttachmentsWith) > 0 {
+		with := make([]predicate.MessageAttachment, 0, len(i.HasAttachmentsWith))
+		for _, w := range i.HasAttachmentsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasAttachmentsWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, message.HasAttachmentsWith(with...))
+	}
+	if i.HasLinks != nil {
+		p := message.HasLinks()
+		if !*i.HasLinks {
+			p = message.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasLinksWith) > 0 {
+		with := make([]predicate.MessageLink, 0, len(i.HasLinksWith))
+		for _, w := range i.HasLinksWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasLinksWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, message.HasLinksWith(with...))
+	}
 	switch len(predicates) {
 	case 0:
 		return nil, ErrEmptyMessageWhereInput
@@ -1140,6 +1198,742 @@ func (i *MessageWhereInput) P() (predicate.Message, error) {
 		return predicates[0], nil
 	default:
 		return message.And(predicates...), nil
+	}
+}
+
+// MessageAttachmentWhereInput represents a where input for filtering MessageAttachment queries.
+type MessageAttachmentWhereInput struct {
+	Predicates []predicate.MessageAttachment  `json:"-"`
+	Not        *MessageAttachmentWhereInput   `json:"not,omitempty"`
+	Or         []*MessageAttachmentWhereInput `json:"or,omitempty"`
+	And        []*MessageAttachmentWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *pulid.ID  `json:"id,omitempty"`
+	IDNEQ   *pulid.ID  `json:"idNEQ,omitempty"`
+	IDIn    []pulid.ID `json:"idIn,omitempty"`
+	IDNotIn []pulid.ID `json:"idNotIn,omitempty"`
+	IDGT    *pulid.ID  `json:"idGT,omitempty"`
+	IDGTE   *pulid.ID  `json:"idGTE,omitempty"`
+	IDLT    *pulid.ID  `json:"idLT,omitempty"`
+	IDLTE   *pulid.ID  `json:"idLTE,omitempty"`
+
+	// "type" field predicates.
+	Type      *messageattachment.Type  `json:"type,omitempty"`
+	TypeNEQ   *messageattachment.Type  `json:"typeNEQ,omitempty"`
+	TypeIn    []messageattachment.Type `json:"typeIn,omitempty"`
+	TypeNotIn []messageattachment.Type `json:"typeNotIn,omitempty"`
+
+	// "order" field predicates.
+	Order      *uint64  `json:"order,omitempty"`
+	OrderNEQ   *uint64  `json:"orderNEQ,omitempty"`
+	OrderIn    []uint64 `json:"orderIn,omitempty"`
+	OrderNotIn []uint64 `json:"orderNotIn,omitempty"`
+	OrderGT    *uint64  `json:"orderGT,omitempty"`
+	OrderGTE   *uint64  `json:"orderGTE,omitempty"`
+	OrderLT    *uint64  `json:"orderLT,omitempty"`
+	OrderLTE   *uint64  `json:"orderLTE,omitempty"`
+
+	// "attached_at" field predicates.
+	AttachedAt      *time.Time  `json:"attachedAt,omitempty"`
+	AttachedAtNEQ   *time.Time  `json:"attachedAtNEQ,omitempty"`
+	AttachedAtIn    []time.Time `json:"attachedAtIn,omitempty"`
+	AttachedAtNotIn []time.Time `json:"attachedAtNotIn,omitempty"`
+	AttachedAtGT    *time.Time  `json:"attachedAtGT,omitempty"`
+	AttachedAtGTE   *time.Time  `json:"attachedAtGTE,omitempty"`
+	AttachedAtLT    *time.Time  `json:"attachedAtLT,omitempty"`
+	AttachedAtLTE   *time.Time  `json:"attachedAtLTE,omitempty"`
+
+	// "message" edge predicates.
+	HasMessage     *bool                `json:"hasMessage,omitempty"`
+	HasMessageWith []*MessageWhereInput `json:"hasMessageWith,omitempty"`
+
+	// "file" edge predicates.
+	HasFile     *bool             `json:"hasFile,omitempty"`
+	HasFileWith []*FileWhereInput `json:"hasFileWith,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *MessageAttachmentWhereInput) AddPredicates(predicates ...predicate.MessageAttachment) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Filter applies the MessageAttachmentWhereInput filter on the MessageAttachmentQuery builder.
+func (i *MessageAttachmentWhereInput) Filter(q *MessageAttachmentQuery) (*MessageAttachmentQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		if err == ErrEmptyMessageAttachmentWhereInput {
+			return q, nil
+		}
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// ErrEmptyMessageAttachmentWhereInput is returned in case the MessageAttachmentWhereInput is empty.
+var ErrEmptyMessageAttachmentWhereInput = errors.New("ent: empty predicate MessageAttachmentWhereInput")
+
+// P returns a predicate for filtering messageattachments.
+// An error is returned if the input is empty or invalid.
+func (i *MessageAttachmentWhereInput) P() (predicate.MessageAttachment, error) {
+	var predicates []predicate.MessageAttachment
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'not'", err)
+		}
+		predicates = append(predicates, messageattachment.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'or'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.MessageAttachment, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'or'", err)
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, messageattachment.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'and'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.MessageAttachment, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'and'", err)
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, messageattachment.And(and...))
+	}
+	predicates = append(predicates, i.Predicates...)
+	if i.ID != nil {
+		predicates = append(predicates, messageattachment.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, messageattachment.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, messageattachment.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, messageattachment.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, messageattachment.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, messageattachment.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, messageattachment.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, messageattachment.IDLTE(*i.IDLTE))
+	}
+	if i.Type != nil {
+		predicates = append(predicates, messageattachment.TypeEQ(*i.Type))
+	}
+	if i.TypeNEQ != nil {
+		predicates = append(predicates, messageattachment.TypeNEQ(*i.TypeNEQ))
+	}
+	if len(i.TypeIn) > 0 {
+		predicates = append(predicates, messageattachment.TypeIn(i.TypeIn...))
+	}
+	if len(i.TypeNotIn) > 0 {
+		predicates = append(predicates, messageattachment.TypeNotIn(i.TypeNotIn...))
+	}
+	if i.Order != nil {
+		predicates = append(predicates, messageattachment.OrderEQ(*i.Order))
+	}
+	if i.OrderNEQ != nil {
+		predicates = append(predicates, messageattachment.OrderNEQ(*i.OrderNEQ))
+	}
+	if len(i.OrderIn) > 0 {
+		predicates = append(predicates, messageattachment.OrderIn(i.OrderIn...))
+	}
+	if len(i.OrderNotIn) > 0 {
+		predicates = append(predicates, messageattachment.OrderNotIn(i.OrderNotIn...))
+	}
+	if i.OrderGT != nil {
+		predicates = append(predicates, messageattachment.OrderGT(*i.OrderGT))
+	}
+	if i.OrderGTE != nil {
+		predicates = append(predicates, messageattachment.OrderGTE(*i.OrderGTE))
+	}
+	if i.OrderLT != nil {
+		predicates = append(predicates, messageattachment.OrderLT(*i.OrderLT))
+	}
+	if i.OrderLTE != nil {
+		predicates = append(predicates, messageattachment.OrderLTE(*i.OrderLTE))
+	}
+	if i.AttachedAt != nil {
+		predicates = append(predicates, messageattachment.AttachedAtEQ(*i.AttachedAt))
+	}
+	if i.AttachedAtNEQ != nil {
+		predicates = append(predicates, messageattachment.AttachedAtNEQ(*i.AttachedAtNEQ))
+	}
+	if len(i.AttachedAtIn) > 0 {
+		predicates = append(predicates, messageattachment.AttachedAtIn(i.AttachedAtIn...))
+	}
+	if len(i.AttachedAtNotIn) > 0 {
+		predicates = append(predicates, messageattachment.AttachedAtNotIn(i.AttachedAtNotIn...))
+	}
+	if i.AttachedAtGT != nil {
+		predicates = append(predicates, messageattachment.AttachedAtGT(*i.AttachedAtGT))
+	}
+	if i.AttachedAtGTE != nil {
+		predicates = append(predicates, messageattachment.AttachedAtGTE(*i.AttachedAtGTE))
+	}
+	if i.AttachedAtLT != nil {
+		predicates = append(predicates, messageattachment.AttachedAtLT(*i.AttachedAtLT))
+	}
+	if i.AttachedAtLTE != nil {
+		predicates = append(predicates, messageattachment.AttachedAtLTE(*i.AttachedAtLTE))
+	}
+
+	if i.HasMessage != nil {
+		p := messageattachment.HasMessage()
+		if !*i.HasMessage {
+			p = messageattachment.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasMessageWith) > 0 {
+		with := make([]predicate.Message, 0, len(i.HasMessageWith))
+		for _, w := range i.HasMessageWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasMessageWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, messageattachment.HasMessageWith(with...))
+	}
+	if i.HasFile != nil {
+		p := messageattachment.HasFile()
+		if !*i.HasFile {
+			p = messageattachment.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasFileWith) > 0 {
+		with := make([]predicate.File, 0, len(i.HasFileWith))
+		for _, w := range i.HasFileWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasFileWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, messageattachment.HasFileWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyMessageAttachmentWhereInput
+	case 1:
+		return predicates[0], nil
+	default:
+		return messageattachment.And(predicates...), nil
+	}
+}
+
+// MessageLinkWhereInput represents a where input for filtering MessageLink queries.
+type MessageLinkWhereInput struct {
+	Predicates []predicate.MessageLink  `json:"-"`
+	Not        *MessageLinkWhereInput   `json:"not,omitempty"`
+	Or         []*MessageLinkWhereInput `json:"or,omitempty"`
+	And        []*MessageLinkWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *pulid.ID  `json:"id,omitempty"`
+	IDNEQ   *pulid.ID  `json:"idNEQ,omitempty"`
+	IDIn    []pulid.ID `json:"idIn,omitempty"`
+	IDNotIn []pulid.ID `json:"idNotIn,omitempty"`
+	IDGT    *pulid.ID  `json:"idGT,omitempty"`
+	IDGTE   *pulid.ID  `json:"idGTE,omitempty"`
+	IDLT    *pulid.ID  `json:"idLT,omitempty"`
+	IDLTE   *pulid.ID  `json:"idLTE,omitempty"`
+
+	// "url" field predicates.
+	URL             *string  `json:"url,omitempty"`
+	URLNEQ          *string  `json:"urlNEQ,omitempty"`
+	URLIn           []string `json:"urlIn,omitempty"`
+	URLNotIn        []string `json:"urlNotIn,omitempty"`
+	URLGT           *string  `json:"urlGT,omitempty"`
+	URLGTE          *string  `json:"urlGTE,omitempty"`
+	URLLT           *string  `json:"urlLT,omitempty"`
+	URLLTE          *string  `json:"urlLTE,omitempty"`
+	URLContains     *string  `json:"urlContains,omitempty"`
+	URLHasPrefix    *string  `json:"urlHasPrefix,omitempty"`
+	URLHasSuffix    *string  `json:"urlHasSuffix,omitempty"`
+	URLEqualFold    *string  `json:"urlEqualFold,omitempty"`
+	URLContainsFold *string  `json:"urlContainsFold,omitempty"`
+
+	// "created_at" field predicates.
+	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
+	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
+	CreatedAtIn    []time.Time `json:"createdAtIn,omitempty"`
+	CreatedAtNotIn []time.Time `json:"createdAtNotIn,omitempty"`
+	CreatedAtGT    *time.Time  `json:"createdAtGT,omitempty"`
+	CreatedAtGTE   *time.Time  `json:"createdAtGTE,omitempty"`
+	CreatedAtLT    *time.Time  `json:"createdAtLT,omitempty"`
+	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
+
+	// "updated_at" field predicates.
+	UpdatedAt      *time.Time  `json:"updatedAt,omitempty"`
+	UpdatedAtNEQ   *time.Time  `json:"updatedAtNEQ,omitempty"`
+	UpdatedAtIn    []time.Time `json:"updatedAtIn,omitempty"`
+	UpdatedAtNotIn []time.Time `json:"updatedAtNotIn,omitempty"`
+	UpdatedAtGT    *time.Time  `json:"updatedAtGT,omitempty"`
+	UpdatedAtGTE   *time.Time  `json:"updatedAtGTE,omitempty"`
+	UpdatedAtLT    *time.Time  `json:"updatedAtLT,omitempty"`
+	UpdatedAtLTE   *time.Time  `json:"updatedAtLTE,omitempty"`
+
+	// "message" edge predicates.
+	HasMessage     *bool                `json:"hasMessage,omitempty"`
+	HasMessageWith []*MessageWhereInput `json:"hasMessageWith,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *MessageLinkWhereInput) AddPredicates(predicates ...predicate.MessageLink) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Filter applies the MessageLinkWhereInput filter on the MessageLinkQuery builder.
+func (i *MessageLinkWhereInput) Filter(q *MessageLinkQuery) (*MessageLinkQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		if err == ErrEmptyMessageLinkWhereInput {
+			return q, nil
+		}
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// ErrEmptyMessageLinkWhereInput is returned in case the MessageLinkWhereInput is empty.
+var ErrEmptyMessageLinkWhereInput = errors.New("ent: empty predicate MessageLinkWhereInput")
+
+// P returns a predicate for filtering messagelinks.
+// An error is returned if the input is empty or invalid.
+func (i *MessageLinkWhereInput) P() (predicate.MessageLink, error) {
+	var predicates []predicate.MessageLink
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'not'", err)
+		}
+		predicates = append(predicates, messagelink.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'or'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.MessageLink, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'or'", err)
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, messagelink.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'and'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.MessageLink, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'and'", err)
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, messagelink.And(and...))
+	}
+	predicates = append(predicates, i.Predicates...)
+	if i.ID != nil {
+		predicates = append(predicates, messagelink.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, messagelink.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, messagelink.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, messagelink.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, messagelink.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, messagelink.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, messagelink.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, messagelink.IDLTE(*i.IDLTE))
+	}
+	if i.URL != nil {
+		predicates = append(predicates, messagelink.URLEQ(*i.URL))
+	}
+	if i.URLNEQ != nil {
+		predicates = append(predicates, messagelink.URLNEQ(*i.URLNEQ))
+	}
+	if len(i.URLIn) > 0 {
+		predicates = append(predicates, messagelink.URLIn(i.URLIn...))
+	}
+	if len(i.URLNotIn) > 0 {
+		predicates = append(predicates, messagelink.URLNotIn(i.URLNotIn...))
+	}
+	if i.URLGT != nil {
+		predicates = append(predicates, messagelink.URLGT(*i.URLGT))
+	}
+	if i.URLGTE != nil {
+		predicates = append(predicates, messagelink.URLGTE(*i.URLGTE))
+	}
+	if i.URLLT != nil {
+		predicates = append(predicates, messagelink.URLLT(*i.URLLT))
+	}
+	if i.URLLTE != nil {
+		predicates = append(predicates, messagelink.URLLTE(*i.URLLTE))
+	}
+	if i.URLContains != nil {
+		predicates = append(predicates, messagelink.URLContains(*i.URLContains))
+	}
+	if i.URLHasPrefix != nil {
+		predicates = append(predicates, messagelink.URLHasPrefix(*i.URLHasPrefix))
+	}
+	if i.URLHasSuffix != nil {
+		predicates = append(predicates, messagelink.URLHasSuffix(*i.URLHasSuffix))
+	}
+	if i.URLEqualFold != nil {
+		predicates = append(predicates, messagelink.URLEqualFold(*i.URLEqualFold))
+	}
+	if i.URLContainsFold != nil {
+		predicates = append(predicates, messagelink.URLContainsFold(*i.URLContainsFold))
+	}
+	if i.CreatedAt != nil {
+		predicates = append(predicates, messagelink.CreatedAtEQ(*i.CreatedAt))
+	}
+	if i.CreatedAtNEQ != nil {
+		predicates = append(predicates, messagelink.CreatedAtNEQ(*i.CreatedAtNEQ))
+	}
+	if len(i.CreatedAtIn) > 0 {
+		predicates = append(predicates, messagelink.CreatedAtIn(i.CreatedAtIn...))
+	}
+	if len(i.CreatedAtNotIn) > 0 {
+		predicates = append(predicates, messagelink.CreatedAtNotIn(i.CreatedAtNotIn...))
+	}
+	if i.CreatedAtGT != nil {
+		predicates = append(predicates, messagelink.CreatedAtGT(*i.CreatedAtGT))
+	}
+	if i.CreatedAtGTE != nil {
+		predicates = append(predicates, messagelink.CreatedAtGTE(*i.CreatedAtGTE))
+	}
+	if i.CreatedAtLT != nil {
+		predicates = append(predicates, messagelink.CreatedAtLT(*i.CreatedAtLT))
+	}
+	if i.CreatedAtLTE != nil {
+		predicates = append(predicates, messagelink.CreatedAtLTE(*i.CreatedAtLTE))
+	}
+	if i.UpdatedAt != nil {
+		predicates = append(predicates, messagelink.UpdatedAtEQ(*i.UpdatedAt))
+	}
+	if i.UpdatedAtNEQ != nil {
+		predicates = append(predicates, messagelink.UpdatedAtNEQ(*i.UpdatedAtNEQ))
+	}
+	if len(i.UpdatedAtIn) > 0 {
+		predicates = append(predicates, messagelink.UpdatedAtIn(i.UpdatedAtIn...))
+	}
+	if len(i.UpdatedAtNotIn) > 0 {
+		predicates = append(predicates, messagelink.UpdatedAtNotIn(i.UpdatedAtNotIn...))
+	}
+	if i.UpdatedAtGT != nil {
+		predicates = append(predicates, messagelink.UpdatedAtGT(*i.UpdatedAtGT))
+	}
+	if i.UpdatedAtGTE != nil {
+		predicates = append(predicates, messagelink.UpdatedAtGTE(*i.UpdatedAtGTE))
+	}
+	if i.UpdatedAtLT != nil {
+		predicates = append(predicates, messagelink.UpdatedAtLT(*i.UpdatedAtLT))
+	}
+	if i.UpdatedAtLTE != nil {
+		predicates = append(predicates, messagelink.UpdatedAtLTE(*i.UpdatedAtLTE))
+	}
+
+	if i.HasMessage != nil {
+		p := messagelink.HasMessage()
+		if !*i.HasMessage {
+			p = messagelink.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasMessageWith) > 0 {
+		with := make([]predicate.Message, 0, len(i.HasMessageWith))
+		for _, w := range i.HasMessageWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasMessageWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, messagelink.HasMessageWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyMessageLinkWhereInput
+	case 1:
+		return predicates[0], nil
+	default:
+		return messagelink.And(predicates...), nil
+	}
+}
+
+// MessageVoiceWhereInput represents a where input for filtering MessageVoice queries.
+type MessageVoiceWhereInput struct {
+	Predicates []predicate.MessageVoice  `json:"-"`
+	Not        *MessageVoiceWhereInput   `json:"not,omitempty"`
+	Or         []*MessageVoiceWhereInput `json:"or,omitempty"`
+	And        []*MessageVoiceWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *pulid.ID  `json:"id,omitempty"`
+	IDNEQ   *pulid.ID  `json:"idNEQ,omitempty"`
+	IDIn    []pulid.ID `json:"idIn,omitempty"`
+	IDNotIn []pulid.ID `json:"idNotIn,omitempty"`
+	IDGT    *pulid.ID  `json:"idGT,omitempty"`
+	IDGTE   *pulid.ID  `json:"idGTE,omitempty"`
+	IDLT    *pulid.ID  `json:"idLT,omitempty"`
+	IDLTE   *pulid.ID  `json:"idLTE,omitempty"`
+
+	// "length" field predicates.
+	Length      *int  `json:"length,omitempty"`
+	LengthNEQ   *int  `json:"lengthNEQ,omitempty"`
+	LengthIn    []int `json:"lengthIn,omitempty"`
+	LengthNotIn []int `json:"lengthNotIn,omitempty"`
+	LengthGT    *int  `json:"lengthGT,omitempty"`
+	LengthGTE   *int  `json:"lengthGTE,omitempty"`
+	LengthLT    *int  `json:"lengthLT,omitempty"`
+	LengthLTE   *int  `json:"lengthLTE,omitempty"`
+
+	// "attached_at" field predicates.
+	AttachedAt      *time.Time  `json:"attachedAt,omitempty"`
+	AttachedAtNEQ   *time.Time  `json:"attachedAtNEQ,omitempty"`
+	AttachedAtIn    []time.Time `json:"attachedAtIn,omitempty"`
+	AttachedAtNotIn []time.Time `json:"attachedAtNotIn,omitempty"`
+	AttachedAtGT    *time.Time  `json:"attachedAtGT,omitempty"`
+	AttachedAtGTE   *time.Time  `json:"attachedAtGTE,omitempty"`
+	AttachedAtLT    *time.Time  `json:"attachedAtLT,omitempty"`
+	AttachedAtLTE   *time.Time  `json:"attachedAtLTE,omitempty"`
+
+	// "file" edge predicates.
+	HasFile     *bool             `json:"hasFile,omitempty"`
+	HasFileWith []*FileWhereInput `json:"hasFileWith,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *MessageVoiceWhereInput) AddPredicates(predicates ...predicate.MessageVoice) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Filter applies the MessageVoiceWhereInput filter on the MessageVoiceQuery builder.
+func (i *MessageVoiceWhereInput) Filter(q *MessageVoiceQuery) (*MessageVoiceQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		if err == ErrEmptyMessageVoiceWhereInput {
+			return q, nil
+		}
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// ErrEmptyMessageVoiceWhereInput is returned in case the MessageVoiceWhereInput is empty.
+var ErrEmptyMessageVoiceWhereInput = errors.New("ent: empty predicate MessageVoiceWhereInput")
+
+// P returns a predicate for filtering messagevoices.
+// An error is returned if the input is empty or invalid.
+func (i *MessageVoiceWhereInput) P() (predicate.MessageVoice, error) {
+	var predicates []predicate.MessageVoice
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'not'", err)
+		}
+		predicates = append(predicates, messagevoice.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'or'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.MessageVoice, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'or'", err)
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, messagevoice.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'and'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.MessageVoice, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'and'", err)
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, messagevoice.And(and...))
+	}
+	predicates = append(predicates, i.Predicates...)
+	if i.ID != nil {
+		predicates = append(predicates, messagevoice.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, messagevoice.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, messagevoice.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, messagevoice.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, messagevoice.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, messagevoice.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, messagevoice.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, messagevoice.IDLTE(*i.IDLTE))
+	}
+	if i.Length != nil {
+		predicates = append(predicates, messagevoice.LengthEQ(*i.Length))
+	}
+	if i.LengthNEQ != nil {
+		predicates = append(predicates, messagevoice.LengthNEQ(*i.LengthNEQ))
+	}
+	if len(i.LengthIn) > 0 {
+		predicates = append(predicates, messagevoice.LengthIn(i.LengthIn...))
+	}
+	if len(i.LengthNotIn) > 0 {
+		predicates = append(predicates, messagevoice.LengthNotIn(i.LengthNotIn...))
+	}
+	if i.LengthGT != nil {
+		predicates = append(predicates, messagevoice.LengthGT(*i.LengthGT))
+	}
+	if i.LengthGTE != nil {
+		predicates = append(predicates, messagevoice.LengthGTE(*i.LengthGTE))
+	}
+	if i.LengthLT != nil {
+		predicates = append(predicates, messagevoice.LengthLT(*i.LengthLT))
+	}
+	if i.LengthLTE != nil {
+		predicates = append(predicates, messagevoice.LengthLTE(*i.LengthLTE))
+	}
+	if i.AttachedAt != nil {
+		predicates = append(predicates, messagevoice.AttachedAtEQ(*i.AttachedAt))
+	}
+	if i.AttachedAtNEQ != nil {
+		predicates = append(predicates, messagevoice.AttachedAtNEQ(*i.AttachedAtNEQ))
+	}
+	if len(i.AttachedAtIn) > 0 {
+		predicates = append(predicates, messagevoice.AttachedAtIn(i.AttachedAtIn...))
+	}
+	if len(i.AttachedAtNotIn) > 0 {
+		predicates = append(predicates, messagevoice.AttachedAtNotIn(i.AttachedAtNotIn...))
+	}
+	if i.AttachedAtGT != nil {
+		predicates = append(predicates, messagevoice.AttachedAtGT(*i.AttachedAtGT))
+	}
+	if i.AttachedAtGTE != nil {
+		predicates = append(predicates, messagevoice.AttachedAtGTE(*i.AttachedAtGTE))
+	}
+	if i.AttachedAtLT != nil {
+		predicates = append(predicates, messagevoice.AttachedAtLT(*i.AttachedAtLT))
+	}
+	if i.AttachedAtLTE != nil {
+		predicates = append(predicates, messagevoice.AttachedAtLTE(*i.AttachedAtLTE))
+	}
+
+	if i.HasFile != nil {
+		p := messagevoice.HasFile()
+		if !*i.HasFile {
+			p = messagevoice.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasFileWith) > 0 {
+		with := make([]predicate.File, 0, len(i.HasFileWith))
+		for _, w := range i.HasFileWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasFileWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, messagevoice.HasFileWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyMessageVoiceWhereInput
+	case 1:
+		return predicates[0], nil
+	default:
+		return messagevoice.And(predicates...), nil
 	}
 }
 
@@ -1186,10 +1980,10 @@ type RoomWhereInput struct {
 	VersionLTE   *uint64  `json:"versionLTE,omitempty"`
 
 	// "type" field predicates.
-	Type      *roomtype.Type  `json:"type,omitempty"`
-	TypeNEQ   *roomtype.Type  `json:"typeNEQ,omitempty"`
-	TypeIn    []roomtype.Type `json:"typeIn,omitempty"`
-	TypeNotIn []roomtype.Type `json:"typeNotIn,omitempty"`
+	Type      *room.Type  `json:"type,omitempty"`
+	TypeNEQ   *room.Type  `json:"typeNEQ,omitempty"`
+	TypeIn    []room.Type `json:"typeIn,omitempty"`
+	TypeNotIn []room.Type `json:"typeNotIn,omitempty"`
 
 	// "created_at" field predicates.
 	CreatedAt      *time.Time  `json:"createdAt,omitempty"`

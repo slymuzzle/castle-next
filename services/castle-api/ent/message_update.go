@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
@@ -89,6 +91,55 @@ func (mu *MessageUpdate) SetRoom(r *Room) *MessageUpdate {
 	return mu.SetRoomID(r.ID)
 }
 
+// SetReplyToID sets the "reply_to" edge to the Message entity by ID.
+func (mu *MessageUpdate) SetReplyToID(id pulid.ID) *MessageUpdate {
+	mu.mutation.SetReplyToID(id)
+	return mu
+}
+
+// SetNillableReplyToID sets the "reply_to" edge to the Message entity by ID if the given value is not nil.
+func (mu *MessageUpdate) SetNillableReplyToID(id *pulid.ID) *MessageUpdate {
+	if id != nil {
+		mu = mu.SetReplyToID(*id)
+	}
+	return mu
+}
+
+// SetReplyTo sets the "reply_to" edge to the Message entity.
+func (mu *MessageUpdate) SetReplyTo(m *Message) *MessageUpdate {
+	return mu.SetReplyToID(m.ID)
+}
+
+// AddAttachmentIDs adds the "attachments" edge to the MessageAttachment entity by IDs.
+func (mu *MessageUpdate) AddAttachmentIDs(ids ...pulid.ID) *MessageUpdate {
+	mu.mutation.AddAttachmentIDs(ids...)
+	return mu
+}
+
+// AddAttachments adds the "attachments" edges to the MessageAttachment entity.
+func (mu *MessageUpdate) AddAttachments(m ...*MessageAttachment) *MessageUpdate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mu.AddAttachmentIDs(ids...)
+}
+
+// AddLinkIDs adds the "links" edge to the MessageLink entity by IDs.
+func (mu *MessageUpdate) AddLinkIDs(ids ...pulid.ID) *MessageUpdate {
+	mu.mutation.AddLinkIDs(ids...)
+	return mu
+}
+
+// AddLinks adds the "links" edges to the MessageLink entity.
+func (mu *MessageUpdate) AddLinks(m ...*MessageLink) *MessageUpdate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mu.AddLinkIDs(ids...)
+}
+
 // Mutation returns the MessageMutation object of the builder.
 func (mu *MessageUpdate) Mutation() *MessageMutation {
 	return mu.mutation
@@ -104,6 +155,54 @@ func (mu *MessageUpdate) ClearUser() *MessageUpdate {
 func (mu *MessageUpdate) ClearRoom() *MessageUpdate {
 	mu.mutation.ClearRoom()
 	return mu
+}
+
+// ClearReplyTo clears the "reply_to" edge to the Message entity.
+func (mu *MessageUpdate) ClearReplyTo() *MessageUpdate {
+	mu.mutation.ClearReplyTo()
+	return mu
+}
+
+// ClearAttachments clears all "attachments" edges to the MessageAttachment entity.
+func (mu *MessageUpdate) ClearAttachments() *MessageUpdate {
+	mu.mutation.ClearAttachments()
+	return mu
+}
+
+// RemoveAttachmentIDs removes the "attachments" edge to MessageAttachment entities by IDs.
+func (mu *MessageUpdate) RemoveAttachmentIDs(ids ...pulid.ID) *MessageUpdate {
+	mu.mutation.RemoveAttachmentIDs(ids...)
+	return mu
+}
+
+// RemoveAttachments removes "attachments" edges to MessageAttachment entities.
+func (mu *MessageUpdate) RemoveAttachments(m ...*MessageAttachment) *MessageUpdate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mu.RemoveAttachmentIDs(ids...)
+}
+
+// ClearLinks clears all "links" edges to the MessageLink entity.
+func (mu *MessageUpdate) ClearLinks() *MessageUpdate {
+	mu.mutation.ClearLinks()
+	return mu
+}
+
+// RemoveLinkIDs removes the "links" edge to MessageLink entities by IDs.
+func (mu *MessageUpdate) RemoveLinkIDs(ids ...pulid.ID) *MessageUpdate {
+	mu.mutation.RemoveLinkIDs(ids...)
+	return mu
+}
+
+// RemoveLinks removes "links" edges to MessageLink entities.
+func (mu *MessageUpdate) RemoveLinks(m ...*MessageLink) *MessageUpdate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mu.RemoveLinkIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -215,6 +314,125 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if mu.mutation.ReplyToCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   message.ReplyToTable,
+			Columns: []string{message.ReplyToColumn},
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.ReplyToIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   message.ReplyToTable,
+			Columns: []string{message.ReplyToColumn},
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if mu.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.AttachmentsTable,
+			Columns: []string{message.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RemovedAttachmentsIDs(); len(nodes) > 0 && !mu.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.AttachmentsTable,
+			Columns: []string{message.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.AttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.AttachmentsTable,
+			Columns: []string{message.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if mu.mutation.LinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.LinksTable,
+			Columns: []string{message.LinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagelink.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RemovedLinksIDs(); len(nodes) > 0 && !mu.mutation.LinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.LinksTable,
+			Columns: []string{message.LinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagelink.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.LinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.LinksTable,
+			Columns: []string{message.LinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagelink.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{message.Label}
@@ -293,6 +511,55 @@ func (muo *MessageUpdateOne) SetRoom(r *Room) *MessageUpdateOne {
 	return muo.SetRoomID(r.ID)
 }
 
+// SetReplyToID sets the "reply_to" edge to the Message entity by ID.
+func (muo *MessageUpdateOne) SetReplyToID(id pulid.ID) *MessageUpdateOne {
+	muo.mutation.SetReplyToID(id)
+	return muo
+}
+
+// SetNillableReplyToID sets the "reply_to" edge to the Message entity by ID if the given value is not nil.
+func (muo *MessageUpdateOne) SetNillableReplyToID(id *pulid.ID) *MessageUpdateOne {
+	if id != nil {
+		muo = muo.SetReplyToID(*id)
+	}
+	return muo
+}
+
+// SetReplyTo sets the "reply_to" edge to the Message entity.
+func (muo *MessageUpdateOne) SetReplyTo(m *Message) *MessageUpdateOne {
+	return muo.SetReplyToID(m.ID)
+}
+
+// AddAttachmentIDs adds the "attachments" edge to the MessageAttachment entity by IDs.
+func (muo *MessageUpdateOne) AddAttachmentIDs(ids ...pulid.ID) *MessageUpdateOne {
+	muo.mutation.AddAttachmentIDs(ids...)
+	return muo
+}
+
+// AddAttachments adds the "attachments" edges to the MessageAttachment entity.
+func (muo *MessageUpdateOne) AddAttachments(m ...*MessageAttachment) *MessageUpdateOne {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return muo.AddAttachmentIDs(ids...)
+}
+
+// AddLinkIDs adds the "links" edge to the MessageLink entity by IDs.
+func (muo *MessageUpdateOne) AddLinkIDs(ids ...pulid.ID) *MessageUpdateOne {
+	muo.mutation.AddLinkIDs(ids...)
+	return muo
+}
+
+// AddLinks adds the "links" edges to the MessageLink entity.
+func (muo *MessageUpdateOne) AddLinks(m ...*MessageLink) *MessageUpdateOne {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return muo.AddLinkIDs(ids...)
+}
+
 // Mutation returns the MessageMutation object of the builder.
 func (muo *MessageUpdateOne) Mutation() *MessageMutation {
 	return muo.mutation
@@ -308,6 +575,54 @@ func (muo *MessageUpdateOne) ClearUser() *MessageUpdateOne {
 func (muo *MessageUpdateOne) ClearRoom() *MessageUpdateOne {
 	muo.mutation.ClearRoom()
 	return muo
+}
+
+// ClearReplyTo clears the "reply_to" edge to the Message entity.
+func (muo *MessageUpdateOne) ClearReplyTo() *MessageUpdateOne {
+	muo.mutation.ClearReplyTo()
+	return muo
+}
+
+// ClearAttachments clears all "attachments" edges to the MessageAttachment entity.
+func (muo *MessageUpdateOne) ClearAttachments() *MessageUpdateOne {
+	muo.mutation.ClearAttachments()
+	return muo
+}
+
+// RemoveAttachmentIDs removes the "attachments" edge to MessageAttachment entities by IDs.
+func (muo *MessageUpdateOne) RemoveAttachmentIDs(ids ...pulid.ID) *MessageUpdateOne {
+	muo.mutation.RemoveAttachmentIDs(ids...)
+	return muo
+}
+
+// RemoveAttachments removes "attachments" edges to MessageAttachment entities.
+func (muo *MessageUpdateOne) RemoveAttachments(m ...*MessageAttachment) *MessageUpdateOne {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return muo.RemoveAttachmentIDs(ids...)
+}
+
+// ClearLinks clears all "links" edges to the MessageLink entity.
+func (muo *MessageUpdateOne) ClearLinks() *MessageUpdateOne {
+	muo.mutation.ClearLinks()
+	return muo
+}
+
+// RemoveLinkIDs removes the "links" edge to MessageLink entities by IDs.
+func (muo *MessageUpdateOne) RemoveLinkIDs(ids ...pulid.ID) *MessageUpdateOne {
+	muo.mutation.RemoveLinkIDs(ids...)
+	return muo
+}
+
+// RemoveLinks removes "links" edges to MessageLink entities.
+func (muo *MessageUpdateOne) RemoveLinks(m ...*MessageLink) *MessageUpdateOne {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return muo.RemoveLinkIDs(ids...)
 }
 
 // Where appends a list predicates to the MessageUpdate builder.
@@ -442,6 +757,125 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if muo.mutation.ReplyToCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   message.ReplyToTable,
+			Columns: []string{message.ReplyToColumn},
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.ReplyToIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   message.ReplyToTable,
+			Columns: []string{message.ReplyToColumn},
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if muo.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.AttachmentsTable,
+			Columns: []string{message.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RemovedAttachmentsIDs(); len(nodes) > 0 && !muo.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.AttachmentsTable,
+			Columns: []string{message.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.AttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.AttachmentsTable,
+			Columns: []string{message.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if muo.mutation.LinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.LinksTable,
+			Columns: []string{message.LinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagelink.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RemovedLinksIDs(); len(nodes) > 0 && !muo.mutation.LinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.LinksTable,
+			Columns: []string{message.LinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagelink.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.LinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.LinksTable,
+			Columns: []string{message.LinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagelink.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

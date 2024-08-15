@@ -6,36 +6,62 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/graph/generated"
-	"journeyhub/graph/middleware"
 	"journeyhub/graph/model"
 )
 
 // SendMessage is the resolver for the sendMessage field.
 func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMessageInput) (*ent.Message, error) {
-	user := middleware.JwtUserForContext(ctx)
-
-	if user == nil {
-		return nil, middleware.ErrAccessDenied
+	user, err := r.authService.Auth(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	return r.chatService.SendMessage(ctx, user.ID, *input.TargetUserID, input.Content)
+	return r.chatService.SendMessage(ctx, user.ID, input.TargetUserID, *input.ReplyTo, input.Content)
 }
 
 // UpdateMessage is the resolver for the updateMessage field.
-func (r *mutationResolver) UpdateMessage(ctx context.Context, input model.UpdateMessageInput) (*ent.Message, error) {
-	panic(fmt.Errorf("not implemented: UpdateMessage - updateMessage"))
+func (r *mutationResolver) UpdateMessage(ctx context.Context, messageID pulid.ID, input model.UpdateMessageInput) (*ent.Message, error) {
+	_, err := r.authService.Auth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.chatService.UpdateMessage(ctx, messageID, input.Content)
 }
 
 // DeleteMessage is the resolver for the deleteMessage field.
-func (r *mutationResolver) DeleteMessage(ctx context.Context, roomID pulid.ID) (*ent.Room, error) {
-	panic(fmt.Errorf("not implemented: DeleteMessage - deleteMessage"))
+func (r *mutationResolver) DeleteMessage(ctx context.Context, messageID pulid.ID) (*ent.Message, error) {
+	_, err := r.authService.Auth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.chatService.DeleteMessage(ctx, messageID)
+}
+
+// MessageAdded is the resolver for the messageAdded field.
+func (r *subscriptionResolver) MessageAdded(ctx context.Context, roomID pulid.ID) (<-chan *ent.Message, error) {
+	return r.chatService.SubscribeToMessageAddedEvent(roomID)
+}
+
+// MessageUpdated is the resolver for the messageUpdated field.
+func (r *subscriptionResolver) MessageUpdated(ctx context.Context, roomID pulid.ID) (<-chan *ent.Message, error) {
+	return r.chatService.SubscribeToMessageUpdatedEvent(roomID)
+}
+
+// MessageDeleted is the resolver for the messageDeleted field.
+func (r *subscriptionResolver) MessageDeleted(ctx context.Context, roomID pulid.ID) (<-chan *ent.Message, error) {
+	return r.chatService.SubscribeToMessageDeletedEvent(roomID)
 }
 
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
+// Subscription returns generated.SubscriptionResolver implementation.
+func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
+
 type mutationResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }

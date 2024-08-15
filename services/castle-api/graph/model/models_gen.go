@@ -20,7 +20,8 @@ type LoginUser struct {
 
 // CreateMessageInput is used for create Message object.
 type SendMessageInput struct {
-	TargetUserID *pulid.ID `json:"targetUserId,omitempty"`
+	TargetUserID pulid.ID  `json:"targetUserID"`
+	ReplyTo      *pulid.ID `json:"replyTo,omitempty"`
 	Content      string    `json:"content"`
 }
 

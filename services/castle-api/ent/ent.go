@@ -9,6 +9,9 @@ import (
 	"journeyhub/ent/file"
 	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/user"
@@ -78,12 +81,15 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			file.Table:       file.ValidColumn,
-			friendship.Table: friendship.ValidColumn,
-			message.Table:    message.ValidColumn,
-			room.Table:       room.ValidColumn,
-			roommember.Table: roommember.ValidColumn,
-			user.Table:       user.ValidColumn,
+			file.Table:              file.ValidColumn,
+			friendship.Table:        friendship.ValidColumn,
+			message.Table:           message.ValidColumn,
+			messageattachment.Table: messageattachment.ValidColumn,
+			messagelink.Table:       messagelink.ValidColumn,
+			messagevoice.Table:      messagevoice.ValidColumn,
+			room.Table:              room.ValidColumn,
+			roommember.Table:        roommember.ValidColumn,
+			user.Table:              user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

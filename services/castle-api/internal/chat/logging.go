@@ -21,30 +21,92 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 
 func (s *loggingService) SendMessage(
 	ctx context.Context,
-	roomID pulid.ID,
-	userID pulid.ID,
+	currentUserID pulid.ID,
+	targetUserID pulid.ID,
+	replyTo pulid.ID,
 	content string,
 ) (msg *ent.Message, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "SendMessage",
-			"roomID", roomID,
-			"userID", userID,
+			"currentUserID", currentUserID,
+			"targetUserID", targetUserID,
+			"replyTo", replyTo,
 			"content", content,
+			"message", msg,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.SendMessage(ctx, roomID, userID, content)
+	return s.Service.SendMessage(ctx, currentUserID, targetUserID, replyTo, content)
 }
 
-func (s *loggingService) Subscribe(roomID pulid.ID) (ch <-chan *ent.Message, err error) {
+func (s *loggingService) SubscribeToMessageAddedEvent(roomID pulid.ID) (ch <-chan *ent.Message, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
-			"method", "Subscribe",
+			"method", "SubscribeToMessageAddedEvent",
+			"roomID", roomID,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.Subscribe(roomID)
+	return s.Service.SubscribeToMessageAddedEvent(roomID)
+}
+
+func (s *loggingService) UpdateMessage(
+	ctx context.Context,
+	messageID pulid.ID,
+	content string,
+) (msg *ent.Message, err error) {
+	defer func(begin time.Time) {
+		level.Debug(s.logger).Log(
+			"method", "UpdateMessage",
+			"messageID", messageID,
+			"content", content,
+			"message", msg,
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.UpdateMessage(ctx, messageID, content)
+}
+
+func (s *loggingService) SubscribeToMessageUpdatedEvent(roomID pulid.ID) (ch <-chan *ent.Message, err error) {
+	defer func(begin time.Time) {
+		level.Debug(s.logger).Log(
+			"method", "SubscribeToMessageUpdatedEvent",
+			"roomID", roomID,
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.SubscribeToMessageUpdatedEvent(roomID)
+}
+
+func (s *loggingService) DeleteMessage(
+	ctx context.Context,
+	messageID pulid.ID,
+) (msg *ent.Message, err error) {
+	defer func(begin time.Time) {
+		level.Debug(s.logger).Log(
+			"method", "DeleteMessage",
+			"messageID", messageID,
+			"message", msg,
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.DeleteMessage(ctx, messageID)
+}
+
+func (s *loggingService) SubscribeToMessageDeletedEvent(roomID pulid.ID) (ch <-chan *ent.Message, err error) {
+	defer func(begin time.Time) {
+		level.Debug(s.logger).Log(
+			"method", "SubscribeToMessageDeletedEvent",
+			"roomID", roomID,
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.SubscribeToMessageDeletedEvent(roomID)
 }

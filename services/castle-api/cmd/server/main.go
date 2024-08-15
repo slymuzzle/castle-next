@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"journeyhub/graph"
-	graphmiddleware "journeyhub/graph/middleware"
+	"journeyhub/graph/server"
 	"journeyhub/internal/auth"
+	"journeyhub/internal/auth/jwtauth"
 	"journeyhub/internal/chat"
 	"journeyhub/internal/config"
 	"journeyhub/internal/db"
@@ -16,10 +17,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/gorilla/websocket"
 
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 
 	"github.com/go-chi/chi/v5"
@@ -106,36 +104,30 @@ func main() {
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 
+	// Auth middleware stack
+	jwtAuth := authService.JWTAuthClient()
+	router.Use(jwtauth.Verifier(jwtAuth))
+
 	// GraphQL middleware stack
-	router.Use(graphmiddleware.JwtMiddleware(authService))
+	// router.Use(graphmiddleware.JwtMiddleware(authService))
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
 	router.Use(middleware.Timeout(60 * time.Second))
 
-	graphqlQueryHandler := handler.NewDefaultServer(
+	graphqlQueryHandler := server.NewDefaultServer(
 		graph.NewSchema(
 			dbService,
 			validationService,
 			authService,
 			chatService,
 		),
+		jwtAuth,
 	)
-	graphqlQueryHandler.AddTransport(&transport.Websocket{
-		KeepAlivePingInterval: 10 * time.Second,
-		Upgrader: websocket.Upgrader{
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-		},
-		// InitFunc: func(ctx context.Context, initPayload transport.InitPayload) (context.Context, error) {
-		// 	return webSocketInit(ctx, initPayload)
-		// },
-	})
 	router.Handle("/query", graphqlQueryHandler)
 
-	graphqlPlaygroundHandler := playground.Handler("GraphQL", "/query")
+	graphqlPlaygroundHandler := playground.AltairHandler("GraphQL", "/query")
 	router.Get("/", graphqlPlaygroundHandler)
 
 	addr := fmt.Sprintf(":%d", config.Server.Port)

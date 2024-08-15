@@ -25,6 +25,12 @@ const (
 	EdgeUser = "user"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
+	// EdgeReplyTo holds the string denoting the reply_to edge name in mutations.
+	EdgeReplyTo = "reply_to"
+	// EdgeAttachments holds the string denoting the attachments edge name in mutations.
+	EdgeAttachments = "attachments"
+	// EdgeLinks holds the string denoting the links edge name in mutations.
+	EdgeLinks = "links"
 	// Table holds the table name of the message in the database.
 	Table = "messages"
 	// UserTable is the table that holds the user relation/edge.
@@ -41,6 +47,24 @@ const (
 	RoomInverseTable = "rooms"
 	// RoomColumn is the table column denoting the room relation/edge.
 	RoomColumn = "room_messages"
+	// ReplyToTable is the table that holds the reply_to relation/edge.
+	ReplyToTable = "messages"
+	// ReplyToColumn is the table column denoting the reply_to relation/edge.
+	ReplyToColumn = "message_reply_to"
+	// AttachmentsTable is the table that holds the attachments relation/edge.
+	AttachmentsTable = "message_attachments"
+	// AttachmentsInverseTable is the table name for the MessageAttachment entity.
+	// It exists in this package in order to avoid circular dependency with the "messageattachment" package.
+	AttachmentsInverseTable = "message_attachments"
+	// AttachmentsColumn is the table column denoting the attachments relation/edge.
+	AttachmentsColumn = "message_attachments"
+	// LinksTable is the table that holds the links relation/edge.
+	LinksTable = "message_links"
+	// LinksInverseTable is the table name for the MessageLink entity.
+	// It exists in this package in order to avoid circular dependency with the "messagelink" package.
+	LinksInverseTable = "message_links"
+	// LinksColumn is the table column denoting the links relation/edge.
+	LinksColumn = "message_links"
 )
 
 // Columns holds all SQL columns for message fields.
@@ -54,6 +78,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "messages"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"message_reply_to",
 	"room_messages",
 	"user_messages",
 }
@@ -120,6 +145,41 @@ func ByRoomField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newRoomStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByReplyToField orders the results by reply_to field.
+func ByReplyToField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newReplyToStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByAttachmentsCount orders the results by attachments count.
+func ByAttachmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAttachmentsStep(), opts...)
+	}
+}
+
+// ByAttachments orders the results by attachments terms.
+func ByAttachments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAttachmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByLinksCount orders the results by links count.
+func ByLinksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLinksStep(), opts...)
+	}
+}
+
+// ByLinks orders the results by links terms.
+func ByLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -132,5 +192,26 @@ func newRoomStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RoomInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
+	)
+}
+func newReplyToStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, ReplyToTable, ReplyToColumn),
+	)
+}
+func newAttachmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AttachmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AttachmentsTable, AttachmentsColumn),
+	)
+}
+func newLinksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LinksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LinksTable, LinksColumn),
 	)
 }

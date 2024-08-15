@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
 	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
@@ -110,6 +112,55 @@ func (mc *MessageCreate) SetNillableRoomID(id *pulid.ID) *MessageCreate {
 // SetRoom sets the "room" edge to the Room entity.
 func (mc *MessageCreate) SetRoom(r *Room) *MessageCreate {
 	return mc.SetRoomID(r.ID)
+}
+
+// SetReplyToID sets the "reply_to" edge to the Message entity by ID.
+func (mc *MessageCreate) SetReplyToID(id pulid.ID) *MessageCreate {
+	mc.mutation.SetReplyToID(id)
+	return mc
+}
+
+// SetNillableReplyToID sets the "reply_to" edge to the Message entity by ID if the given value is not nil.
+func (mc *MessageCreate) SetNillableReplyToID(id *pulid.ID) *MessageCreate {
+	if id != nil {
+		mc = mc.SetReplyToID(*id)
+	}
+	return mc
+}
+
+// SetReplyTo sets the "reply_to" edge to the Message entity.
+func (mc *MessageCreate) SetReplyTo(m *Message) *MessageCreate {
+	return mc.SetReplyToID(m.ID)
+}
+
+// AddAttachmentIDs adds the "attachments" edge to the MessageAttachment entity by IDs.
+func (mc *MessageCreate) AddAttachmentIDs(ids ...pulid.ID) *MessageCreate {
+	mc.mutation.AddAttachmentIDs(ids...)
+	return mc
+}
+
+// AddAttachments adds the "attachments" edges to the MessageAttachment entity.
+func (mc *MessageCreate) AddAttachments(m ...*MessageAttachment) *MessageCreate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mc.AddAttachmentIDs(ids...)
+}
+
+// AddLinkIDs adds the "links" edge to the MessageLink entity by IDs.
+func (mc *MessageCreate) AddLinkIDs(ids ...pulid.ID) *MessageCreate {
+	mc.mutation.AddLinkIDs(ids...)
+	return mc
+}
+
+// AddLinks adds the "links" edges to the MessageLink entity.
+func (mc *MessageCreate) AddLinks(m ...*MessageLink) *MessageCreate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mc.AddLinkIDs(ids...)
 }
 
 // Mutation returns the MessageMutation object of the builder.
@@ -252,6 +303,55 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.room_messages = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := mc.mutation.ReplyToIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   message.ReplyToTable,
+			Columns: []string{message.ReplyToColumn},
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.message_reply_to = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := mc.mutation.AttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.AttachmentsTable,
+			Columns: []string{message.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := mc.mutation.LinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.LinksTable,
+			Columns: []string{message.LinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagelink.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

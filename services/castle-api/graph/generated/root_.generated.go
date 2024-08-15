@@ -36,9 +36,11 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	MessageAttachment() MessageAttachmentResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Subscription() SubscriptionResolver
+	MessageAttachmentWhereInput() MessageAttachmentWhereInputResolver
 }
 
 type DirectiveRoot struct {
@@ -46,14 +48,15 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	File struct {
-		CreatedAt func(childComplexity int) int
-		Disk      func(childComplexity int) int
-		FileName  func(childComplexity int) int
-		ID        func(childComplexity int) int
-		MimeType  func(childComplexity int) int
-		Name      func(childComplexity int) int
-		Size      func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
+		CreatedAt         func(childComplexity int) int
+		Disk              func(childComplexity int) int
+		ID                func(childComplexity int) int
+		MessageAttachment func(childComplexity int) int
+		MessageVoice      func(childComplexity int) int
+		MimeType          func(childComplexity int) int
+		Name              func(childComplexity int) int
+		Size              func(childComplexity int) int
+		UpdatedAt         func(childComplexity int) int
 	}
 
 	Friendship struct {
@@ -84,12 +87,24 @@ type ComplexityRoot struct {
 	}
 
 	Message struct {
-		Content   func(childComplexity int) int
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Room      func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
-		User      func(childComplexity int) int
+		Attachments func(childComplexity int) int
+		Content     func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Links       func(childComplexity int) int
+		ReplyTo     func(childComplexity int) int
+		Room        func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
+		User        func(childComplexity int) int
+	}
+
+	MessageAttachment struct {
+		AttachedAt func(childComplexity int) int
+		File       func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Message    func(childComplexity int) int
+		Order      func(childComplexity int) int
+		Type       func(childComplexity int) int
 	}
 
 	MessageConnection struct {
@@ -103,15 +118,30 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int) int
 	}
 
+	MessageLink struct {
+		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Message   func(childComplexity int) int
+		URL       func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+	}
+
+	MessageVoice struct {
+		AttachedAt func(childComplexity int) int
+		File       func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Length     func(childComplexity int) int
+	}
+
 	Mutation struct {
 		CreateRoom    func(childComplexity int, input model.CreateRoomInput) int
-		DeleteMessage func(childComplexity int, roomID pulid.ID) int
+		DeleteMessage func(childComplexity int, messageID pulid.ID) int
 		DeleteRoom    func(childComplexity int, roomID pulid.ID) int
 		Login         func(childComplexity int, input model.UserLoginInput) int
 		Register      func(childComplexity int, input model.UserRegisterInput) int
 		SendMessage   func(childComplexity int, input model.SendMessageInput) int
-		UpdateMessage func(childComplexity int, input model.UpdateMessageInput) int
-		UpdateRoom    func(childComplexity int, input model.UpdateRoomInput) int
+		UpdateMessage func(childComplexity int, messageID pulid.ID, input model.UpdateMessageInput) int
+		UpdateRoom    func(childComplexity int, roomID pulid.ID, input model.UpdateRoomInput) int
 	}
 
 	PageInfo struct {
@@ -126,8 +156,9 @@ type ComplexityRoot struct {
 		Messages    func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) int
 		Node        func(childComplexity int, id pulid.ID) int
 		Nodes       func(childComplexity int, ids []pulid.ID) int
-		RoomMembers func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, where *ent.RoomMemberWhereInput) int
+		RoomMembers func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
 		Rooms       func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomOrder, where *ent.RoomWhereInput) int
+		Self        func(childComplexity int) int
 		Users       func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) int
 	}
 
@@ -136,7 +167,7 @@ type ComplexityRoot struct {
 		ID          func(childComplexity int) int
 		Messages    func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) int
 		Name        func(childComplexity int) int
-		RoomMembers func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, where *ent.RoomMemberWhereInput) int
+		RoomMembers func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
 		Type        func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
 		Users       func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) int
@@ -175,7 +206,10 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		MessageAdded func(childComplexity int, roomID pulid.ID) int
+		MessageAdded   func(childComplexity int, roomID pulid.ID) int
+		MessageDeleted func(childComplexity int, roomID pulid.ID) int
+		MessageUpdated func(childComplexity int, roomID pulid.ID) int
+		RoomChanged    func(childComplexity int) int
 	}
 
 	User struct {
@@ -186,7 +220,7 @@ type ComplexityRoot struct {
 		Friendships func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, where *ent.FriendshipWhereInput) int
 		ID          func(childComplexity int) int
 		LastName    func(childComplexity int) int
-		Memberships func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, where *ent.RoomMemberWhereInput) int
+		Memberships func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
 		Messages    func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) int
 		Nickname    func(childComplexity int) int
 		Rooms       func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomOrder, where *ent.RoomWhereInput) int
@@ -238,19 +272,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.File.Disk(childComplexity), true
 
-	case "File.fileName":
-		if e.complexity.File.FileName == nil {
-			break
-		}
-
-		return e.complexity.File.FileName(childComplexity), true
-
 	case "File.id":
 		if e.complexity.File.ID == nil {
 			break
 		}
 
 		return e.complexity.File.ID(childComplexity), true
+
+	case "File.messageAttachment":
+		if e.complexity.File.MessageAttachment == nil {
+			break
+		}
+
+		return e.complexity.File.MessageAttachment(childComplexity), true
+
+	case "File.messageVoice":
+		if e.complexity.File.MessageVoice == nil {
+			break
+		}
+
+		return e.complexity.File.MessageVoice(childComplexity), true
 
 	case "File.mimeType":
 		if e.complexity.File.MimeType == nil {
@@ -385,6 +426,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LoginUser.User(childComplexity), true
 
+	case "Message.attachments":
+		if e.complexity.Message.Attachments == nil {
+			break
+		}
+
+		return e.complexity.Message.Attachments(childComplexity), true
+
 	case "Message.content":
 		if e.complexity.Message.Content == nil {
 			break
@@ -406,6 +454,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Message.ID(childComplexity), true
 
+	case "Message.links":
+		if e.complexity.Message.Links == nil {
+			break
+		}
+
+		return e.complexity.Message.Links(childComplexity), true
+
+	case "Message.replyTo":
+		if e.complexity.Message.ReplyTo == nil {
+			break
+		}
+
+		return e.complexity.Message.ReplyTo(childComplexity), true
+
 	case "Message.room":
 		if e.complexity.Message.Room == nil {
 			break
@@ -426,6 +488,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Message.User(childComplexity), true
+
+	case "MessageAttachment.attachedAt":
+		if e.complexity.MessageAttachment.AttachedAt == nil {
+			break
+		}
+
+		return e.complexity.MessageAttachment.AttachedAt(childComplexity), true
+
+	case "MessageAttachment.file":
+		if e.complexity.MessageAttachment.File == nil {
+			break
+		}
+
+		return e.complexity.MessageAttachment.File(childComplexity), true
+
+	case "MessageAttachment.id":
+		if e.complexity.MessageAttachment.ID == nil {
+			break
+		}
+
+		return e.complexity.MessageAttachment.ID(childComplexity), true
+
+	case "MessageAttachment.message":
+		if e.complexity.MessageAttachment.Message == nil {
+			break
+		}
+
+		return e.complexity.MessageAttachment.Message(childComplexity), true
+
+	case "MessageAttachment.order":
+		if e.complexity.MessageAttachment.Order == nil {
+			break
+		}
+
+		return e.complexity.MessageAttachment.Order(childComplexity), true
+
+	case "MessageAttachment.type":
+		if e.complexity.MessageAttachment.Type == nil {
+			break
+		}
+
+		return e.complexity.MessageAttachment.Type(childComplexity), true
 
 	case "MessageConnection.edges":
 		if e.complexity.MessageConnection.Edges == nil {
@@ -462,6 +566,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MessageEdge.Node(childComplexity), true
 
+	case "MessageLink.createdAt":
+		if e.complexity.MessageLink.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.MessageLink.CreatedAt(childComplexity), true
+
+	case "MessageLink.id":
+		if e.complexity.MessageLink.ID == nil {
+			break
+		}
+
+		return e.complexity.MessageLink.ID(childComplexity), true
+
+	case "MessageLink.message":
+		if e.complexity.MessageLink.Message == nil {
+			break
+		}
+
+		return e.complexity.MessageLink.Message(childComplexity), true
+
+	case "MessageLink.url":
+		if e.complexity.MessageLink.URL == nil {
+			break
+		}
+
+		return e.complexity.MessageLink.URL(childComplexity), true
+
+	case "MessageLink.updatedAt":
+		if e.complexity.MessageLink.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.MessageLink.UpdatedAt(childComplexity), true
+
+	case "MessageVoice.attachedAt":
+		if e.complexity.MessageVoice.AttachedAt == nil {
+			break
+		}
+
+		return e.complexity.MessageVoice.AttachedAt(childComplexity), true
+
+	case "MessageVoice.file":
+		if e.complexity.MessageVoice.File == nil {
+			break
+		}
+
+		return e.complexity.MessageVoice.File(childComplexity), true
+
+	case "MessageVoice.id":
+		if e.complexity.MessageVoice.ID == nil {
+			break
+		}
+
+		return e.complexity.MessageVoice.ID(childComplexity), true
+
+	case "MessageVoice.length":
+		if e.complexity.MessageVoice.Length == nil {
+			break
+		}
+
+		return e.complexity.MessageVoice.Length(childComplexity), true
+
 	case "Mutation.createRoom":
 		if e.complexity.Mutation.CreateRoom == nil {
 			break
@@ -484,7 +651,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteMessage(childComplexity, args["roomId"].(pulid.ID)), true
+		return e.complexity.Mutation.DeleteMessage(childComplexity, args["messageID"].(pulid.ID)), true
 
 	case "Mutation.deleteRoom":
 		if e.complexity.Mutation.DeleteRoom == nil {
@@ -496,7 +663,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteRoom(childComplexity, args["roomId"].(pulid.ID)), true
+		return e.complexity.Mutation.DeleteRoom(childComplexity, args["roomID"].(pulid.ID)), true
 
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
@@ -544,7 +711,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateMessage(childComplexity, args["input"].(model.UpdateMessageInput)), true
+		return e.complexity.Mutation.UpdateMessage(childComplexity, args["messageID"].(pulid.ID), args["input"].(model.UpdateMessageInput)), true
 
 	case "Mutation.updateRoom":
 		if e.complexity.Mutation.UpdateRoom == nil {
@@ -556,7 +723,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateRoom(childComplexity, args["input"].(model.UpdateRoomInput)), true
+		return e.complexity.Mutation.UpdateRoom(childComplexity, args["roomID"].(pulid.ID), args["input"].(model.UpdateRoomInput)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -644,7 +811,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.RoomMembers(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["where"].(*ent.RoomMemberWhereInput)), true
+		return e.complexity.Query.RoomMembers(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.RoomMemberOrder), args["where"].(*ent.RoomMemberWhereInput)), true
 
 	case "Query.rooms":
 		if e.complexity.Query.Rooms == nil {
@@ -657,6 +824,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Rooms(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.RoomOrder), args["where"].(*ent.RoomWhereInput)), true
+
+	case "Query.self":
+		if e.complexity.Query.Self == nil {
+			break
+		}
+
+		return e.complexity.Query.Self(childComplexity), true
 
 	case "Query.users":
 		if e.complexity.Query.Users == nil {
@@ -713,7 +887,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Room.RoomMembers(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["where"].(*ent.RoomMemberWhereInput)), true
+		return e.complexity.Room.RoomMembers(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.RoomMemberOrder), args["where"].(*ent.RoomMemberWhereInput)), true
 
 	case "Room.type":
 		if e.complexity.Room.Type == nil {
@@ -870,7 +1044,38 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Subscription.MessageAdded(childComplexity, args["roomId"].(pulid.ID)), true
+		return e.complexity.Subscription.MessageAdded(childComplexity, args["roomID"].(pulid.ID)), true
+
+	case "Subscription.messageDeleted":
+		if e.complexity.Subscription.MessageDeleted == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_messageDeleted_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.MessageDeleted(childComplexity, args["roomID"].(pulid.ID)), true
+
+	case "Subscription.messageUpdated":
+		if e.complexity.Subscription.MessageUpdated == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_messageUpdated_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.MessageUpdated(childComplexity, args["roomID"].(pulid.ID)), true
+
+	case "Subscription.roomChanged":
+		if e.complexity.Subscription.RoomChanged == nil {
+			break
+		}
+
+		return e.complexity.Subscription.RoomChanged(childComplexity), true
 
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
@@ -941,7 +1146,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.User.Memberships(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["where"].(*ent.RoomMemberWhereInput)), true
+		return e.complexity.User.Memberships(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.RoomMemberOrder), args["where"].(*ent.RoomMemberWhereInput)), true
 
 	case "User.messages":
 		if e.complexity.User.Messages == nil {
@@ -1028,8 +1233,15 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputFileOrder,
 		ec.unmarshalInputFileWhereInput,
 		ec.unmarshalInputFriendshipWhereInput,
+		ec.unmarshalInputMessageAttachmentOrder,
+		ec.unmarshalInputMessageAttachmentWhereInput,
+		ec.unmarshalInputMessageLinkOrder,
+		ec.unmarshalInputMessageLinkWhereInput,
 		ec.unmarshalInputMessageOrder,
+		ec.unmarshalInputMessageVoiceOrder,
+		ec.unmarshalInputMessageVoiceWhereInput,
 		ec.unmarshalInputMessageWhereInput,
+		ec.unmarshalInputRoomMemberOrder,
 		ec.unmarshalInputRoomMemberWhereInput,
 		ec.unmarshalInputRoomOrder,
 		ec.unmarshalInputRoomWhereInput,
@@ -1169,12 +1381,13 @@ scalar Cursor
 type File implements Node {
   id: ID!
   name: String!
-  fileName: String!
   mimeType: String!
   disk: String!
   size: Uint64!
   createdAt: Time!
   updatedAt: Time!
+  messageAttachment: MessageAttachment
+  messageVoice: MessageVoice
 }
 """
 Ordering options for File connections
@@ -1193,6 +1406,9 @@ input FileOrder {
 Properties by which File connections can be ordered.
 """
 enum FileOrderField {
+  NAME
+  MIME_TYPE
+  DISK
   SIZE
   CREATED_AT
   UPDATED_AT
@@ -1232,22 +1448,6 @@ input FileWhereInput {
   nameHasSuffix: String
   nameEqualFold: String
   nameContainsFold: String
-  """
-  file_name field predicates
-  """
-  fileName: String
-  fileNameNEQ: String
-  fileNameIn: [String!]
-  fileNameNotIn: [String!]
-  fileNameGT: String
-  fileNameGTE: String
-  fileNameLT: String
-  fileNameLTE: String
-  fileNameContains: String
-  fileNameHasPrefix: String
-  fileNameHasSuffix: String
-  fileNameEqualFold: String
-  fileNameContainsFold: String
   """
   mime_type field predicates
   """
@@ -1313,6 +1513,16 @@ input FileWhereInput {
   updatedAtGTE: Time
   updatedAtLT: Time
   updatedAtLTE: Time
+  """
+  message_attachment edge predicates
+  """
+  hasMessageAttachment: Boolean
+  hasMessageAttachmentWith: [MessageAttachmentWhereInput!]
+  """
+  message_voice edge predicates
+  """
+  hasMessageVoice: Boolean
+  hasMessageVoiceWith: [MessageVoiceWhereInput!]
 }
 type Friendship implements Node {
   id: ID!
@@ -1392,6 +1602,105 @@ type Message implements Node {
   updatedAt: Time!
   user: User
   room: Room
+  replyTo: Message
+  attachments: [MessageAttachment!]
+  links: [MessageLink!]
+}
+type MessageAttachment implements Node {
+  id: ID!
+  type: MessageAttachmentType!
+  order: Uint!
+  attachedAt: Time!
+  message: Message!
+  file: File!
+}
+"""
+Ordering options for MessageAttachment connections
+"""
+input MessageAttachmentOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection! = ASC
+  """
+  The field by which to order MessageAttachments.
+  """
+  field: MessageAttachmentOrderField!
+}
+"""
+Properties by which MessageAttachment connections can be ordered.
+"""
+enum MessageAttachmentOrderField {
+  TYPE
+  ORDER
+  ATTACHED_AT
+}
+"""
+MessageAttachmentType is enum for the field type
+"""
+enum MessageAttachmentType @goModel(model: "journeyhub/ent/messageattachment.Type") {
+  Image
+  Video
+  Document
+}
+"""
+MessageAttachmentWhereInput is used for filtering MessageAttachment objects.
+Input was generated by ent.
+"""
+input MessageAttachmentWhereInput {
+  not: MessageAttachmentWhereInput
+  and: [MessageAttachmentWhereInput!]
+  or: [MessageAttachmentWhereInput!]
+  """
+  id field predicates
+  """
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """
+  type field predicates
+  """
+  type: MessageAttachmentType
+  typeNEQ: MessageAttachmentType
+  typeIn: [MessageAttachmentType!]
+  typeNotIn: [MessageAttachmentType!]
+  """
+  order field predicates
+  """
+  order: Uint
+  orderNEQ: Uint
+  orderIn: [Uint!]
+  orderNotIn: [Uint!]
+  orderGT: Uint
+  orderGTE: Uint
+  orderLT: Uint
+  orderLTE: Uint
+  """
+  attached_at field predicates
+  """
+  attachedAt: Time
+  attachedAtNEQ: Time
+  attachedAtIn: [Time!]
+  attachedAtNotIn: [Time!]
+  attachedAtGT: Time
+  attachedAtGTE: Time
+  attachedAtLT: Time
+  attachedAtLTE: Time
+  """
+  message edge predicates
+  """
+  hasMessage: Boolean
+  hasMessageWith: [MessageWhereInput!]
+  """
+  file edge predicates
+  """
+  hasFile: Boolean
+  hasFileWith: [FileWhereInput!]
 }
 """
 A connection to a list of items.
@@ -1423,6 +1732,97 @@ type MessageEdge {
   """
   cursor: Cursor!
 }
+type MessageLink implements Node {
+  id: ID!
+  url: String!
+  createdAt: Time!
+  updatedAt: Time!
+  message: Message!
+}
+"""
+Ordering options for MessageLink connections
+"""
+input MessageLinkOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection! = ASC
+  """
+  The field by which to order MessageLinks.
+  """
+  field: MessageLinkOrderField!
+}
+"""
+Properties by which MessageLink connections can be ordered.
+"""
+enum MessageLinkOrderField {
+  URL
+  CREATED_AT
+  UPDATED_AT
+}
+"""
+MessageLinkWhereInput is used for filtering MessageLink objects.
+Input was generated by ent.
+"""
+input MessageLinkWhereInput {
+  not: MessageLinkWhereInput
+  and: [MessageLinkWhereInput!]
+  or: [MessageLinkWhereInput!]
+  """
+  id field predicates
+  """
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """
+  url field predicates
+  """
+  url: String
+  urlNEQ: String
+  urlIn: [String!]
+  urlNotIn: [String!]
+  urlGT: String
+  urlGTE: String
+  urlLT: String
+  urlLTE: String
+  urlContains: String
+  urlHasPrefix: String
+  urlHasSuffix: String
+  urlEqualFold: String
+  urlContainsFold: String
+  """
+  created_at field predicates
+  """
+  createdAt: Time
+  createdAtNEQ: Time
+  createdAtIn: [Time!]
+  createdAtNotIn: [Time!]
+  createdAtGT: Time
+  createdAtGTE: Time
+  createdAtLT: Time
+  createdAtLTE: Time
+  """
+  updated_at field predicates
+  """
+  updatedAt: Time
+  updatedAtNEQ: Time
+  updatedAtIn: [Time!]
+  updatedAtNotIn: [Time!]
+  updatedAtGT: Time
+  updatedAtGTE: Time
+  updatedAtLT: Time
+  updatedAtLTE: Time
+  """
+  message edge predicates
+  """
+  hasMessage: Boolean
+  hasMessageWith: [MessageWhereInput!]
+}
 """
 Ordering options for Message connections
 """
@@ -1442,6 +1842,79 @@ Properties by which Message connections can be ordered.
 enum MessageOrderField {
   CREATED_AT
   UPDATED_AT
+}
+type MessageVoice implements Node {
+  id: ID!
+  length: Int!
+  attachedAt: Time!
+  file: File!
+}
+"""
+Ordering options for MessageVoice connections
+"""
+input MessageVoiceOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection! = ASC
+  """
+  The field by which to order MessageVoices.
+  """
+  field: MessageVoiceOrderField!
+}
+"""
+Properties by which MessageVoice connections can be ordered.
+"""
+enum MessageVoiceOrderField {
+  LENGTH
+  ATTACHED_AT
+}
+"""
+MessageVoiceWhereInput is used for filtering MessageVoice objects.
+Input was generated by ent.
+"""
+input MessageVoiceWhereInput {
+  not: MessageVoiceWhereInput
+  and: [MessageVoiceWhereInput!]
+  or: [MessageVoiceWhereInput!]
+  """
+  id field predicates
+  """
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """
+  length field predicates
+  """
+  length: Int
+  lengthNEQ: Int
+  lengthIn: [Int!]
+  lengthNotIn: [Int!]
+  lengthGT: Int
+  lengthGTE: Int
+  lengthLT: Int
+  lengthLTE: Int
+  """
+  attached_at field predicates
+  """
+  attachedAt: Time
+  attachedAtNEQ: Time
+  attachedAtIn: [Time!]
+  attachedAtNotIn: [Time!]
+  attachedAtGT: Time
+  attachedAtGTE: Time
+  attachedAtLT: Time
+  attachedAtLTE: Time
+  """
+  file edge predicates
+  """
+  hasFile: Boolean
+  hasFileWith: [FileWhereInput!]
 }
 """
 MessageWhereInput is used for filtering Message objects.
@@ -1510,6 +1983,21 @@ input MessageWhereInput {
   """
   hasRoom: Boolean
   hasRoomWith: [RoomWhereInput!]
+  """
+  reply_to edge predicates
+  """
+  hasReplyTo: Boolean
+  hasReplyToWith: [MessageWhereInput!]
+  """
+  attachments edge predicates
+  """
+  hasAttachments: Boolean
+  hasAttachmentsWith: [MessageAttachmentWhereInput!]
+  """
+  links edge predicates
+  """
+  hasLinks: Boolean
+  hasLinksWith: [MessageLinkWhereInput!]
 }
 """
 An object with an ID.
@@ -1685,6 +2173,11 @@ type Query {
     last: Int
 
     """
+    Ordering options for RoomMembers returned from the connection.
+    """
+    orderBy: [RoomMemberOrder!]
+
+    """
     Filtering options for RoomMembers returned from the connection.
     """
     where: RoomMemberWhereInput
@@ -1812,6 +2305,11 @@ type Room implements Node {
     last: Int
 
     """
+    Ordering options for RoomMembers returned from the connection.
+    """
+    orderBy: [RoomMemberOrder!]
+
+    """
     Filtering options for RoomMembers returned from the connection.
     """
     where: RoomMemberWhereInput
@@ -1886,6 +2384,25 @@ type RoomMemberEdge {
   cursor: Cursor!
 }
 """
+Ordering options for RoomMember connections
+"""
+input RoomMemberOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection! = ASC
+  """
+  The field by which to order RoomMembers.
+  """
+  field: RoomMemberOrderField!
+}
+"""
+Properties by which RoomMember connections can be ordered.
+"""
+enum RoomMemberOrderField {
+  JOINED_AT
+}
+"""
 RoomMemberWhereInput is used for filtering RoomMember objects.
 Input was generated by ent.
 """
@@ -1935,15 +2452,16 @@ Properties by which Room connections can be ordered.
 enum RoomOrderField {
   NAME
   VERSION
+  TYPE
   CREATED_AT
   UPDATED_AT
 }
 """
 RoomType is enum for the field type
 """
-enum RoomType @goModel(model: "journeyhub/ent/schema/property/roomtype.Type") {
-  personal
-  group
+enum RoomType @goModel(model: "journeyhub/ent/room.Type") {
+  Personal
+  Group
 }
 """
 RoomWhereInput is used for filtering Room objects.
@@ -2041,12 +2559,16 @@ The builtin Time type
 """
 scalar Time
 """
+The builtin Uint type
+"""
+scalar Uint
+"""
 The builtin Uint64 type
 """
 scalar Uint64
 type User implements Node {
   id: ID!
-  firstName: String! @deprecated(reason: "Hello")
+  firstName: String!
   lastName: String!
   nickname: String!
   email: String!
@@ -2191,6 +2713,11 @@ type User implements Node {
     Returns the last _n_ elements from the list.
     """
     last: Int
+
+    """
+    Ordering options for RoomMembers returned from the connection.
+    """
+    orderBy: [RoomMemberOrder!]
 
     """
     Filtering options for RoomMembers returned from the connection.
@@ -2393,7 +2920,8 @@ scalar Upload
 CreateMessageInput is used for create Message object.
 """
 input SendMessageInput {
-  targetUserId: ID
+  targetUserID: ID!
+  replyTo: ID
   content: String!
 }
 
@@ -2406,8 +2934,14 @@ input UpdateMessageInput {
 
 extend type Mutation {
   sendMessage(input: SendMessageInput!): Message
-  updateMessage(input: UpdateMessageInput!): Message
-  deleteMessage(roomId: ID!): Room
+  updateMessage(messageID: ID!, input: UpdateMessageInput!): Message
+  deleteMessage(messageID: ID!): Message
+}
+
+extend type Subscription {
+  messageAdded(roomID: ID!): Message!
+  messageUpdated(roomID: ID!): Message!
+  messageDeleted(roomID: ID!): Message!
 }
 `, BuiltIn: false},
 	{Name: "../schema/room.graphql", Input: `"""
@@ -2430,12 +2964,12 @@ input UpdateRoomInput {
 
 extend type Mutation {
   createRoom(input: CreateRoomInput!): Room
-  updateRoom(input: UpdateRoomInput!): Room
-  deleteRoom(roomId: ID!): Room
+  updateRoom(roomID: ID!, input: UpdateRoomInput!): Room
+  deleteRoom(roomID: ID!): Room
 }
 
 extend type Subscription {
-  messageAdded(roomId: ID!): Message!
+  roomChanged: Message!
 }
 `, BuiltIn: false},
 	{Name: "../schema/user.graphql", Input: `"""
@@ -2466,6 +3000,10 @@ type LoginUser {
 extend type Mutation {
   register(input: UserRegisterInput!): User
   login(input: UserLoginInput!): LoginUser
+}
+
+extend type Query {
+  self: User
 }
 `, BuiltIn: false},
 }
