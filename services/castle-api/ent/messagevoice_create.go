@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"journeyhub/ent/file"
+	"journeyhub/ent/message"
 	"journeyhub/ent/messagevoice"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"time"
 
@@ -57,6 +59,28 @@ func (mvc *MessageVoiceCreate) SetNillableID(pu *pulid.ID) *MessageVoiceCreate {
 		mvc.SetID(*pu)
 	}
 	return mvc
+}
+
+// SetRoomID sets the "room" edge to the Room entity by ID.
+func (mvc *MessageVoiceCreate) SetRoomID(id pulid.ID) *MessageVoiceCreate {
+	mvc.mutation.SetRoomID(id)
+	return mvc
+}
+
+// SetRoom sets the "room" edge to the Room entity.
+func (mvc *MessageVoiceCreate) SetRoom(r *Room) *MessageVoiceCreate {
+	return mvc.SetRoomID(r.ID)
+}
+
+// SetMessageID sets the "message" edge to the Message entity by ID.
+func (mvc *MessageVoiceCreate) SetMessageID(id pulid.ID) *MessageVoiceCreate {
+	mvc.mutation.SetMessageID(id)
+	return mvc
+}
+
+// SetMessage sets the "message" edge to the Message entity.
+func (mvc *MessageVoiceCreate) SetMessage(m *Message) *MessageVoiceCreate {
+	return mvc.SetMessageID(m.ID)
 }
 
 // SetFileID sets the "file" edge to the File entity by ID.
@@ -123,6 +147,12 @@ func (mvc *MessageVoiceCreate) check() error {
 	if _, ok := mvc.mutation.AttachedAt(); !ok {
 		return &ValidationError{Name: "attached_at", err: errors.New(`ent: missing required field "MessageVoice.attached_at"`)}
 	}
+	if len(mvc.mutation.RoomIDs()) == 0 {
+		return &ValidationError{Name: "room", err: errors.New(`ent: missing required edge "MessageVoice.room"`)}
+	}
+	if len(mvc.mutation.MessageIDs()) == 0 {
+		return &ValidationError{Name: "message", err: errors.New(`ent: missing required edge "MessageVoice.message"`)}
+	}
 	if len(mvc.mutation.FileIDs()) == 0 {
 		return &ValidationError{Name: "file", err: errors.New(`ent: missing required edge "MessageVoice.file"`)}
 	}
@@ -170,10 +200,44 @@ func (mvc *MessageVoiceCreate) createSpec() (*MessageVoice, *sqlgraph.CreateSpec
 		_spec.SetField(messagevoice.FieldAttachedAt, field.TypeTime, value)
 		_node.AttachedAt = value
 	}
+	if nodes := mvc.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messagevoice.RoomTable,
+			Columns: []string{messagevoice.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.room_message_voices = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := mvc.mutation.MessageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   messagevoice.MessageTable,
+			Columns: []string{messagevoice.MessageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.message_voice = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := mvc.mutation.FileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   messagevoice.FileTable,
 			Columns: []string{messagevoice.FileColumn},
 			Bidi:    false,
@@ -184,6 +248,7 @@ func (mvc *MessageVoiceCreate) createSpec() (*MessageVoice, *sqlgraph.CreateSpec
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.file_message_voice = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

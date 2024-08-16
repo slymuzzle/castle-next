@@ -274,16 +274,18 @@ func (ec *executionContext) fieldContext_Mutation_sendMessage(ctx context.Contex
 				return ec.fieldContext_Message_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Message_updatedAt(ctx, field)
-			case "user":
-				return ec.fieldContext_Message_user(ctx, field)
-			case "room":
-				return ec.fieldContext_Message_room(ctx, field)
+			case "voice":
+				return ec.fieldContext_Message_voice(ctx, field)
 			case "replyTo":
 				return ec.fieldContext_Message_replyTo(ctx, field)
 			case "attachments":
 				return ec.fieldContext_Message_attachments(ctx, field)
 			case "links":
 				return ec.fieldContext_Message_links(ctx, field)
+			case "user":
+				return ec.fieldContext_Message_user(ctx, field)
+			case "room":
+				return ec.fieldContext_Message_room(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
 		},
@@ -346,16 +348,18 @@ func (ec *executionContext) fieldContext_Mutation_updateMessage(ctx context.Cont
 				return ec.fieldContext_Message_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Message_updatedAt(ctx, field)
-			case "user":
-				return ec.fieldContext_Message_user(ctx, field)
-			case "room":
-				return ec.fieldContext_Message_room(ctx, field)
+			case "voice":
+				return ec.fieldContext_Message_voice(ctx, field)
 			case "replyTo":
 				return ec.fieldContext_Message_replyTo(ctx, field)
 			case "attachments":
 				return ec.fieldContext_Message_attachments(ctx, field)
 			case "links":
 				return ec.fieldContext_Message_links(ctx, field)
+			case "user":
+				return ec.fieldContext_Message_user(ctx, field)
+			case "room":
+				return ec.fieldContext_Message_room(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
 		},
@@ -418,16 +422,18 @@ func (ec *executionContext) fieldContext_Mutation_deleteMessage(ctx context.Cont
 				return ec.fieldContext_Message_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Message_updatedAt(ctx, field)
-			case "user":
-				return ec.fieldContext_Message_user(ctx, field)
-			case "room":
-				return ec.fieldContext_Message_room(ctx, field)
+			case "voice":
+				return ec.fieldContext_Message_voice(ctx, field)
 			case "replyTo":
 				return ec.fieldContext_Message_replyTo(ctx, field)
 			case "attachments":
 				return ec.fieldContext_Message_attachments(ctx, field)
 			case "links":
 				return ec.fieldContext_Message_links(ctx, field)
+			case "user":
+				return ec.fieldContext_Message_user(ctx, field)
+			case "room":
+				return ec.fieldContext_Message_room(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
 		},
@@ -498,6 +504,12 @@ func (ec *executionContext) fieldContext_Mutation_createRoom(ctx context.Context
 				return ec.fieldContext_Room_users(ctx, field)
 			case "messages":
 				return ec.fieldContext_Room_messages(ctx, field)
+			case "messageVoices":
+				return ec.fieldContext_Room_messageVoices(ctx, field)
+			case "messageAttachments":
+				return ec.fieldContext_Room_messageAttachments(ctx, field)
+			case "messageLinks":
+				return ec.fieldContext_Room_messageLinks(ctx, field)
 			case "roomMembers":
 				return ec.fieldContext_Room_roomMembers(ctx, field)
 			}
@@ -570,6 +582,12 @@ func (ec *executionContext) fieldContext_Mutation_updateRoom(ctx context.Context
 				return ec.fieldContext_Room_users(ctx, field)
 			case "messages":
 				return ec.fieldContext_Room_messages(ctx, field)
+			case "messageVoices":
+				return ec.fieldContext_Room_messageVoices(ctx, field)
+			case "messageAttachments":
+				return ec.fieldContext_Room_messageAttachments(ctx, field)
+			case "messageLinks":
+				return ec.fieldContext_Room_messageLinks(ctx, field)
 			case "roomMembers":
 				return ec.fieldContext_Room_roomMembers(ctx, field)
 			}
@@ -642,6 +660,12 @@ func (ec *executionContext) fieldContext_Mutation_deleteRoom(ctx context.Context
 				return ec.fieldContext_Room_users(ctx, field)
 			case "messages":
 				return ec.fieldContext_Room_messages(ctx, field)
+			case "messageVoices":
+				return ec.fieldContext_Room_messageVoices(ctx, field)
+			case "messageAttachments":
+				return ec.fieldContext_Room_messageAttachments(ctx, field)
+			case "messageLinks":
+				return ec.fieldContext_Room_messageLinks(ctx, field)
 			case "roomMembers":
 				return ec.fieldContext_Room_roomMembers(ctx, field)
 			}
@@ -708,18 +732,20 @@ func (ec *executionContext) fieldContext_Mutation_register(ctx context.Context, 
 				return ec.fieldContext_User_nickname(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
+			case "contactPin":
+				return ec.fieldContext_User_contactPin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "friends":
-				return ec.fieldContext_User_friends(ctx, field)
+			case "contacts":
+				return ec.fieldContext_User_contacts(ctx, field)
 			case "rooms":
 				return ec.fieldContext_User_rooms(ctx, field)
 			case "messages":
 				return ec.fieldContext_User_messages(ctx, field)
-			case "friendships":
-				return ec.fieldContext_User_friendships(ctx, field)
+			case "userContacts":
+				return ec.fieldContext_User_userContacts(ctx, field)
 			case "memberships":
 				return ec.fieldContext_User_memberships(ctx, field)
 			}
@@ -859,16 +885,18 @@ func (ec *executionContext) fieldContext_Subscription_messageAdded(ctx context.C
 				return ec.fieldContext_Message_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Message_updatedAt(ctx, field)
-			case "user":
-				return ec.fieldContext_Message_user(ctx, field)
-			case "room":
-				return ec.fieldContext_Message_room(ctx, field)
+			case "voice":
+				return ec.fieldContext_Message_voice(ctx, field)
 			case "replyTo":
 				return ec.fieldContext_Message_replyTo(ctx, field)
 			case "attachments":
 				return ec.fieldContext_Message_attachments(ctx, field)
 			case "links":
 				return ec.fieldContext_Message_links(ctx, field)
+			case "user":
+				return ec.fieldContext_Message_user(ctx, field)
+			case "room":
+				return ec.fieldContext_Message_room(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
 		},
@@ -948,16 +976,18 @@ func (ec *executionContext) fieldContext_Subscription_messageUpdated(ctx context
 				return ec.fieldContext_Message_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Message_updatedAt(ctx, field)
-			case "user":
-				return ec.fieldContext_Message_user(ctx, field)
-			case "room":
-				return ec.fieldContext_Message_room(ctx, field)
+			case "voice":
+				return ec.fieldContext_Message_voice(ctx, field)
 			case "replyTo":
 				return ec.fieldContext_Message_replyTo(ctx, field)
 			case "attachments":
 				return ec.fieldContext_Message_attachments(ctx, field)
 			case "links":
 				return ec.fieldContext_Message_links(ctx, field)
+			case "user":
+				return ec.fieldContext_Message_user(ctx, field)
+			case "room":
+				return ec.fieldContext_Message_room(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
 		},
@@ -1037,16 +1067,18 @@ func (ec *executionContext) fieldContext_Subscription_messageDeleted(ctx context
 				return ec.fieldContext_Message_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Message_updatedAt(ctx, field)
-			case "user":
-				return ec.fieldContext_Message_user(ctx, field)
-			case "room":
-				return ec.fieldContext_Message_room(ctx, field)
+			case "voice":
+				return ec.fieldContext_Message_voice(ctx, field)
 			case "replyTo":
 				return ec.fieldContext_Message_replyTo(ctx, field)
 			case "attachments":
 				return ec.fieldContext_Message_attachments(ctx, field)
 			case "links":
 				return ec.fieldContext_Message_links(ctx, field)
+			case "user":
+				return ec.fieldContext_Message_user(ctx, field)
+			case "room":
+				return ec.fieldContext_Message_room(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
 		},
@@ -1126,16 +1158,18 @@ func (ec *executionContext) fieldContext_Subscription_roomChanged(_ context.Cont
 				return ec.fieldContext_Message_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Message_updatedAt(ctx, field)
-			case "user":
-				return ec.fieldContext_Message_user(ctx, field)
-			case "room":
-				return ec.fieldContext_Message_room(ctx, field)
+			case "voice":
+				return ec.fieldContext_Message_voice(ctx, field)
 			case "replyTo":
 				return ec.fieldContext_Message_replyTo(ctx, field)
 			case "attachments":
 				return ec.fieldContext_Message_attachments(ctx, field)
 			case "links":
 				return ec.fieldContext_Message_links(ctx, field)
+			case "user":
+				return ec.fieldContext_Message_user(ctx, field)
+			case "room":
+				return ec.fieldContext_Message_room(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
 		},

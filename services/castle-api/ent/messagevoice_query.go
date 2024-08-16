@@ -4,11 +4,12 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"journeyhub/ent/file"
+	"journeyhub/ent/message"
 	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/predicate"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"math"
 
@@ -21,13 +22,16 @@ import (
 // MessageVoiceQuery is the builder for querying MessageVoice entities.
 type MessageVoiceQuery struct {
 	config
-	ctx        *QueryContext
-	order      []messagevoice.OrderOption
-	inters     []Interceptor
-	predicates []predicate.MessageVoice
-	withFile   *FileQuery
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*MessageVoice) error
+	ctx         *QueryContext
+	order       []messagevoice.OrderOption
+	inters      []Interceptor
+	predicates  []predicate.MessageVoice
+	withRoom    *RoomQuery
+	withMessage *MessageQuery
+	withFile    *FileQuery
+	withFKs     bool
+	modifiers   []func(*sql.Selector)
+	loadTotal   []func(context.Context, []*MessageVoice) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -64,6 +68,50 @@ func (mvq *MessageVoiceQuery) Order(o ...messagevoice.OrderOption) *MessageVoice
 	return mvq
 }
 
+// QueryRoom chains the current query on the "room" edge.
+func (mvq *MessageVoiceQuery) QueryRoom() *RoomQuery {
+	query := (&RoomClient{config: mvq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mvq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mvq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(messagevoice.Table, messagevoice.FieldID, selector),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, messagevoice.RoomTable, messagevoice.RoomColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mvq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMessage chains the current query on the "message" edge.
+func (mvq *MessageVoiceQuery) QueryMessage() *MessageQuery {
+	query := (&MessageClient{config: mvq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mvq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mvq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(messagevoice.Table, messagevoice.FieldID, selector),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, messagevoice.MessageTable, messagevoice.MessageColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mvq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryFile chains the current query on the "file" edge.
 func (mvq *MessageVoiceQuery) QueryFile() *FileQuery {
 	query := (&FileClient{config: mvq.config}).Query()
@@ -78,7 +126,7 @@ func (mvq *MessageVoiceQuery) QueryFile() *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(messagevoice.Table, messagevoice.FieldID, selector),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, messagevoice.FileTable, messagevoice.FileColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, messagevoice.FileTable, messagevoice.FileColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(mvq.driver.Dialect(), step)
 		return fromU, nil
@@ -273,16 +321,40 @@ func (mvq *MessageVoiceQuery) Clone() *MessageVoiceQuery {
 		return nil
 	}
 	return &MessageVoiceQuery{
-		config:     mvq.config,
-		ctx:        mvq.ctx.Clone(),
-		order:      append([]messagevoice.OrderOption{}, mvq.order...),
-		inters:     append([]Interceptor{}, mvq.inters...),
-		predicates: append([]predicate.MessageVoice{}, mvq.predicates...),
-		withFile:   mvq.withFile.Clone(),
+		config:      mvq.config,
+		ctx:         mvq.ctx.Clone(),
+		order:       append([]messagevoice.OrderOption{}, mvq.order...),
+		inters:      append([]Interceptor{}, mvq.inters...),
+		predicates:  append([]predicate.MessageVoice{}, mvq.predicates...),
+		withRoom:    mvq.withRoom.Clone(),
+		withMessage: mvq.withMessage.Clone(),
+		withFile:    mvq.withFile.Clone(),
 		// clone intermediate query.
 		sql:  mvq.sql.Clone(),
 		path: mvq.path,
 	}
+}
+
+// WithRoom tells the query-builder to eager-load the nodes that are connected to
+// the "room" edge. The optional arguments are used to configure the query builder of the edge.
+func (mvq *MessageVoiceQuery) WithRoom(opts ...func(*RoomQuery)) *MessageVoiceQuery {
+	query := (&RoomClient{config: mvq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	mvq.withRoom = query
+	return mvq
+}
+
+// WithMessage tells the query-builder to eager-load the nodes that are connected to
+// the "message" edge. The optional arguments are used to configure the query builder of the edge.
+func (mvq *MessageVoiceQuery) WithMessage(opts ...func(*MessageQuery)) *MessageVoiceQuery {
+	query := (&MessageClient{config: mvq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	mvq.withMessage = query
+	return mvq
 }
 
 // WithFile tells the query-builder to eager-load the nodes that are connected to
@@ -373,11 +445,20 @@ func (mvq *MessageVoiceQuery) prepareQuery(ctx context.Context) error {
 func (mvq *MessageVoiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*MessageVoice, error) {
 	var (
 		nodes       = []*MessageVoice{}
+		withFKs     = mvq.withFKs
 		_spec       = mvq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [3]bool{
+			mvq.withRoom != nil,
+			mvq.withMessage != nil,
 			mvq.withFile != nil,
 		}
 	)
+	if mvq.withRoom != nil || mvq.withMessage != nil || mvq.withFile != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, messagevoice.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*MessageVoice).scanValues(nil, columns)
 	}
@@ -399,6 +480,18 @@ func (mvq *MessageVoiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := mvq.withRoom; query != nil {
+		if err := mvq.loadRoom(ctx, query, nodes, nil,
+			func(n *MessageVoice, e *Room) { n.Edges.Room = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := mvq.withMessage; query != nil {
+		if err := mvq.loadMessage(ctx, query, nodes, nil,
+			func(n *MessageVoice, e *Message) { n.Edges.Message = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := mvq.withFile; query != nil {
 		if err := mvq.loadFile(ctx, query, nodes, nil,
 			func(n *MessageVoice, e *File) { n.Edges.File = e }); err != nil {
@@ -413,31 +506,99 @@ func (mvq *MessageVoiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	return nodes, nil
 }
 
-func (mvq *MessageVoiceQuery) loadFile(ctx context.Context, query *FileQuery, nodes []*MessageVoice, init func(*MessageVoice), assign func(*MessageVoice, *File)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[pulid.ID]*MessageVoice)
+func (mvq *MessageVoiceQuery) loadRoom(ctx context.Context, query *RoomQuery, nodes []*MessageVoice, init func(*MessageVoice), assign func(*MessageVoice, *Room)) error {
+	ids := make([]pulid.ID, 0, len(nodes))
+	nodeids := make(map[pulid.ID][]*MessageVoice)
 	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
+		if nodes[i].room_message_voices == nil {
+			continue
+		}
+		fk := *nodes[i].room_message_voices
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.withFKs = true
-	query.Where(predicate.File(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(messagevoice.FileColumn), fks...))
-	}))
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(room.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.message_voice_file
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "message_voice_file" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "message_voice_file" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "room_message_voices" returned %v`, n.ID)
 		}
-		assign(node, n)
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (mvq *MessageVoiceQuery) loadMessage(ctx context.Context, query *MessageQuery, nodes []*MessageVoice, init func(*MessageVoice), assign func(*MessageVoice, *Message)) error {
+	ids := make([]pulid.ID, 0, len(nodes))
+	nodeids := make(map[pulid.ID][]*MessageVoice)
+	for i := range nodes {
+		if nodes[i].message_voice == nil {
+			continue
+		}
+		fk := *nodes[i].message_voice
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(message.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "message_voice" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (mvq *MessageVoiceQuery) loadFile(ctx context.Context, query *FileQuery, nodes []*MessageVoice, init func(*MessageVoice), assign func(*MessageVoice, *File)) error {
+	ids := make([]pulid.ID, 0, len(nodes))
+	nodeids := make(map[pulid.ID][]*MessageVoice)
+	for i := range nodes {
+		if nodes[i].file_message_voice == nil {
+			continue
+		}
+		fk := *nodes[i].file_message_voice
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(file.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "file_message_voice" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

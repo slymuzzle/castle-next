@@ -43,15 +43,14 @@ type UpdateRoomInput struct {
 
 // UserLoginInput is used for user login.
 type UserLoginInput struct {
-	NicknameOrEmail string `json:"nicknameOrEmail"`
-	Password        string `json:"password"`
+	Nickname string `json:"nickname"`
+	Password string `json:"password"`
 }
 
 // UserRegisterInput is used for user register.
 type UserRegisterInput struct {
 	FirstName            string `json:"firstName" validate:"min=1,max=255"`
 	LastName             string `json:"lastName" validate:"min=1,max=255"`
-	Email                string `json:"email" validate:"min=1,max=255,email"`
 	Nickname             string `json:"nickname" validate:"min=8,max=255"`
 	Password             string `json:"password" validate:"min=8,max=64"`
 	PasswordConfirmation string `json:"passwordConfirmation" validate:"min=8,max=64"`

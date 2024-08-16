@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"journeyhub/ent/file"
-	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/messagelink"
@@ -15,6 +14,8 @@ import (
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
+	"journeyhub/ent/usercontact"
+	"journeyhub/ent/userpincode"
 
 	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/graphql"
@@ -30,11 +31,6 @@ var fileImplementors = []string{"File", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*File) IsNode() {}
-
-var friendshipImplementors = []string{"Friendship", "Node"}
-
-// IsNode implements the Node interface check for GQLGen.
-func (*Friendship) IsNode() {}
 
 var messageImplementors = []string{"Message", "Node"}
 
@@ -70,6 +66,16 @@ var userImplementors = []string{"User", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*User) IsNode() {}
+
+var usercontactImplementors = []string{"UserContact", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*UserContact) IsNode() {}
+
+var userpincodeImplementors = []string{"UserPinCode", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*UserPinCode) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -138,19 +144,6 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 			Where(file.ID(uid))
 		if fc := graphql.GetFieldContext(ctx); fc != nil {
 			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, fileImplementors...); err != nil {
-				return nil, err
-			}
-		}
-		return query.Only(ctx)
-	case friendship.Table:
-		var uid pulid.ID
-		if err := uid.UnmarshalGQL(id); err != nil {
-			return nil, err
-		}
-		query := c.Friendship.Query().
-			Where(friendship.ID(uid))
-		if fc := graphql.GetFieldContext(ctx); fc != nil {
-			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, friendshipImplementors...); err != nil {
 				return nil, err
 			}
 		}
@@ -246,6 +239,32 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 			}
 		}
 		return query.Only(ctx)
+	case usercontact.Table:
+		var uid pulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.UserContact.Query().
+			Where(usercontact.ID(uid))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, usercontactImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case userpincode.Table:
+		var uid pulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.UserPinCode.Query().
+			Where(userpincode.ID(uid))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, userpincodeImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
 	default:
 		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", table, errNodeInvalidID)
 	}
@@ -323,22 +342,6 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 		query := c.File.Query().
 			Where(file.IDIn(ids...))
 		query, err := query.CollectFields(ctx, fileImplementors...)
-		if err != nil {
-			return nil, err
-		}
-		nodes, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, node := range nodes {
-			for _, noder := range idmap[node.ID] {
-				*noder = node
-			}
-		}
-	case friendship.Table:
-		query := c.Friendship.Query().
-			Where(friendship.IDIn(ids...))
-		query, err := query.CollectFields(ctx, friendshipImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -451,6 +454,38 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 		query := c.User.Query().
 			Where(user.IDIn(ids...))
 		query, err := query.CollectFields(ctx, userImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case usercontact.Table:
+		query := c.UserContact.Query().
+			Where(usercontact.IDIn(ids...))
+		query, err := query.CollectFields(ctx, usercontactImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case userpincode.Table:
+		query := c.UserPinCode.Query().
+			Where(userpincode.IDIn(ids...))
+		query, err := query.CollectFields(ctx, userpincodeImplementors...)
 		if err != nil {
 			return nil, err
 		}

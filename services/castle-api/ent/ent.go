@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"journeyhub/ent/file"
-	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/messagelink"
@@ -15,6 +14,8 @@ import (
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/user"
+	"journeyhub/ent/usercontact"
+	"journeyhub/ent/userpincode"
 	"reflect"
 	"sync"
 
@@ -82,7 +83,6 @@ func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			file.Table:              file.ValidColumn,
-			friendship.Table:        friendship.ValidColumn,
 			message.Table:           message.ValidColumn,
 			messageattachment.Table: messageattachment.ValidColumn,
 			messagelink.Table:       messagelink.ValidColumn,
@@ -90,6 +90,8 @@ func checkColumn(table, column string) error {
 			room.Table:              room.ValidColumn,
 			roommember.Table:        roommember.ValidColumn,
 			user.Table:              user.ValidColumn,
+			usercontact.Table:       usercontact.ValidColumn,
+			userpincode.Table:       userpincode.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

@@ -24,12 +24,21 @@ const (
 	FieldOrder = "order"
 	// FieldAttachedAt holds the string denoting the attached_at field in the database.
 	FieldAttachedAt = "attached_at"
+	// EdgeRoom holds the string denoting the room edge name in mutations.
+	EdgeRoom = "room"
 	// EdgeMessage holds the string denoting the message edge name in mutations.
 	EdgeMessage = "message"
 	// EdgeFile holds the string denoting the file edge name in mutations.
 	EdgeFile = "file"
 	// Table holds the table name of the messageattachment in the database.
 	Table = "message_attachments"
+	// RoomTable is the table that holds the room relation/edge.
+	RoomTable = "message_attachments"
+	// RoomInverseTable is the table name for the Room entity.
+	// It exists in this package in order to avoid circular dependency with the "room" package.
+	RoomInverseTable = "rooms"
+	// RoomColumn is the table column denoting the room relation/edge.
+	RoomColumn = "room_message_attachments"
 	// MessageTable is the table that holds the message relation/edge.
 	MessageTable = "message_attachments"
 	// MessageInverseTable is the table name for the Message entity.
@@ -38,12 +47,12 @@ const (
 	// MessageColumn is the table column denoting the message relation/edge.
 	MessageColumn = "message_attachments"
 	// FileTable is the table that holds the file relation/edge.
-	FileTable = "files"
+	FileTable = "message_attachments"
 	// FileInverseTable is the table name for the File entity.
 	// It exists in this package in order to avoid circular dependency with the "file" package.
 	FileInverseTable = "files"
 	// FileColumn is the table column denoting the file relation/edge.
-	FileColumn = "message_attachment_file"
+	FileColumn = "file_message_attachment"
 )
 
 // Columns holds all SQL columns for messageattachment fields.
@@ -57,7 +66,9 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "message_attachments"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"file_message_attachment",
 	"message_attachments",
+	"room_message_attachments",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -129,6 +140,13 @@ func ByAttachedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAttachedAt, opts...).ToFunc()
 }
 
+// ByRoomField orders the results by room field.
+func ByRoomField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRoomStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByMessageField orders the results by message field.
 func ByMessageField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -142,6 +160,13 @@ func ByFileField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newFileStep(), sql.OrderByField(field, opts...))
 	}
 }
+func newRoomStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RoomInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
+	)
+}
 func newMessageStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -153,7 +178,7 @@ func newFileStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FileInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, false, FileTable, FileColumn),
+		sqlgraph.Edge(sqlgraph.O2O, true, FileTable, FileColumn),
 	)
 }
 

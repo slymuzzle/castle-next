@@ -7,9 +7,13 @@ package graph
 import (
 	"context"
 	"journeyhub/ent"
+	"journeyhub/ent/message"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/graph/generated"
 	"journeyhub/graph/model"
+
+	"entgo.io/contrib/entgql"
 )
 
 // SendMessage is the resolver for the sendMessage field.
@@ -40,6 +44,30 @@ func (r *mutationResolver) DeleteMessage(ctx context.Context, messageID pulid.ID
 	}
 
 	return r.chatService.DeleteMessage(ctx, messageID)
+}
+
+// MessagesByRoom is the resolver for the messagesByRoom field.
+func (r *queryResolver) MessagesByRoom(ctx context.Context, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) (*ent.MessageConnection, error) {
+	_, err := r.authService.Auth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.dbService.Client().Message.Query().
+		Where(
+			message.HasRoomWith(
+				room.ID(roomID),
+			),
+		).
+		Paginate(
+			ctx,
+			after,
+			first,
+			before,
+			last,
+			ent.WithMessageOrder(orderBy),
+			ent.WithMessageFilter(where.Filter),
+		)
 }
 
 // MessageAdded is the resolver for the messageAdded field.

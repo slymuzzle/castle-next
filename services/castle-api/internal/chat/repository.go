@@ -5,11 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"journeyhub/ent"
-	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
 	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
-	"journeyhub/internal/db"
+	"journeyhub/ent/usercontact"
 	"strings"
 	"unicode"
 )
@@ -43,19 +42,17 @@ type Repository interface {
 }
 
 type repository struct {
-	dbService db.Service
+	entClient *ent.Client
 }
 
-func NewRepository(dbService db.Service) Repository {
+func NewRepository(entClient *ent.Client) Repository {
 	return &repository{
-		dbService: dbService,
+		entClient: entClient,
 	}
 }
 
 func (r *repository) FindRoomByMessage(ctx context.Context, messageID pulid.ID) (*ent.Room, error) {
-	entClient := r.dbService.Client()
-
-	return entClient.Room.
+	return r.entClient.Room.
 		Query().
 		Where(
 			room.HasMessagesWith(
@@ -70,24 +67,22 @@ func (r *repository) FindOrCreatePersonalRoom(
 	currentUserID pulid.ID,
 	targetUserID pulid.ID,
 ) (*ent.Room, error) {
-	entClient := r.dbService.Client()
-
-	frs, err := entClient.Friendship.
+	uc, err := r.entClient.UserContact.
 		Query().
 		Where(
-			friendship.UserID(currentUserID),
-			friendship.FriendID(targetUserID),
+			usercontact.UserID(currentUserID),
+			usercontact.ContactID(targetUserID),
 		).
 		WithRoom().
 		Only(ctx)
 	if !ent.IsNotFound(err) {
-		rm := frs.Edges.Room
+		rm := uc.Edges.Room
 		if rm != nil {
 			return rm, nil
 		}
 	}
 
-	tx, err := entClient.Tx(ctx)
+	tx, err := r.entClient.Tx(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -126,10 +121,10 @@ func (r *repository) FindOrCreatePersonalRoom(
 		return nil, errors.Join(tx.Rollback(), err)
 	}
 
-	err = tx.Friendship.
+	err = tx.UserContact.
 		Create().
 		SetUserID(currentUserID).
-		SetFriendID(targetUserID).
+		SetContactID(targetUserID).
 		SetRoomID(rm.ID).
 		OnConflict().
 		DoNothing().
@@ -153,9 +148,7 @@ func (r *repository) CreateMessage(
 	replyTo pulid.ID,
 	content string,
 ) (*ent.Message, error) {
-	entClient := r.dbService.Client()
-
-	msg, err := entClient.Message.
+	msg, err := r.entClient.Message.
 		Create().
 		SetRoomID(roomID).
 		SetUserID(currentUserID).
@@ -174,9 +167,7 @@ func (r *repository) UpdateMessage(
 	messageID pulid.ID,
 	content string,
 ) (*ent.Message, error) {
-	entClient := r.dbService.Client()
-
-	msg, err := entClient.Message.
+	msg, err := r.entClient.Message.
 		UpdateOneID(messageID).
 		SetContent(content).
 		Save(ctx)
@@ -191,14 +182,12 @@ func (r *repository) DeleteMessage(
 	ctx context.Context,
 	messageID pulid.ID,
 ) (*ent.Message, error) {
-	entClient := r.dbService.Client()
-
-	msg, err := entClient.Message.Get(ctx, messageID)
+	msg, err := r.entClient.Message.Get(ctx, messageID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = entClient.Message.
+	err = r.entClient.Message.
 		DeleteOneID(messageID).
 		Exec(ctx)
 	if err != nil {

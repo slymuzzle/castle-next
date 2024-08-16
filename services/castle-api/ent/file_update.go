@@ -221,7 +221,7 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if fu.mutation.MessageAttachmentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   file.MessageAttachmentTable,
 			Columns: []string{file.MessageAttachmentColumn},
 			Bidi:    false,
@@ -234,7 +234,7 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := fu.mutation.MessageAttachmentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   file.MessageAttachmentTable,
 			Columns: []string{file.MessageAttachmentColumn},
 			Bidi:    false,
@@ -250,7 +250,7 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if fu.mutation.MessageVoiceCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   file.MessageVoiceTable,
 			Columns: []string{file.MessageVoiceColumn},
 			Bidi:    false,
@@ -263,7 +263,7 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := fu.mutation.MessageVoiceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   file.MessageVoiceTable,
 			Columns: []string{file.MessageVoiceColumn},
 			Bidi:    false,
@@ -516,7 +516,7 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 	if fuo.mutation.MessageAttachmentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   file.MessageAttachmentTable,
 			Columns: []string{file.MessageAttachmentColumn},
 			Bidi:    false,
@@ -529,7 +529,7 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 	if nodes := fuo.mutation.MessageAttachmentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   file.MessageAttachmentTable,
 			Columns: []string{file.MessageAttachmentColumn},
 			Bidi:    false,
@@ -545,7 +545,7 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 	if fuo.mutation.MessageVoiceCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   file.MessageVoiceTable,
 			Columns: []string{file.MessageVoiceColumn},
 			Bidi:    false,
@@ -558,7 +558,7 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 	if nodes := fuo.mutation.MessageVoiceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   file.MessageVoiceTable,
 			Columns: []string{file.MessageVoiceColumn},
 			Bidi:    false,

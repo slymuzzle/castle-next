@@ -14,8 +14,6 @@ type Tx struct {
 	config
 	// File is the client for interacting with the File builders.
 	File *FileClient
-	// Friendship is the client for interacting with the Friendship builders.
-	Friendship *FriendshipClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
 	// MessageAttachment is the client for interacting with the MessageAttachment builders.
@@ -30,6 +28,10 @@ type Tx struct {
 	RoomMember *RoomMemberClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserContact is the client for interacting with the UserContact builders.
+	UserContact *UserContactClient
+	// UserPinCode is the client for interacting with the UserPinCode builders.
+	UserPinCode *UserPinCodeClient
 
 	// lazily loaded.
 	client     *Client
@@ -162,7 +164,6 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.File = NewFileClient(tx.config)
-	tx.Friendship = NewFriendshipClient(tx.config)
 	tx.Message = NewMessageClient(tx.config)
 	tx.MessageAttachment = NewMessageAttachmentClient(tx.config)
 	tx.MessageLink = NewMessageLinkClient(tx.config)
@@ -170,6 +171,8 @@ func (tx *Tx) init() {
 	tx.Room = NewRoomClient(tx.config)
 	tx.RoomMember = NewRoomMemberClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserContact = NewUserContactClient(tx.config)
+	tx.UserPinCode = NewUserPinCodeClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

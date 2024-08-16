@@ -6,7 +6,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
-	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -42,11 +42,24 @@ func (MessageVoice) Fields() []ent.Field {
 // Edges of the MessageAttachment.
 func (MessageVoice) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("file", File.Type).
-			Required().
+		edge.From("room", Room.Type).
+			Ref("message_voices").
 			Unique().
-			Annotations(
-				entsql.OnDelete(entsql.Cascade),
-			),
+			Required(),
+		edge.From("message", Message.Type).
+			Ref("voice").
+			Unique().
+			Required(),
+		edge.From("file", File.Type).
+			Ref("message_voice").
+			Unique().
+			Required(),
+	}
+}
+
+// Annotations of the MessageVoice.
+func (MessageVoice) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.RelayConnection(),
 	}
 }

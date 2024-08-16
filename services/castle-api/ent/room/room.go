@@ -32,6 +32,12 @@ const (
 	EdgeUsers = "users"
 	// EdgeMessages holds the string denoting the messages edge name in mutations.
 	EdgeMessages = "messages"
+	// EdgeMessageVoices holds the string denoting the message_voices edge name in mutations.
+	EdgeMessageVoices = "message_voices"
+	// EdgeMessageAttachments holds the string denoting the message_attachments edge name in mutations.
+	EdgeMessageAttachments = "message_attachments"
+	// EdgeMessageLinks holds the string denoting the message_links edge name in mutations.
+	EdgeMessageLinks = "message_links"
 	// EdgeRoomMembers holds the string denoting the room_members edge name in mutations.
 	EdgeRoomMembers = "room_members"
 	// Table holds the table name of the room in the database.
@@ -48,6 +54,27 @@ const (
 	MessagesInverseTable = "messages"
 	// MessagesColumn is the table column denoting the messages relation/edge.
 	MessagesColumn = "room_messages"
+	// MessageVoicesTable is the table that holds the message_voices relation/edge.
+	MessageVoicesTable = "message_voices"
+	// MessageVoicesInverseTable is the table name for the MessageVoice entity.
+	// It exists in this package in order to avoid circular dependency with the "messagevoice" package.
+	MessageVoicesInverseTable = "message_voices"
+	// MessageVoicesColumn is the table column denoting the message_voices relation/edge.
+	MessageVoicesColumn = "room_message_voices"
+	// MessageAttachmentsTable is the table that holds the message_attachments relation/edge.
+	MessageAttachmentsTable = "message_attachments"
+	// MessageAttachmentsInverseTable is the table name for the MessageAttachment entity.
+	// It exists in this package in order to avoid circular dependency with the "messageattachment" package.
+	MessageAttachmentsInverseTable = "message_attachments"
+	// MessageAttachmentsColumn is the table column denoting the message_attachments relation/edge.
+	MessageAttachmentsColumn = "room_message_attachments"
+	// MessageLinksTable is the table that holds the message_links relation/edge.
+	MessageLinksTable = "message_links"
+	// MessageLinksInverseTable is the table name for the MessageLink entity.
+	// It exists in this package in order to avoid circular dependency with the "messagelink" package.
+	MessageLinksInverseTable = "message_links"
+	// MessageLinksColumn is the table column denoting the message_links relation/edge.
+	MessageLinksColumn = "room_message_links"
 	// RoomMembersTable is the table that holds the room_members relation/edge.
 	RoomMembersTable = "room_members"
 	// RoomMembersInverseTable is the table name for the RoomMember entity.
@@ -182,6 +209,48 @@ func ByMessages(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByMessageVoicesCount orders the results by message_voices count.
+func ByMessageVoicesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMessageVoicesStep(), opts...)
+	}
+}
+
+// ByMessageVoices orders the results by message_voices terms.
+func ByMessageVoices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMessageVoicesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByMessageAttachmentsCount orders the results by message_attachments count.
+func ByMessageAttachmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMessageAttachmentsStep(), opts...)
+	}
+}
+
+// ByMessageAttachments orders the results by message_attachments terms.
+func ByMessageAttachments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMessageAttachmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByMessageLinksCount orders the results by message_links count.
+func ByMessageLinksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMessageLinksStep(), opts...)
+	}
+}
+
+// ByMessageLinks orders the results by message_links terms.
+func ByMessageLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMessageLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByRoomMembersCount orders the results by room_members count.
 func ByRoomMembersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -207,6 +276,27 @@ func newMessagesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MessagesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, MessagesTable, MessagesColumn),
+	)
+}
+func newMessageVoicesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MessageVoicesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, MessageVoicesTable, MessageVoicesColumn),
+	)
+}
+func newMessageAttachmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MessageAttachmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, MessageAttachmentsTable, MessageAttachmentsColumn),
+	)
+}
+func newMessageLinksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MessageLinksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, MessageLinksTable, MessageLinksColumn),
 	)
 }
 func newRoomMembersStep() *sqlgraph.Step {

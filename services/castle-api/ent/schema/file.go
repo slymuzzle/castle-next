@@ -18,7 +18,7 @@ type File struct {
 // Mixin returns File mixed-in schema.
 func (File) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		pulid.MixinWithPrefix("FI"),
+		pulid.MixinWithPrefix("FE"),
 	}
 }
 
@@ -60,11 +60,9 @@ func (File) Fields() []ent.Field {
 // Edges of the File.
 func (File) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("message_attachment", MessageAttachment.Type).
-			Ref("file").
+		edge.To("message_attachment", MessageAttachment.Type).
 			Unique(),
-		edge.From("message_voice", MessageVoice.Type).
-			Ref("file").
+		edge.To("message_voice", MessageVoice.Type).
 			Unique(),
 	}
 }

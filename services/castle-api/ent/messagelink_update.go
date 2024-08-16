@@ -9,6 +9,7 @@ import (
 	"journeyhub/ent/message"
 	"journeyhub/ent/messagelink"
 	"journeyhub/ent/predicate"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"time"
 
@@ -50,6 +51,17 @@ func (mlu *MessageLinkUpdate) SetUpdatedAt(t time.Time) *MessageLinkUpdate {
 	return mlu
 }
 
+// SetRoomID sets the "room" edge to the Room entity by ID.
+func (mlu *MessageLinkUpdate) SetRoomID(id pulid.ID) *MessageLinkUpdate {
+	mlu.mutation.SetRoomID(id)
+	return mlu
+}
+
+// SetRoom sets the "room" edge to the Room entity.
+func (mlu *MessageLinkUpdate) SetRoom(r *Room) *MessageLinkUpdate {
+	return mlu.SetRoomID(r.ID)
+}
+
 // SetMessageID sets the "message" edge to the Message entity by ID.
 func (mlu *MessageLinkUpdate) SetMessageID(id pulid.ID) *MessageLinkUpdate {
 	mlu.mutation.SetMessageID(id)
@@ -64,6 +76,12 @@ func (mlu *MessageLinkUpdate) SetMessage(m *Message) *MessageLinkUpdate {
 // Mutation returns the MessageLinkMutation object of the builder.
 func (mlu *MessageLinkUpdate) Mutation() *MessageLinkMutation {
 	return mlu.mutation
+}
+
+// ClearRoom clears the "room" edge to the Room entity.
+func (mlu *MessageLinkUpdate) ClearRoom() *MessageLinkUpdate {
+	mlu.mutation.ClearRoom()
+	return mlu
 }
 
 // ClearMessage clears the "message" edge to the Message entity.
@@ -110,6 +128,9 @@ func (mlu *MessageLinkUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (mlu *MessageLinkUpdate) check() error {
+	if mlu.mutation.RoomCleared() && len(mlu.mutation.RoomIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "MessageLink.room"`)
+	}
 	if mlu.mutation.MessageCleared() && len(mlu.mutation.MessageIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "MessageLink.message"`)
 	}
@@ -133,6 +154,35 @@ func (mlu *MessageLinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := mlu.mutation.UpdatedAt(); ok {
 		_spec.SetField(messagelink.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if mlu.mutation.RoomCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messagelink.RoomTable,
+			Columns: []string{messagelink.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mlu.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messagelink.RoomTable,
+			Columns: []string{messagelink.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if mlu.mutation.MessageCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -203,6 +253,17 @@ func (mluo *MessageLinkUpdateOne) SetUpdatedAt(t time.Time) *MessageLinkUpdateOn
 	return mluo
 }
 
+// SetRoomID sets the "room" edge to the Room entity by ID.
+func (mluo *MessageLinkUpdateOne) SetRoomID(id pulid.ID) *MessageLinkUpdateOne {
+	mluo.mutation.SetRoomID(id)
+	return mluo
+}
+
+// SetRoom sets the "room" edge to the Room entity.
+func (mluo *MessageLinkUpdateOne) SetRoom(r *Room) *MessageLinkUpdateOne {
+	return mluo.SetRoomID(r.ID)
+}
+
 // SetMessageID sets the "message" edge to the Message entity by ID.
 func (mluo *MessageLinkUpdateOne) SetMessageID(id pulid.ID) *MessageLinkUpdateOne {
 	mluo.mutation.SetMessageID(id)
@@ -217,6 +278,12 @@ func (mluo *MessageLinkUpdateOne) SetMessage(m *Message) *MessageLinkUpdateOne {
 // Mutation returns the MessageLinkMutation object of the builder.
 func (mluo *MessageLinkUpdateOne) Mutation() *MessageLinkMutation {
 	return mluo.mutation
+}
+
+// ClearRoom clears the "room" edge to the Room entity.
+func (mluo *MessageLinkUpdateOne) ClearRoom() *MessageLinkUpdateOne {
+	mluo.mutation.ClearRoom()
+	return mluo
 }
 
 // ClearMessage clears the "message" edge to the Message entity.
@@ -276,6 +343,9 @@ func (mluo *MessageLinkUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (mluo *MessageLinkUpdateOne) check() error {
+	if mluo.mutation.RoomCleared() && len(mluo.mutation.RoomIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "MessageLink.room"`)
+	}
 	if mluo.mutation.MessageCleared() && len(mluo.mutation.MessageIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "MessageLink.message"`)
 	}
@@ -316,6 +386,35 @@ func (mluo *MessageLinkUpdateOne) sqlSave(ctx context.Context) (_node *MessageLi
 	}
 	if value, ok := mluo.mutation.UpdatedAt(); ok {
 		_spec.SetField(messagelink.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if mluo.mutation.RoomCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messagelink.RoomTable,
+			Columns: []string{messagelink.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mluo.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messagelink.RoomTable,
+			Columns: []string{messagelink.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if mluo.mutation.MessageCleared() {
 		edge := &sqlgraph.EdgeSpec{

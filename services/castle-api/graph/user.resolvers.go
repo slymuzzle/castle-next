@@ -20,7 +20,6 @@ func (r *mutationResolver) Register(ctx context.Context, input model.UserRegiste
 		ctx,
 		input.FirstName,
 		input.LastName,
-		input.Email,
 		input.Nickname,
 		input.Password,
 		input.PasswordConfirmation,

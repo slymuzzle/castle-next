@@ -7,8 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"journeyhub/ent/file"
+	"journeyhub/ent/message"
 	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/predicate"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 
 	"entgo.io/ent/dialect/sql"
@@ -50,6 +52,28 @@ func (mvu *MessageVoiceUpdate) AddLength(i int) *MessageVoiceUpdate {
 	return mvu
 }
 
+// SetRoomID sets the "room" edge to the Room entity by ID.
+func (mvu *MessageVoiceUpdate) SetRoomID(id pulid.ID) *MessageVoiceUpdate {
+	mvu.mutation.SetRoomID(id)
+	return mvu
+}
+
+// SetRoom sets the "room" edge to the Room entity.
+func (mvu *MessageVoiceUpdate) SetRoom(r *Room) *MessageVoiceUpdate {
+	return mvu.SetRoomID(r.ID)
+}
+
+// SetMessageID sets the "message" edge to the Message entity by ID.
+func (mvu *MessageVoiceUpdate) SetMessageID(id pulid.ID) *MessageVoiceUpdate {
+	mvu.mutation.SetMessageID(id)
+	return mvu
+}
+
+// SetMessage sets the "message" edge to the Message entity.
+func (mvu *MessageVoiceUpdate) SetMessage(m *Message) *MessageVoiceUpdate {
+	return mvu.SetMessageID(m.ID)
+}
+
 // SetFileID sets the "file" edge to the File entity by ID.
 func (mvu *MessageVoiceUpdate) SetFileID(id pulid.ID) *MessageVoiceUpdate {
 	mvu.mutation.SetFileID(id)
@@ -64,6 +88,18 @@ func (mvu *MessageVoiceUpdate) SetFile(f *File) *MessageVoiceUpdate {
 // Mutation returns the MessageVoiceMutation object of the builder.
 func (mvu *MessageVoiceUpdate) Mutation() *MessageVoiceMutation {
 	return mvu.mutation
+}
+
+// ClearRoom clears the "room" edge to the Room entity.
+func (mvu *MessageVoiceUpdate) ClearRoom() *MessageVoiceUpdate {
+	mvu.mutation.ClearRoom()
+	return mvu
+}
+
+// ClearMessage clears the "message" edge to the Message entity.
+func (mvu *MessageVoiceUpdate) ClearMessage() *MessageVoiceUpdate {
+	mvu.mutation.ClearMessage()
+	return mvu
 }
 
 // ClearFile clears the "file" edge to the File entity.
@@ -101,6 +137,12 @@ func (mvu *MessageVoiceUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (mvu *MessageVoiceUpdate) check() error {
+	if mvu.mutation.RoomCleared() && len(mvu.mutation.RoomIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "MessageVoice.room"`)
+	}
+	if mvu.mutation.MessageCleared() && len(mvu.mutation.MessageIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "MessageVoice.message"`)
+	}
 	if mvu.mutation.FileCleared() && len(mvu.mutation.FileIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "MessageVoice.file"`)
 	}
@@ -125,10 +167,68 @@ func (mvu *MessageVoiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mvu.mutation.AddedLength(); ok {
 		_spec.AddField(messagevoice.FieldLength, field.TypeInt, value)
 	}
+	if mvu.mutation.RoomCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messagevoice.RoomTable,
+			Columns: []string{messagevoice.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mvu.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messagevoice.RoomTable,
+			Columns: []string{messagevoice.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if mvu.mutation.MessageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   messagevoice.MessageTable,
+			Columns: []string{messagevoice.MessageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mvu.mutation.MessageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   messagevoice.MessageTable,
+			Columns: []string{messagevoice.MessageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if mvu.mutation.FileCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   messagevoice.FileTable,
 			Columns: []string{messagevoice.FileColumn},
 			Bidi:    false,
@@ -141,7 +241,7 @@ func (mvu *MessageVoiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := mvu.mutation.FileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   messagevoice.FileTable,
 			Columns: []string{messagevoice.FileColumn},
 			Bidi:    false,
@@ -195,6 +295,28 @@ func (mvuo *MessageVoiceUpdateOne) AddLength(i int) *MessageVoiceUpdateOne {
 	return mvuo
 }
 
+// SetRoomID sets the "room" edge to the Room entity by ID.
+func (mvuo *MessageVoiceUpdateOne) SetRoomID(id pulid.ID) *MessageVoiceUpdateOne {
+	mvuo.mutation.SetRoomID(id)
+	return mvuo
+}
+
+// SetRoom sets the "room" edge to the Room entity.
+func (mvuo *MessageVoiceUpdateOne) SetRoom(r *Room) *MessageVoiceUpdateOne {
+	return mvuo.SetRoomID(r.ID)
+}
+
+// SetMessageID sets the "message" edge to the Message entity by ID.
+func (mvuo *MessageVoiceUpdateOne) SetMessageID(id pulid.ID) *MessageVoiceUpdateOne {
+	mvuo.mutation.SetMessageID(id)
+	return mvuo
+}
+
+// SetMessage sets the "message" edge to the Message entity.
+func (mvuo *MessageVoiceUpdateOne) SetMessage(m *Message) *MessageVoiceUpdateOne {
+	return mvuo.SetMessageID(m.ID)
+}
+
 // SetFileID sets the "file" edge to the File entity by ID.
 func (mvuo *MessageVoiceUpdateOne) SetFileID(id pulid.ID) *MessageVoiceUpdateOne {
 	mvuo.mutation.SetFileID(id)
@@ -209,6 +331,18 @@ func (mvuo *MessageVoiceUpdateOne) SetFile(f *File) *MessageVoiceUpdateOne {
 // Mutation returns the MessageVoiceMutation object of the builder.
 func (mvuo *MessageVoiceUpdateOne) Mutation() *MessageVoiceMutation {
 	return mvuo.mutation
+}
+
+// ClearRoom clears the "room" edge to the Room entity.
+func (mvuo *MessageVoiceUpdateOne) ClearRoom() *MessageVoiceUpdateOne {
+	mvuo.mutation.ClearRoom()
+	return mvuo
+}
+
+// ClearMessage clears the "message" edge to the Message entity.
+func (mvuo *MessageVoiceUpdateOne) ClearMessage() *MessageVoiceUpdateOne {
+	mvuo.mutation.ClearMessage()
+	return mvuo
 }
 
 // ClearFile clears the "file" edge to the File entity.
@@ -259,6 +393,12 @@ func (mvuo *MessageVoiceUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (mvuo *MessageVoiceUpdateOne) check() error {
+	if mvuo.mutation.RoomCleared() && len(mvuo.mutation.RoomIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "MessageVoice.room"`)
+	}
+	if mvuo.mutation.MessageCleared() && len(mvuo.mutation.MessageIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "MessageVoice.message"`)
+	}
 	if mvuo.mutation.FileCleared() && len(mvuo.mutation.FileIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "MessageVoice.file"`)
 	}
@@ -300,10 +440,68 @@ func (mvuo *MessageVoiceUpdateOne) sqlSave(ctx context.Context) (_node *MessageV
 	if value, ok := mvuo.mutation.AddedLength(); ok {
 		_spec.AddField(messagevoice.FieldLength, field.TypeInt, value)
 	}
+	if mvuo.mutation.RoomCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messagevoice.RoomTable,
+			Columns: []string{messagevoice.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mvuo.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messagevoice.RoomTable,
+			Columns: []string{messagevoice.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if mvuo.mutation.MessageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   messagevoice.MessageTable,
+			Columns: []string{messagevoice.MessageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mvuo.mutation.MessageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   messagevoice.MessageTable,
+			Columns: []string{messagevoice.MessageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if mvuo.mutation.FileCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   messagevoice.FileTable,
 			Columns: []string{messagevoice.FileColumn},
 			Bidi:    false,
@@ -316,7 +514,7 @@ func (mvuo *MessageVoiceUpdateOne) sqlSave(ctx context.Context) (_node *MessageV
 	if nodes := mvuo.mutation.FileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   messagevoice.FileTable,
 			Columns: []string{messagevoice.FileColumn},
 			Bidi:    false,

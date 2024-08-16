@@ -9,6 +9,7 @@ import (
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
@@ -28,11 +29,12 @@ type MessageQuery struct {
 	order                []message.OrderOption
 	inters               []Interceptor
 	predicates           []predicate.Message
-	withUser             *UserQuery
-	withRoom             *RoomQuery
+	withVoice            *MessageVoiceQuery
 	withReplyTo          *MessageQuery
 	withAttachments      *MessageAttachmentQuery
 	withLinks            *MessageLinkQuery
+	withUser             *UserQuery
+	withRoom             *RoomQuery
 	withFKs              bool
 	modifiers            []func(*sql.Selector)
 	loadTotal            []func(context.Context, []*Message) error
@@ -74,9 +76,9 @@ func (mq *MessageQuery) Order(o ...message.OrderOption) *MessageQuery {
 	return mq
 }
 
-// QueryUser chains the current query on the "user" edge.
-func (mq *MessageQuery) QueryUser() *UserQuery {
-	query := (&UserClient{config: mq.config}).Query()
+// QueryVoice chains the current query on the "voice" edge.
+func (mq *MessageQuery) QueryVoice() *MessageVoiceQuery {
+	query := (&MessageVoiceClient{config: mq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := mq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -87,30 +89,8 @@ func (mq *MessageQuery) QueryUser() *UserQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(message.Table, message.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, message.UserTable, message.UserColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryRoom chains the current query on the "room" edge.
-func (mq *MessageQuery) QueryRoom() *RoomQuery {
-	query := (&RoomClient{config: mq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := mq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := mq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(message.Table, message.FieldID, selector),
-			sqlgraph.To(room.Table, room.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, message.RoomTable, message.RoomColumn),
+			sqlgraph.To(messagevoice.Table, messagevoice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, message.VoiceTable, message.VoiceColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
 		return fromU, nil
@@ -177,6 +157,50 @@ func (mq *MessageQuery) QueryLinks() *MessageLinkQuery {
 			sqlgraph.From(message.Table, message.FieldID, selector),
 			sqlgraph.To(messagelink.Table, messagelink.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, message.LinksTable, message.LinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (mq *MessageQuery) QueryUser() *UserQuery {
+	query := (&UserClient{config: mq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.UserTable, message.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRoom chains the current query on the "room" edge.
+func (mq *MessageQuery) QueryRoom() *RoomQuery {
+	query := (&RoomClient{config: mq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, selector),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.RoomTable, message.RoomColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
 		return fromU, nil
@@ -376,36 +400,26 @@ func (mq *MessageQuery) Clone() *MessageQuery {
 		order:           append([]message.OrderOption{}, mq.order...),
 		inters:          append([]Interceptor{}, mq.inters...),
 		predicates:      append([]predicate.Message{}, mq.predicates...),
-		withUser:        mq.withUser.Clone(),
-		withRoom:        mq.withRoom.Clone(),
+		withVoice:       mq.withVoice.Clone(),
 		withReplyTo:     mq.withReplyTo.Clone(),
 		withAttachments: mq.withAttachments.Clone(),
 		withLinks:       mq.withLinks.Clone(),
+		withUser:        mq.withUser.Clone(),
+		withRoom:        mq.withRoom.Clone(),
 		// clone intermediate query.
 		sql:  mq.sql.Clone(),
 		path: mq.path,
 	}
 }
 
-// WithUser tells the query-builder to eager-load the nodes that are connected to
-// the "user" edge. The optional arguments are used to configure the query builder of the edge.
-func (mq *MessageQuery) WithUser(opts ...func(*UserQuery)) *MessageQuery {
-	query := (&UserClient{config: mq.config}).Query()
+// WithVoice tells the query-builder to eager-load the nodes that are connected to
+// the "voice" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithVoice(opts ...func(*MessageVoiceQuery)) *MessageQuery {
+	query := (&MessageVoiceClient{config: mq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	mq.withUser = query
-	return mq
-}
-
-// WithRoom tells the query-builder to eager-load the nodes that are connected to
-// the "room" edge. The optional arguments are used to configure the query builder of the edge.
-func (mq *MessageQuery) WithRoom(opts ...func(*RoomQuery)) *MessageQuery {
-	query := (&RoomClient{config: mq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	mq.withRoom = query
+	mq.withVoice = query
 	return mq
 }
 
@@ -439,6 +453,28 @@ func (mq *MessageQuery) WithLinks(opts ...func(*MessageLinkQuery)) *MessageQuery
 		opt(query)
 	}
 	mq.withLinks = query
+	return mq
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithUser(opts ...func(*UserQuery)) *MessageQuery {
+	query := (&UserClient{config: mq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withUser = query
+	return mq
+}
+
+// WithRoom tells the query-builder to eager-load the nodes that are connected to
+// the "room" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithRoom(opts ...func(*RoomQuery)) *MessageQuery {
+	query := (&RoomClient{config: mq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withRoom = query
 	return mq
 }
 
@@ -521,15 +557,16 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 		nodes       = []*Message{}
 		withFKs     = mq.withFKs
 		_spec       = mq.querySpec()
-		loadedTypes = [5]bool{
-			mq.withUser != nil,
-			mq.withRoom != nil,
+		loadedTypes = [6]bool{
+			mq.withVoice != nil,
 			mq.withReplyTo != nil,
 			mq.withAttachments != nil,
 			mq.withLinks != nil,
+			mq.withUser != nil,
+			mq.withRoom != nil,
 		}
 	)
-	if mq.withUser != nil || mq.withRoom != nil || mq.withReplyTo != nil {
+	if mq.withReplyTo != nil || mq.withUser != nil || mq.withRoom != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -556,15 +593,9 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := mq.withUser; query != nil {
-		if err := mq.loadUser(ctx, query, nodes, nil,
-			func(n *Message, e *User) { n.Edges.User = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := mq.withRoom; query != nil {
-		if err := mq.loadRoom(ctx, query, nodes, nil,
-			func(n *Message, e *Room) { n.Edges.Room = e }); err != nil {
+	if query := mq.withVoice; query != nil {
+		if err := mq.loadVoice(ctx, query, nodes, nil,
+			func(n *Message, e *MessageVoice) { n.Edges.Voice = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -585,6 +616,18 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 		if err := mq.loadLinks(ctx, query, nodes,
 			func(n *Message) { n.Edges.Links = []*MessageLink{} },
 			func(n *Message, e *MessageLink) { n.Edges.Links = append(n.Edges.Links, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := mq.withUser; query != nil {
+		if err := mq.loadUser(ctx, query, nodes, nil,
+			func(n *Message, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := mq.withRoom; query != nil {
+		if err := mq.loadRoom(ctx, query, nodes, nil,
+			func(n *Message, e *Room) { n.Edges.Room = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -610,67 +653,31 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 	return nodes, nil
 }
 
-func (mq *MessageQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Message, init func(*Message), assign func(*Message, *User)) error {
-	ids := make([]pulid.ID, 0, len(nodes))
-	nodeids := make(map[pulid.ID][]*Message)
+func (mq *MessageQuery) loadVoice(ctx context.Context, query *MessageVoiceQuery, nodes []*Message, init func(*Message), assign func(*Message, *MessageVoice)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[pulid.ID]*Message)
 	for i := range nodes {
-		if nodes[i].user_messages == nil {
-			continue
-		}
-		fk := *nodes[i].user_messages
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
 	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
+	query.withFKs = true
+	query.Where(predicate.MessageVoice(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(message.VoiceColumn), fks...))
+	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
+		fk := n.message_voice
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "message_voice" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_messages" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "message_voice" returned %v for node %v`, *fk, n.ID)
 		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (mq *MessageQuery) loadRoom(ctx context.Context, query *RoomQuery, nodes []*Message, init func(*Message), assign func(*Message, *Room)) error {
-	ids := make([]pulid.ID, 0, len(nodes))
-	nodeids := make(map[pulid.ID][]*Message)
-	for i := range nodes {
-		if nodes[i].room_messages == nil {
-			continue
-		}
-		fk := *nodes[i].room_messages
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(room.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "room_messages" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -765,6 +772,70 @@ func (mq *MessageQuery) loadLinks(ctx context.Context, query *MessageLinkQuery, 
 			return fmt.Errorf(`unexpected referenced foreign-key "message_links" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (mq *MessageQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Message, init func(*Message), assign func(*Message, *User)) error {
+	ids := make([]pulid.ID, 0, len(nodes))
+	nodeids := make(map[pulid.ID][]*Message)
+	for i := range nodes {
+		if nodes[i].user_messages == nil {
+			continue
+		}
+		fk := *nodes[i].user_messages
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_messages" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (mq *MessageQuery) loadRoom(ctx context.Context, query *RoomQuery, nodes []*Message, init func(*Message), assign func(*Message, *Room)) error {
+	ids := make([]pulid.ID, 0, len(nodes))
+	nodeids := make(map[pulid.ID][]*Message)
+	for i := range nodes {
+		if nodes[i].room_messages == nil {
+			continue
+		}
+		fk := *nodes[i].room_messages
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(room.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "room_messages" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

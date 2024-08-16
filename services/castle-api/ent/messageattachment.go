@@ -7,6 +7,7 @@ import (
 	"journeyhub/ent/file"
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"strings"
 	"time"
@@ -23,27 +24,42 @@ type MessageAttachment struct {
 	// Type holds the value of the "type" field.
 	Type messageattachment.Type `json:"type,omitempty"`
 	// Order holds the value of the "order" field.
-	Order uint64 `json:"order,omitempty"`
+	Order uint `json:"order,omitempty"`
 	// AttachedAt holds the value of the "attached_at" field.
 	AttachedAt time.Time `json:"attached_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MessageAttachmentQuery when eager-loading is set.
-	Edges               MessageAttachmentEdges `json:"edges"`
-	message_attachments *pulid.ID
-	selectValues        sql.SelectValues
+	Edges                    MessageAttachmentEdges `json:"edges"`
+	file_message_attachment  *pulid.ID
+	message_attachments      *pulid.ID
+	room_message_attachments *pulid.ID
+	selectValues             sql.SelectValues
 }
 
 // MessageAttachmentEdges holds the relations/edges for other nodes in the graph.
 type MessageAttachmentEdges struct {
+	// Room holds the value of the room edge.
+	Room *Room `json:"room,omitempty"`
 	// Message holds the value of the message edge.
 	Message *Message `json:"message,omitempty"`
 	// File holds the value of the file edge.
 	File *File `json:"file,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
+	totalCount [3]map[string]int
+}
+
+// RoomOrErr returns the Room value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e MessageAttachmentEdges) RoomOrErr() (*Room, error) {
+	if e.Room != nil {
+		return e.Room, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: room.Label}
+	}
+	return nil, &NotLoadedError{edge: "room"}
 }
 
 // MessageOrErr returns the Message value or an error if the edge
@@ -51,7 +67,7 @@ type MessageAttachmentEdges struct {
 func (e MessageAttachmentEdges) MessageOrErr() (*Message, error) {
 	if e.Message != nil {
 		return e.Message, nil
-	} else if e.loadedTypes[0] {
+	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: message.Label}
 	}
 	return nil, &NotLoadedError{edge: "message"}
@@ -62,7 +78,7 @@ func (e MessageAttachmentEdges) MessageOrErr() (*Message, error) {
 func (e MessageAttachmentEdges) FileOrErr() (*File, error) {
 	if e.File != nil {
 		return e.File, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: file.Label}
 	}
 	return nil, &NotLoadedError{edge: "file"}
@@ -81,7 +97,11 @@ func (*MessageAttachment) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case messageattachment.FieldAttachedAt:
 			values[i] = new(sql.NullTime)
-		case messageattachment.ForeignKeys[0]: // message_attachments
+		case messageattachment.ForeignKeys[0]: // file_message_attachment
+			values[i] = &sql.NullScanner{S: new(pulid.ID)}
+		case messageattachment.ForeignKeys[1]: // message_attachments
+			values[i] = &sql.NullScanner{S: new(pulid.ID)}
+		case messageattachment.ForeignKeys[2]: // room_message_attachments
 			values[i] = &sql.NullScanner{S: new(pulid.ID)}
 		default:
 			values[i] = new(sql.UnknownType)
@@ -114,7 +134,7 @@ func (ma *MessageAttachment) assignValues(columns []string, values []any) error 
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field order", values[i])
 			} else if value.Valid {
-				ma.Order = uint64(value.Int64)
+				ma.Order = uint(value.Int64)
 			}
 		case messageattachment.FieldAttachedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -124,10 +144,24 @@ func (ma *MessageAttachment) assignValues(columns []string, values []any) error 
 			}
 		case messageattachment.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field file_message_attachment", values[i])
+			} else if value.Valid {
+				ma.file_message_attachment = new(pulid.ID)
+				*ma.file_message_attachment = *value.S.(*pulid.ID)
+			}
+		case messageattachment.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field message_attachments", values[i])
 			} else if value.Valid {
 				ma.message_attachments = new(pulid.ID)
 				*ma.message_attachments = *value.S.(*pulid.ID)
+			}
+		case messageattachment.ForeignKeys[2]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field room_message_attachments", values[i])
+			} else if value.Valid {
+				ma.room_message_attachments = new(pulid.ID)
+				*ma.room_message_attachments = *value.S.(*pulid.ID)
 			}
 		default:
 			ma.selectValues.Set(columns[i], values[i])
@@ -140,6 +174,11 @@ func (ma *MessageAttachment) assignValues(columns []string, values []any) error 
 // This includes values selected through modifiers, order, etc.
 func (ma *MessageAttachment) Value(name string) (ent.Value, error) {
 	return ma.selectValues.Get(name)
+}
+
+// QueryRoom queries the "room" edge of the MessageAttachment entity.
+func (ma *MessageAttachment) QueryRoom() *RoomQuery {
+	return NewMessageAttachmentClient(ma.config).QueryRoom(ma)
 }
 
 // QueryMessage queries the "message" edge of the MessageAttachment entity.

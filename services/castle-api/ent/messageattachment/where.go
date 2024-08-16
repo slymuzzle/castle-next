@@ -57,7 +57,7 @@ func IDLTE(id pulid.ID) predicate.MessageAttachment {
 }
 
 // Order applies equality check predicate on the "order" field. It's identical to OrderEQ.
-func Order(v uint64) predicate.MessageAttachment {
+func Order(v uint) predicate.MessageAttachment {
 	return predicate.MessageAttachment(sql.FieldEQ(FieldOrder, v))
 }
 
@@ -87,42 +87,42 @@ func TypeNotIn(vs ...Type) predicate.MessageAttachment {
 }
 
 // OrderEQ applies the EQ predicate on the "order" field.
-func OrderEQ(v uint64) predicate.MessageAttachment {
+func OrderEQ(v uint) predicate.MessageAttachment {
 	return predicate.MessageAttachment(sql.FieldEQ(FieldOrder, v))
 }
 
 // OrderNEQ applies the NEQ predicate on the "order" field.
-func OrderNEQ(v uint64) predicate.MessageAttachment {
+func OrderNEQ(v uint) predicate.MessageAttachment {
 	return predicate.MessageAttachment(sql.FieldNEQ(FieldOrder, v))
 }
 
 // OrderIn applies the In predicate on the "order" field.
-func OrderIn(vs ...uint64) predicate.MessageAttachment {
+func OrderIn(vs ...uint) predicate.MessageAttachment {
 	return predicate.MessageAttachment(sql.FieldIn(FieldOrder, vs...))
 }
 
 // OrderNotIn applies the NotIn predicate on the "order" field.
-func OrderNotIn(vs ...uint64) predicate.MessageAttachment {
+func OrderNotIn(vs ...uint) predicate.MessageAttachment {
 	return predicate.MessageAttachment(sql.FieldNotIn(FieldOrder, vs...))
 }
 
 // OrderGT applies the GT predicate on the "order" field.
-func OrderGT(v uint64) predicate.MessageAttachment {
+func OrderGT(v uint) predicate.MessageAttachment {
 	return predicate.MessageAttachment(sql.FieldGT(FieldOrder, v))
 }
 
 // OrderGTE applies the GTE predicate on the "order" field.
-func OrderGTE(v uint64) predicate.MessageAttachment {
+func OrderGTE(v uint) predicate.MessageAttachment {
 	return predicate.MessageAttachment(sql.FieldGTE(FieldOrder, v))
 }
 
 // OrderLT applies the LT predicate on the "order" field.
-func OrderLT(v uint64) predicate.MessageAttachment {
+func OrderLT(v uint) predicate.MessageAttachment {
 	return predicate.MessageAttachment(sql.FieldLT(FieldOrder, v))
 }
 
 // OrderLTE applies the LTE predicate on the "order" field.
-func OrderLTE(v uint64) predicate.MessageAttachment {
+func OrderLTE(v uint) predicate.MessageAttachment {
 	return predicate.MessageAttachment(sql.FieldLTE(FieldOrder, v))
 }
 
@@ -166,6 +166,29 @@ func AttachedAtLTE(v time.Time) predicate.MessageAttachment {
 	return predicate.MessageAttachment(sql.FieldLTE(FieldAttachedAt, v))
 }
 
+// HasRoom applies the HasEdge predicate on the "room" edge.
+func HasRoom() predicate.MessageAttachment {
+	return predicate.MessageAttachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRoomWith applies the HasEdge predicate on the "room" edge with a given conditions (other predicates).
+func HasRoomWith(preds ...predicate.Room) predicate.MessageAttachment {
+	return predicate.MessageAttachment(func(s *sql.Selector) {
+		step := newRoomStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasMessage applies the HasEdge predicate on the "message" edge.
 func HasMessage() predicate.MessageAttachment {
 	return predicate.MessageAttachment(func(s *sql.Selector) {
@@ -194,7 +217,7 @@ func HasFile() predicate.MessageAttachment {
 	return predicate.MessageAttachment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, FileTable, FileColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, FileTable, FileColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

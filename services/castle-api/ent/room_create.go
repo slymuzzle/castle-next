@@ -7,6 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
@@ -123,6 +126,51 @@ func (rc *RoomCreate) AddMessages(m ...*Message) *RoomCreate {
 		ids[i] = m[i].ID
 	}
 	return rc.AddMessageIDs(ids...)
+}
+
+// AddMessageVoiceIDs adds the "message_voices" edge to the MessageVoice entity by IDs.
+func (rc *RoomCreate) AddMessageVoiceIDs(ids ...pulid.ID) *RoomCreate {
+	rc.mutation.AddMessageVoiceIDs(ids...)
+	return rc
+}
+
+// AddMessageVoices adds the "message_voices" edges to the MessageVoice entity.
+func (rc *RoomCreate) AddMessageVoices(m ...*MessageVoice) *RoomCreate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return rc.AddMessageVoiceIDs(ids...)
+}
+
+// AddMessageAttachmentIDs adds the "message_attachments" edge to the MessageAttachment entity by IDs.
+func (rc *RoomCreate) AddMessageAttachmentIDs(ids ...pulid.ID) *RoomCreate {
+	rc.mutation.AddMessageAttachmentIDs(ids...)
+	return rc
+}
+
+// AddMessageAttachments adds the "message_attachments" edges to the MessageAttachment entity.
+func (rc *RoomCreate) AddMessageAttachments(m ...*MessageAttachment) *RoomCreate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return rc.AddMessageAttachmentIDs(ids...)
+}
+
+// AddMessageLinkIDs adds the "message_links" edge to the MessageLink entity by IDs.
+func (rc *RoomCreate) AddMessageLinkIDs(ids ...pulid.ID) *RoomCreate {
+	rc.mutation.AddMessageLinkIDs(ids...)
+	return rc
+}
+
+// AddMessageLinks adds the "message_links" edges to the MessageLink entity.
+func (rc *RoomCreate) AddMessageLinks(m ...*MessageLink) *RoomCreate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return rc.AddMessageLinkIDs(ids...)
 }
 
 // AddRoomMemberIDs adds the "room_members" edge to the RoomMember entity by IDs.
@@ -308,6 +356,54 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.MessageVoicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageVoicesTable,
+			Columns: []string{room.MessageVoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagevoice.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.MessageAttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageAttachmentsTable,
+			Columns: []string{room.MessageAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.MessageLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageLinksTable,
+			Columns: []string{room.MessageLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagelink.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

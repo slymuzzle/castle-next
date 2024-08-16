@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"journeyhub/ent/message"
 	"journeyhub/ent/messagelink"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"time"
 
@@ -71,6 +72,17 @@ func (mlc *MessageLinkCreate) SetNillableID(pu *pulid.ID) *MessageLinkCreate {
 		mlc.SetID(*pu)
 	}
 	return mlc
+}
+
+// SetRoomID sets the "room" edge to the Room entity by ID.
+func (mlc *MessageLinkCreate) SetRoomID(id pulid.ID) *MessageLinkCreate {
+	mlc.mutation.SetRoomID(id)
+	return mlc
+}
+
+// SetRoom sets the "room" edge to the Room entity.
+func (mlc *MessageLinkCreate) SetRoom(r *Room) *MessageLinkCreate {
+	return mlc.SetRoomID(r.ID)
 }
 
 // SetMessageID sets the "message" edge to the Message entity by ID.
@@ -144,6 +156,9 @@ func (mlc *MessageLinkCreate) check() error {
 	if _, ok := mlc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "MessageLink.updated_at"`)}
 	}
+	if len(mlc.mutation.RoomIDs()) == 0 {
+		return &ValidationError{Name: "room", err: errors.New(`ent: missing required edge "MessageLink.room"`)}
+	}
 	if len(mlc.mutation.MessageIDs()) == 0 {
 		return &ValidationError{Name: "message", err: errors.New(`ent: missing required edge "MessageLink.message"`)}
 	}
@@ -194,6 +209,23 @@ func (mlc *MessageLinkCreate) createSpec() (*MessageLink, *sqlgraph.CreateSpec) 
 	if value, ok := mlc.mutation.UpdatedAt(); ok {
 		_spec.SetField(messagelink.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if nodes := mlc.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messagelink.RoomTable,
+			Columns: []string{messagelink.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.room_message_links = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := mlc.mutation.MessageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

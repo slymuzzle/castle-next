@@ -40,17 +40,26 @@ type RoomEdges struct {
 	Users []*User `json:"users,omitempty"`
 	// Messages holds the value of the messages edge.
 	Messages []*Message `json:"messages,omitempty"`
+	// MessageVoices holds the value of the message_voices edge.
+	MessageVoices []*MessageVoice `json:"message_voices,omitempty"`
+	// MessageAttachments holds the value of the message_attachments edge.
+	MessageAttachments []*MessageAttachment `json:"message_attachments,omitempty"`
+	// MessageLinks holds the value of the message_links edge.
+	MessageLinks []*MessageLink `json:"message_links,omitempty"`
 	// RoomMembers holds the value of the room_members edge.
 	RoomMembers []*RoomMember `json:"room_members,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [6]bool
 	// totalCount holds the count of the edges above.
-	totalCount [3]map[string]int
+	totalCount [6]map[string]int
 
-	namedUsers       map[string][]*User
-	namedMessages    map[string][]*Message
-	namedRoomMembers map[string][]*RoomMember
+	namedUsers              map[string][]*User
+	namedMessages           map[string][]*Message
+	namedMessageVoices      map[string][]*MessageVoice
+	namedMessageAttachments map[string][]*MessageAttachment
+	namedMessageLinks       map[string][]*MessageLink
+	namedRoomMembers        map[string][]*RoomMember
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -71,10 +80,37 @@ func (e RoomEdges) MessagesOrErr() ([]*Message, error) {
 	return nil, &NotLoadedError{edge: "messages"}
 }
 
+// MessageVoicesOrErr returns the MessageVoices value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoomEdges) MessageVoicesOrErr() ([]*MessageVoice, error) {
+	if e.loadedTypes[2] {
+		return e.MessageVoices, nil
+	}
+	return nil, &NotLoadedError{edge: "message_voices"}
+}
+
+// MessageAttachmentsOrErr returns the MessageAttachments value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoomEdges) MessageAttachmentsOrErr() ([]*MessageAttachment, error) {
+	if e.loadedTypes[3] {
+		return e.MessageAttachments, nil
+	}
+	return nil, &NotLoadedError{edge: "message_attachments"}
+}
+
+// MessageLinksOrErr returns the MessageLinks value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoomEdges) MessageLinksOrErr() ([]*MessageLink, error) {
+	if e.loadedTypes[4] {
+		return e.MessageLinks, nil
+	}
+	return nil, &NotLoadedError{edge: "message_links"}
+}
+
 // RoomMembersOrErr returns the RoomMembers value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoomEdges) RoomMembersOrErr() ([]*RoomMember, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[5] {
 		return e.RoomMembers, nil
 	}
 	return nil, &NotLoadedError{edge: "room_members"}
@@ -165,6 +201,21 @@ func (r *Room) QueryUsers() *UserQuery {
 // QueryMessages queries the "messages" edge of the Room entity.
 func (r *Room) QueryMessages() *MessageQuery {
 	return NewRoomClient(r.config).QueryMessages(r)
+}
+
+// QueryMessageVoices queries the "message_voices" edge of the Room entity.
+func (r *Room) QueryMessageVoices() *MessageVoiceQuery {
+	return NewRoomClient(r.config).QueryMessageVoices(r)
+}
+
+// QueryMessageAttachments queries the "message_attachments" edge of the Room entity.
+func (r *Room) QueryMessageAttachments() *MessageAttachmentQuery {
+	return NewRoomClient(r.config).QueryMessageAttachments(r)
+}
+
+// QueryMessageLinks queries the "message_links" edge of the Room entity.
+func (r *Room) QueryMessageLinks() *MessageLinkQuery {
+	return NewRoomClient(r.config).QueryMessageLinks(r)
 }
 
 // QueryRoomMembers queries the "room_members" edge of the Room entity.
@@ -258,6 +309,78 @@ func (r *Room) appendNamedMessages(name string, edges ...*Message) {
 		r.Edges.namedMessages[name] = []*Message{}
 	} else {
 		r.Edges.namedMessages[name] = append(r.Edges.namedMessages[name], edges...)
+	}
+}
+
+// NamedMessageVoices returns the MessageVoices named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (r *Room) NamedMessageVoices(name string) ([]*MessageVoice, error) {
+	if r.Edges.namedMessageVoices == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := r.Edges.namedMessageVoices[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (r *Room) appendNamedMessageVoices(name string, edges ...*MessageVoice) {
+	if r.Edges.namedMessageVoices == nil {
+		r.Edges.namedMessageVoices = make(map[string][]*MessageVoice)
+	}
+	if len(edges) == 0 {
+		r.Edges.namedMessageVoices[name] = []*MessageVoice{}
+	} else {
+		r.Edges.namedMessageVoices[name] = append(r.Edges.namedMessageVoices[name], edges...)
+	}
+}
+
+// NamedMessageAttachments returns the MessageAttachments named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (r *Room) NamedMessageAttachments(name string) ([]*MessageAttachment, error) {
+	if r.Edges.namedMessageAttachments == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := r.Edges.namedMessageAttachments[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (r *Room) appendNamedMessageAttachments(name string, edges ...*MessageAttachment) {
+	if r.Edges.namedMessageAttachments == nil {
+		r.Edges.namedMessageAttachments = make(map[string][]*MessageAttachment)
+	}
+	if len(edges) == 0 {
+		r.Edges.namedMessageAttachments[name] = []*MessageAttachment{}
+	} else {
+		r.Edges.namedMessageAttachments[name] = append(r.Edges.namedMessageAttachments[name], edges...)
+	}
+}
+
+// NamedMessageLinks returns the MessageLinks named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (r *Room) NamedMessageLinks(name string) ([]*MessageLink, error) {
+	if r.Edges.namedMessageLinks == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := r.Edges.namedMessageLinks[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (r *Room) appendNamedMessageLinks(name string, edges ...*MessageLink) {
+	if r.Edges.namedMessageLinks == nil {
+		r.Edges.namedMessageLinks = make(map[string][]*MessageLink)
+	}
+	if len(edges) == 0 {
+		r.Edges.namedMessageLinks[name] = []*MessageLink{}
+	} else {
+		r.Edges.namedMessageLinks[name] = append(r.Edges.namedMessageLinks[name], edges...)
 	}
 }
 

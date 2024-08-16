@@ -78,18 +78,20 @@ func (ec *executionContext) fieldContext_LoginUser_user(_ context.Context, field
 				return ec.fieldContext_User_nickname(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
+			case "contactPin":
+				return ec.fieldContext_User_contactPin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "friends":
-				return ec.fieldContext_User_friends(ctx, field)
+			case "contacts":
+				return ec.fieldContext_User_contacts(ctx, field)
 			case "rooms":
 				return ec.fieldContext_User_rooms(ctx, field)
 			case "messages":
 				return ec.fieldContext_User_messages(ctx, field)
-			case "friendships":
-				return ec.fieldContext_User_friendships(ctx, field)
+			case "userContacts":
+				return ec.fieldContext_User_userContacts(ctx, field)
 			case "memberships":
 				return ec.fieldContext_User_memberships(ctx, field)
 			}
@@ -154,20 +156,20 @@ func (ec *executionContext) unmarshalInputUserLoginInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"nicknameOrEmail", "password"}
+	fieldsInOrder := [...]string{"nickname", "password"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "nicknameOrEmail":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nicknameOrEmail"))
+		case "nickname":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nickname"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.NicknameOrEmail = data
+			it.Nickname = data
 		case "password":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -188,7 +190,7 @@ func (ec *executionContext) unmarshalInputUserRegisterInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"firstName", "lastName", "email", "nickname", "password", "passwordConfirmation"}
+	fieldsInOrder := [...]string{"firstName", "lastName", "nickname", "password", "passwordConfirmation"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -209,13 +211,6 @@ func (ec *executionContext) unmarshalInputUserRegisterInput(ctx context.Context,
 				return it, err
 			}
 			it.LastName = data
-		case "email":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Email = data
 		case "nickname":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nickname"))
 			data, err := ec.unmarshalNString2string(ctx, v)

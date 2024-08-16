@@ -327,6 +327,75 @@ func HasMessagesWith(preds ...predicate.Message) predicate.Room {
 	})
 }
 
+// HasMessageVoices applies the HasEdge predicate on the "message_voices" edge.
+func HasMessageVoices() predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MessageVoicesTable, MessageVoicesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMessageVoicesWith applies the HasEdge predicate on the "message_voices" edge with a given conditions (other predicates).
+func HasMessageVoicesWith(preds ...predicate.MessageVoice) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := newMessageVoicesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasMessageAttachments applies the HasEdge predicate on the "message_attachments" edge.
+func HasMessageAttachments() predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MessageAttachmentsTable, MessageAttachmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMessageAttachmentsWith applies the HasEdge predicate on the "message_attachments" edge with a given conditions (other predicates).
+func HasMessageAttachmentsWith(preds ...predicate.MessageAttachment) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := newMessageAttachmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasMessageLinks applies the HasEdge predicate on the "message_links" edge.
+func HasMessageLinks() predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MessageLinksTable, MessageLinksColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMessageLinksWith applies the HasEdge predicate on the "message_links" edge with a given conditions (other predicates).
+func HasMessageLinksWith(preds ...predicate.MessageLink) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := newMessageLinksStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasRoomMembers applies the HasEdge predicate on the "room_members" edge.
 func HasRoomMembers() predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {

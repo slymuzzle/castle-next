@@ -21,10 +21,19 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeRoom holds the string denoting the room edge name in mutations.
+	EdgeRoom = "room"
 	// EdgeMessage holds the string denoting the message edge name in mutations.
 	EdgeMessage = "message"
 	// Table holds the table name of the messagelink in the database.
 	Table = "message_links"
+	// RoomTable is the table that holds the room relation/edge.
+	RoomTable = "message_links"
+	// RoomInverseTable is the table name for the Room entity.
+	// It exists in this package in order to avoid circular dependency with the "room" package.
+	RoomInverseTable = "rooms"
+	// RoomColumn is the table column denoting the room relation/edge.
+	RoomColumn = "room_message_links"
 	// MessageTable is the table that holds the message relation/edge.
 	MessageTable = "message_links"
 	// MessageInverseTable is the table name for the Message entity.
@@ -46,6 +55,7 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"message_links",
+	"room_message_links",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -97,11 +107,25 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
+// ByRoomField orders the results by room field.
+func ByRoomField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRoomStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByMessageField orders the results by message field.
 func ByMessageField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newMessageStep(), sql.OrderByField(field, opts...))
 	}
+}
+func newRoomStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RoomInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
+	)
 }
 func newMessageStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

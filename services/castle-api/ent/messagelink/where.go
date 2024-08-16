@@ -216,6 +216,29 @@ func UpdatedAtLTE(v time.Time) predicate.MessageLink {
 	return predicate.MessageLink(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
+// HasRoom applies the HasEdge predicate on the "room" edge.
+func HasRoom() predicate.MessageLink {
+	return predicate.MessageLink(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRoomWith applies the HasEdge predicate on the "room" edge with a given conditions (other predicates).
+func HasRoomWith(preds ...predicate.Room) predicate.MessageLink {
+	return predicate.MessageLink(func(s *sql.Selector) {
+		step := newRoomStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasMessage applies the HasEdge predicate on the "message" edge.
 func HasMessage() predicate.MessageLink {
 	return predicate.MessageLink(func(s *sql.Selector) {

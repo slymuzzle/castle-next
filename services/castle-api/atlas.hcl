@@ -14,6 +14,12 @@ env "local" {
     // URL where the migration directory resides.
     dir = "file://migrations"
   }
+
+  format {
+    migrate {
+      diff = "{{ sql . \"  \" }}"
+    }
+  }
 }
 
 env "docker" {
@@ -31,5 +37,11 @@ env "docker" {
   migration {
     // URL where the migration directory resides.
     dir = "file://migrations"
+  }
+
+  format {
+    migrate {
+      diff = "{{ sql . \"  \" }}"
+    }
   }
 }

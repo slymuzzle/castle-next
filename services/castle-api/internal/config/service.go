@@ -42,7 +42,7 @@ type Config struct {
 
 var (
 	configFilePath        = "configs/server.yml"
-	envConfigPrefix       = "JOURNEYHUB_"
+	envConfigPrefix       = "CASTLE_"
 	ErrLoadingConfig      = "error loading config: %v"
 	ErrUnmarshalingConfig = "error unmarshaling config: %v"
 )

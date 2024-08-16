@@ -24,7 +24,6 @@ func (s *loggingService) Register(
 	ctx context.Context,
 	firstName string,
 	lastName string,
-	email string,
 	nickname string,
 	password string,
 	passwordConfirmation string,
@@ -32,7 +31,6 @@ func (s *loggingService) Register(
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "Register",
-			"email", email,
 			"nickname", nickname,
 			"took", time.Since(begin),
 			"err", err,
@@ -43,7 +41,6 @@ func (s *loggingService) Register(
 		ctx,
 		firstName,
 		lastName,
-		email,
 		nickname,
 		password,
 		passwordConfirmation,

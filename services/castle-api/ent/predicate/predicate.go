@@ -9,9 +9,6 @@ import (
 // File is the predicate function for file builders.
 type File func(*sql.Selector)
 
-// Friendship is the predicate function for friendship builders.
-type Friendship func(*sql.Selector)
-
 // Message is the predicate function for message builders.
 type Message func(*sql.Selector)
 
@@ -32,3 +29,9 @@ type RoomMember func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
+
+// UserContact is the predicate function for usercontact builders.
+type UserContact func(*sql.Selector)
+
+// UserPinCode is the predicate function for userpincode builders.
+type UserPinCode func(*sql.Selector)

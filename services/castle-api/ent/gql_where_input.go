@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"journeyhub/ent/file"
-	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/messagelink"
@@ -16,6 +15,8 @@ import (
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
+	"journeyhub/ent/usercontact"
+	"journeyhub/ent/userpincode"
 	"time"
 )
 
@@ -451,400 +452,6 @@ func (i *FileWhereInput) P() (predicate.File, error) {
 	}
 }
 
-// FriendshipWhereInput represents a where input for filtering Friendship queries.
-type FriendshipWhereInput struct {
-	Predicates []predicate.Friendship  `json:"-"`
-	Not        *FriendshipWhereInput   `json:"not,omitempty"`
-	Or         []*FriendshipWhereInput `json:"or,omitempty"`
-	And        []*FriendshipWhereInput `json:"and,omitempty"`
-
-	// "id" field predicates.
-	ID      *pulid.ID  `json:"id,omitempty"`
-	IDNEQ   *pulid.ID  `json:"idNEQ,omitempty"`
-	IDIn    []pulid.ID `json:"idIn,omitempty"`
-	IDNotIn []pulid.ID `json:"idNotIn,omitempty"`
-	IDGT    *pulid.ID  `json:"idGT,omitempty"`
-	IDGTE   *pulid.ID  `json:"idGTE,omitempty"`
-	IDLT    *pulid.ID  `json:"idLT,omitempty"`
-	IDLTE   *pulid.ID  `json:"idLTE,omitempty"`
-
-	// "user_id" field predicates.
-	UserID             *pulid.ID  `json:"userID,omitempty"`
-	UserIDNEQ          *pulid.ID  `json:"userIDNEQ,omitempty"`
-	UserIDIn           []pulid.ID `json:"userIDIn,omitempty"`
-	UserIDNotIn        []pulid.ID `json:"userIDNotIn,omitempty"`
-	UserIDGT           *pulid.ID  `json:"userIDGT,omitempty"`
-	UserIDGTE          *pulid.ID  `json:"userIDGTE,omitempty"`
-	UserIDLT           *pulid.ID  `json:"userIDLT,omitempty"`
-	UserIDLTE          *pulid.ID  `json:"userIDLTE,omitempty"`
-	UserIDContains     *pulid.ID  `json:"userIDContains,omitempty"`
-	UserIDHasPrefix    *pulid.ID  `json:"userIDHasPrefix,omitempty"`
-	UserIDHasSuffix    *pulid.ID  `json:"userIDHasSuffix,omitempty"`
-	UserIDEqualFold    *pulid.ID  `json:"userIDEqualFold,omitempty"`
-	UserIDContainsFold *pulid.ID  `json:"userIDContainsFold,omitempty"`
-
-	// "friend_id" field predicates.
-	FriendID             *pulid.ID  `json:"friendID,omitempty"`
-	FriendIDNEQ          *pulid.ID  `json:"friendIDNEQ,omitempty"`
-	FriendIDIn           []pulid.ID `json:"friendIDIn,omitempty"`
-	FriendIDNotIn        []pulid.ID `json:"friendIDNotIn,omitempty"`
-	FriendIDGT           *pulid.ID  `json:"friendIDGT,omitempty"`
-	FriendIDGTE          *pulid.ID  `json:"friendIDGTE,omitempty"`
-	FriendIDLT           *pulid.ID  `json:"friendIDLT,omitempty"`
-	FriendIDLTE          *pulid.ID  `json:"friendIDLTE,omitempty"`
-	FriendIDContains     *pulid.ID  `json:"friendIDContains,omitempty"`
-	FriendIDHasPrefix    *pulid.ID  `json:"friendIDHasPrefix,omitempty"`
-	FriendIDHasSuffix    *pulid.ID  `json:"friendIDHasSuffix,omitempty"`
-	FriendIDEqualFold    *pulid.ID  `json:"friendIDEqualFold,omitempty"`
-	FriendIDContainsFold *pulid.ID  `json:"friendIDContainsFold,omitempty"`
-
-	// "room_id" field predicates.
-	RoomID             *pulid.ID  `json:"roomID,omitempty"`
-	RoomIDNEQ          *pulid.ID  `json:"roomIDNEQ,omitempty"`
-	RoomIDIn           []pulid.ID `json:"roomIDIn,omitempty"`
-	RoomIDNotIn        []pulid.ID `json:"roomIDNotIn,omitempty"`
-	RoomIDGT           *pulid.ID  `json:"roomIDGT,omitempty"`
-	RoomIDGTE          *pulid.ID  `json:"roomIDGTE,omitempty"`
-	RoomIDLT           *pulid.ID  `json:"roomIDLT,omitempty"`
-	RoomIDLTE          *pulid.ID  `json:"roomIDLTE,omitempty"`
-	RoomIDContains     *pulid.ID  `json:"roomIDContains,omitempty"`
-	RoomIDHasPrefix    *pulid.ID  `json:"roomIDHasPrefix,omitempty"`
-	RoomIDHasSuffix    *pulid.ID  `json:"roomIDHasSuffix,omitempty"`
-	RoomIDIsNil        bool       `json:"roomIDIsNil,omitempty"`
-	RoomIDNotNil       bool       `json:"roomIDNotNil,omitempty"`
-	RoomIDEqualFold    *pulid.ID  `json:"roomIDEqualFold,omitempty"`
-	RoomIDContainsFold *pulid.ID  `json:"roomIDContainsFold,omitempty"`
-
-	// "created_at" field predicates.
-	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
-	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
-	CreatedAtIn    []time.Time `json:"createdAtIn,omitempty"`
-	CreatedAtNotIn []time.Time `json:"createdAtNotIn,omitempty"`
-	CreatedAtGT    *time.Time  `json:"createdAtGT,omitempty"`
-	CreatedAtGTE   *time.Time  `json:"createdAtGTE,omitempty"`
-	CreatedAtLT    *time.Time  `json:"createdAtLT,omitempty"`
-	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
-
-	// "user" edge predicates.
-	HasUser     *bool             `json:"hasUser,omitempty"`
-	HasUserWith []*UserWhereInput `json:"hasUserWith,omitempty"`
-
-	// "friend" edge predicates.
-	HasFriend     *bool             `json:"hasFriend,omitempty"`
-	HasFriendWith []*UserWhereInput `json:"hasFriendWith,omitempty"`
-
-	// "room" edge predicates.
-	HasRoom     *bool             `json:"hasRoom,omitempty"`
-	HasRoomWith []*RoomWhereInput `json:"hasRoomWith,omitempty"`
-}
-
-// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
-func (i *FriendshipWhereInput) AddPredicates(predicates ...predicate.Friendship) {
-	i.Predicates = append(i.Predicates, predicates...)
-}
-
-// Filter applies the FriendshipWhereInput filter on the FriendshipQuery builder.
-func (i *FriendshipWhereInput) Filter(q *FriendshipQuery) (*FriendshipQuery, error) {
-	if i == nil {
-		return q, nil
-	}
-	p, err := i.P()
-	if err != nil {
-		if err == ErrEmptyFriendshipWhereInput {
-			return q, nil
-		}
-		return nil, err
-	}
-	return q.Where(p), nil
-}
-
-// ErrEmptyFriendshipWhereInput is returned in case the FriendshipWhereInput is empty.
-var ErrEmptyFriendshipWhereInput = errors.New("ent: empty predicate FriendshipWhereInput")
-
-// P returns a predicate for filtering friendships.
-// An error is returned if the input is empty or invalid.
-func (i *FriendshipWhereInput) P() (predicate.Friendship, error) {
-	var predicates []predicate.Friendship
-	if i.Not != nil {
-		p, err := i.Not.P()
-		if err != nil {
-			return nil, fmt.Errorf("%w: field 'not'", err)
-		}
-		predicates = append(predicates, friendship.Not(p))
-	}
-	switch n := len(i.Or); {
-	case n == 1:
-		p, err := i.Or[0].P()
-		if err != nil {
-			return nil, fmt.Errorf("%w: field 'or'", err)
-		}
-		predicates = append(predicates, p)
-	case n > 1:
-		or := make([]predicate.Friendship, 0, n)
-		for _, w := range i.Or {
-			p, err := w.P()
-			if err != nil {
-				return nil, fmt.Errorf("%w: field 'or'", err)
-			}
-			or = append(or, p)
-		}
-		predicates = append(predicates, friendship.Or(or...))
-	}
-	switch n := len(i.And); {
-	case n == 1:
-		p, err := i.And[0].P()
-		if err != nil {
-			return nil, fmt.Errorf("%w: field 'and'", err)
-		}
-		predicates = append(predicates, p)
-	case n > 1:
-		and := make([]predicate.Friendship, 0, n)
-		for _, w := range i.And {
-			p, err := w.P()
-			if err != nil {
-				return nil, fmt.Errorf("%w: field 'and'", err)
-			}
-			and = append(and, p)
-		}
-		predicates = append(predicates, friendship.And(and...))
-	}
-	predicates = append(predicates, i.Predicates...)
-	if i.ID != nil {
-		predicates = append(predicates, friendship.IDEQ(*i.ID))
-	}
-	if i.IDNEQ != nil {
-		predicates = append(predicates, friendship.IDNEQ(*i.IDNEQ))
-	}
-	if len(i.IDIn) > 0 {
-		predicates = append(predicates, friendship.IDIn(i.IDIn...))
-	}
-	if len(i.IDNotIn) > 0 {
-		predicates = append(predicates, friendship.IDNotIn(i.IDNotIn...))
-	}
-	if i.IDGT != nil {
-		predicates = append(predicates, friendship.IDGT(*i.IDGT))
-	}
-	if i.IDGTE != nil {
-		predicates = append(predicates, friendship.IDGTE(*i.IDGTE))
-	}
-	if i.IDLT != nil {
-		predicates = append(predicates, friendship.IDLT(*i.IDLT))
-	}
-	if i.IDLTE != nil {
-		predicates = append(predicates, friendship.IDLTE(*i.IDLTE))
-	}
-	if i.UserID != nil {
-		predicates = append(predicates, friendship.UserIDEQ(*i.UserID))
-	}
-	if i.UserIDNEQ != nil {
-		predicates = append(predicates, friendship.UserIDNEQ(*i.UserIDNEQ))
-	}
-	if len(i.UserIDIn) > 0 {
-		predicates = append(predicates, friendship.UserIDIn(i.UserIDIn...))
-	}
-	if len(i.UserIDNotIn) > 0 {
-		predicates = append(predicates, friendship.UserIDNotIn(i.UserIDNotIn...))
-	}
-	if i.UserIDGT != nil {
-		predicates = append(predicates, friendship.UserIDGT(*i.UserIDGT))
-	}
-	if i.UserIDGTE != nil {
-		predicates = append(predicates, friendship.UserIDGTE(*i.UserIDGTE))
-	}
-	if i.UserIDLT != nil {
-		predicates = append(predicates, friendship.UserIDLT(*i.UserIDLT))
-	}
-	if i.UserIDLTE != nil {
-		predicates = append(predicates, friendship.UserIDLTE(*i.UserIDLTE))
-	}
-	if i.UserIDContains != nil {
-		predicates = append(predicates, friendship.UserIDContains(*i.UserIDContains))
-	}
-	if i.UserIDHasPrefix != nil {
-		predicates = append(predicates, friendship.UserIDHasPrefix(*i.UserIDHasPrefix))
-	}
-	if i.UserIDHasSuffix != nil {
-		predicates = append(predicates, friendship.UserIDHasSuffix(*i.UserIDHasSuffix))
-	}
-	if i.UserIDEqualFold != nil {
-		predicates = append(predicates, friendship.UserIDEqualFold(*i.UserIDEqualFold))
-	}
-	if i.UserIDContainsFold != nil {
-		predicates = append(predicates, friendship.UserIDContainsFold(*i.UserIDContainsFold))
-	}
-	if i.FriendID != nil {
-		predicates = append(predicates, friendship.FriendIDEQ(*i.FriendID))
-	}
-	if i.FriendIDNEQ != nil {
-		predicates = append(predicates, friendship.FriendIDNEQ(*i.FriendIDNEQ))
-	}
-	if len(i.FriendIDIn) > 0 {
-		predicates = append(predicates, friendship.FriendIDIn(i.FriendIDIn...))
-	}
-	if len(i.FriendIDNotIn) > 0 {
-		predicates = append(predicates, friendship.FriendIDNotIn(i.FriendIDNotIn...))
-	}
-	if i.FriendIDGT != nil {
-		predicates = append(predicates, friendship.FriendIDGT(*i.FriendIDGT))
-	}
-	if i.FriendIDGTE != nil {
-		predicates = append(predicates, friendship.FriendIDGTE(*i.FriendIDGTE))
-	}
-	if i.FriendIDLT != nil {
-		predicates = append(predicates, friendship.FriendIDLT(*i.FriendIDLT))
-	}
-	if i.FriendIDLTE != nil {
-		predicates = append(predicates, friendship.FriendIDLTE(*i.FriendIDLTE))
-	}
-	if i.FriendIDContains != nil {
-		predicates = append(predicates, friendship.FriendIDContains(*i.FriendIDContains))
-	}
-	if i.FriendIDHasPrefix != nil {
-		predicates = append(predicates, friendship.FriendIDHasPrefix(*i.FriendIDHasPrefix))
-	}
-	if i.FriendIDHasSuffix != nil {
-		predicates = append(predicates, friendship.FriendIDHasSuffix(*i.FriendIDHasSuffix))
-	}
-	if i.FriendIDEqualFold != nil {
-		predicates = append(predicates, friendship.FriendIDEqualFold(*i.FriendIDEqualFold))
-	}
-	if i.FriendIDContainsFold != nil {
-		predicates = append(predicates, friendship.FriendIDContainsFold(*i.FriendIDContainsFold))
-	}
-	if i.RoomID != nil {
-		predicates = append(predicates, friendship.RoomIDEQ(*i.RoomID))
-	}
-	if i.RoomIDNEQ != nil {
-		predicates = append(predicates, friendship.RoomIDNEQ(*i.RoomIDNEQ))
-	}
-	if len(i.RoomIDIn) > 0 {
-		predicates = append(predicates, friendship.RoomIDIn(i.RoomIDIn...))
-	}
-	if len(i.RoomIDNotIn) > 0 {
-		predicates = append(predicates, friendship.RoomIDNotIn(i.RoomIDNotIn...))
-	}
-	if i.RoomIDGT != nil {
-		predicates = append(predicates, friendship.RoomIDGT(*i.RoomIDGT))
-	}
-	if i.RoomIDGTE != nil {
-		predicates = append(predicates, friendship.RoomIDGTE(*i.RoomIDGTE))
-	}
-	if i.RoomIDLT != nil {
-		predicates = append(predicates, friendship.RoomIDLT(*i.RoomIDLT))
-	}
-	if i.RoomIDLTE != nil {
-		predicates = append(predicates, friendship.RoomIDLTE(*i.RoomIDLTE))
-	}
-	if i.RoomIDContains != nil {
-		predicates = append(predicates, friendship.RoomIDContains(*i.RoomIDContains))
-	}
-	if i.RoomIDHasPrefix != nil {
-		predicates = append(predicates, friendship.RoomIDHasPrefix(*i.RoomIDHasPrefix))
-	}
-	if i.RoomIDHasSuffix != nil {
-		predicates = append(predicates, friendship.RoomIDHasSuffix(*i.RoomIDHasSuffix))
-	}
-	if i.RoomIDIsNil {
-		predicates = append(predicates, friendship.RoomIDIsNil())
-	}
-	if i.RoomIDNotNil {
-		predicates = append(predicates, friendship.RoomIDNotNil())
-	}
-	if i.RoomIDEqualFold != nil {
-		predicates = append(predicates, friendship.RoomIDEqualFold(*i.RoomIDEqualFold))
-	}
-	if i.RoomIDContainsFold != nil {
-		predicates = append(predicates, friendship.RoomIDContainsFold(*i.RoomIDContainsFold))
-	}
-	if i.CreatedAt != nil {
-		predicates = append(predicates, friendship.CreatedAtEQ(*i.CreatedAt))
-	}
-	if i.CreatedAtNEQ != nil {
-		predicates = append(predicates, friendship.CreatedAtNEQ(*i.CreatedAtNEQ))
-	}
-	if len(i.CreatedAtIn) > 0 {
-		predicates = append(predicates, friendship.CreatedAtIn(i.CreatedAtIn...))
-	}
-	if len(i.CreatedAtNotIn) > 0 {
-		predicates = append(predicates, friendship.CreatedAtNotIn(i.CreatedAtNotIn...))
-	}
-	if i.CreatedAtGT != nil {
-		predicates = append(predicates, friendship.CreatedAtGT(*i.CreatedAtGT))
-	}
-	if i.CreatedAtGTE != nil {
-		predicates = append(predicates, friendship.CreatedAtGTE(*i.CreatedAtGTE))
-	}
-	if i.CreatedAtLT != nil {
-		predicates = append(predicates, friendship.CreatedAtLT(*i.CreatedAtLT))
-	}
-	if i.CreatedAtLTE != nil {
-		predicates = append(predicates, friendship.CreatedAtLTE(*i.CreatedAtLTE))
-	}
-
-	if i.HasUser != nil {
-		p := friendship.HasUser()
-		if !*i.HasUser {
-			p = friendship.Not(p)
-		}
-		predicates = append(predicates, p)
-	}
-	if len(i.HasUserWith) > 0 {
-		with := make([]predicate.User, 0, len(i.HasUserWith))
-		for _, w := range i.HasUserWith {
-			p, err := w.P()
-			if err != nil {
-				return nil, fmt.Errorf("%w: field 'HasUserWith'", err)
-			}
-			with = append(with, p)
-		}
-		predicates = append(predicates, friendship.HasUserWith(with...))
-	}
-	if i.HasFriend != nil {
-		p := friendship.HasFriend()
-		if !*i.HasFriend {
-			p = friendship.Not(p)
-		}
-		predicates = append(predicates, p)
-	}
-	if len(i.HasFriendWith) > 0 {
-		with := make([]predicate.User, 0, len(i.HasFriendWith))
-		for _, w := range i.HasFriendWith {
-			p, err := w.P()
-			if err != nil {
-				return nil, fmt.Errorf("%w: field 'HasFriendWith'", err)
-			}
-			with = append(with, p)
-		}
-		predicates = append(predicates, friendship.HasFriendWith(with...))
-	}
-	if i.HasRoom != nil {
-		p := friendship.HasRoom()
-		if !*i.HasRoom {
-			p = friendship.Not(p)
-		}
-		predicates = append(predicates, p)
-	}
-	if len(i.HasRoomWith) > 0 {
-		with := make([]predicate.Room, 0, len(i.HasRoomWith))
-		for _, w := range i.HasRoomWith {
-			p, err := w.P()
-			if err != nil {
-				return nil, fmt.Errorf("%w: field 'HasRoomWith'", err)
-			}
-			with = append(with, p)
-		}
-		predicates = append(predicates, friendship.HasRoomWith(with...))
-	}
-	switch len(predicates) {
-	case 0:
-		return nil, ErrEmptyFriendshipWhereInput
-	case 1:
-		return predicates[0], nil
-	default:
-		return friendship.And(predicates...), nil
-	}
-}
-
 // MessageWhereInput represents a where input for filtering Message queries.
 type MessageWhereInput struct {
 	Predicates []predicate.Message  `json:"-"`
@@ -897,13 +504,9 @@ type MessageWhereInput struct {
 	UpdatedAtLT    *time.Time  `json:"updatedAtLT,omitempty"`
 	UpdatedAtLTE   *time.Time  `json:"updatedAtLTE,omitempty"`
 
-	// "user" edge predicates.
-	HasUser     *bool             `json:"hasUser,omitempty"`
-	HasUserWith []*UserWhereInput `json:"hasUserWith,omitempty"`
-
-	// "room" edge predicates.
-	HasRoom     *bool             `json:"hasRoom,omitempty"`
-	HasRoomWith []*RoomWhereInput `json:"hasRoomWith,omitempty"`
+	// "voice" edge predicates.
+	HasVoice     *bool                     `json:"hasVoice,omitempty"`
+	HasVoiceWith []*MessageVoiceWhereInput `json:"hasVoiceWith,omitempty"`
 
 	// "reply_to" edge predicates.
 	HasReplyTo     *bool                `json:"hasReplyTo,omitempty"`
@@ -916,6 +519,14 @@ type MessageWhereInput struct {
 	// "links" edge predicates.
 	HasLinks     *bool                    `json:"hasLinks,omitempty"`
 	HasLinksWith []*MessageLinkWhereInput `json:"hasLinksWith,omitempty"`
+
+	// "user" edge predicates.
+	HasUser     *bool             `json:"hasUser,omitempty"`
+	HasUserWith []*UserWhereInput `json:"hasUserWith,omitempty"`
+
+	// "room" edge predicates.
+	HasRoom     *bool             `json:"hasRoom,omitempty"`
+	HasRoomWith []*RoomWhereInput `json:"hasRoomWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -1101,41 +712,23 @@ func (i *MessageWhereInput) P() (predicate.Message, error) {
 		predicates = append(predicates, message.UpdatedAtLTE(*i.UpdatedAtLTE))
 	}
 
-	if i.HasUser != nil {
-		p := message.HasUser()
-		if !*i.HasUser {
+	if i.HasVoice != nil {
+		p := message.HasVoice()
+		if !*i.HasVoice {
 			p = message.Not(p)
 		}
 		predicates = append(predicates, p)
 	}
-	if len(i.HasUserWith) > 0 {
-		with := make([]predicate.User, 0, len(i.HasUserWith))
-		for _, w := range i.HasUserWith {
+	if len(i.HasVoiceWith) > 0 {
+		with := make([]predicate.MessageVoice, 0, len(i.HasVoiceWith))
+		for _, w := range i.HasVoiceWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, fmt.Errorf("%w: field 'HasUserWith'", err)
+				return nil, fmt.Errorf("%w: field 'HasVoiceWith'", err)
 			}
 			with = append(with, p)
 		}
-		predicates = append(predicates, message.HasUserWith(with...))
-	}
-	if i.HasRoom != nil {
-		p := message.HasRoom()
-		if !*i.HasRoom {
-			p = message.Not(p)
-		}
-		predicates = append(predicates, p)
-	}
-	if len(i.HasRoomWith) > 0 {
-		with := make([]predicate.Room, 0, len(i.HasRoomWith))
-		for _, w := range i.HasRoomWith {
-			p, err := w.P()
-			if err != nil {
-				return nil, fmt.Errorf("%w: field 'HasRoomWith'", err)
-			}
-			with = append(with, p)
-		}
-		predicates = append(predicates, message.HasRoomWith(with...))
+		predicates = append(predicates, message.HasVoiceWith(with...))
 	}
 	if i.HasReplyTo != nil {
 		p := message.HasReplyTo()
@@ -1191,6 +784,42 @@ func (i *MessageWhereInput) P() (predicate.Message, error) {
 		}
 		predicates = append(predicates, message.HasLinksWith(with...))
 	}
+	if i.HasUser != nil {
+		p := message.HasUser()
+		if !*i.HasUser {
+			p = message.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasUserWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasUserWith))
+		for _, w := range i.HasUserWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasUserWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, message.HasUserWith(with...))
+	}
+	if i.HasRoom != nil {
+		p := message.HasRoom()
+		if !*i.HasRoom {
+			p = message.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasRoomWith) > 0 {
+		with := make([]predicate.Room, 0, len(i.HasRoomWith))
+		for _, w := range i.HasRoomWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasRoomWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, message.HasRoomWith(with...))
+	}
 	switch len(predicates) {
 	case 0:
 		return nil, ErrEmptyMessageWhereInput
@@ -1225,14 +854,14 @@ type MessageAttachmentWhereInput struct {
 	TypeNotIn []messageattachment.Type `json:"typeNotIn,omitempty"`
 
 	// "order" field predicates.
-	Order      *uint64  `json:"order,omitempty"`
-	OrderNEQ   *uint64  `json:"orderNEQ,omitempty"`
-	OrderIn    []uint64 `json:"orderIn,omitempty"`
-	OrderNotIn []uint64 `json:"orderNotIn,omitempty"`
-	OrderGT    *uint64  `json:"orderGT,omitempty"`
-	OrderGTE   *uint64  `json:"orderGTE,omitempty"`
-	OrderLT    *uint64  `json:"orderLT,omitempty"`
-	OrderLTE   *uint64  `json:"orderLTE,omitempty"`
+	Order      *uint  `json:"order,omitempty"`
+	OrderNEQ   *uint  `json:"orderNEQ,omitempty"`
+	OrderIn    []uint `json:"orderIn,omitempty"`
+	OrderNotIn []uint `json:"orderNotIn,omitempty"`
+	OrderGT    *uint  `json:"orderGT,omitempty"`
+	OrderGTE   *uint  `json:"orderGTE,omitempty"`
+	OrderLT    *uint  `json:"orderLT,omitempty"`
+	OrderLTE   *uint  `json:"orderLTE,omitempty"`
 
 	// "attached_at" field predicates.
 	AttachedAt      *time.Time  `json:"attachedAt,omitempty"`
@@ -1243,6 +872,10 @@ type MessageAttachmentWhereInput struct {
 	AttachedAtGTE   *time.Time  `json:"attachedAtGTE,omitempty"`
 	AttachedAtLT    *time.Time  `json:"attachedAtLT,omitempty"`
 	AttachedAtLTE   *time.Time  `json:"attachedAtLTE,omitempty"`
+
+	// "room" edge predicates.
+	HasRoom     *bool             `json:"hasRoom,omitempty"`
+	HasRoomWith []*RoomWhereInput `json:"hasRoomWith,omitempty"`
 
 	// "message" edge predicates.
 	HasMessage     *bool                `json:"hasMessage,omitempty"`
@@ -1409,6 +1042,24 @@ func (i *MessageAttachmentWhereInput) P() (predicate.MessageAttachment, error) {
 		predicates = append(predicates, messageattachment.AttachedAtLTE(*i.AttachedAtLTE))
 	}
 
+	if i.HasRoom != nil {
+		p := messageattachment.HasRoom()
+		if !*i.HasRoom {
+			p = messageattachment.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasRoomWith) > 0 {
+		with := make([]predicate.Room, 0, len(i.HasRoomWith))
+		for _, w := range i.HasRoomWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasRoomWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, messageattachment.HasRoomWith(with...))
+	}
 	if i.HasMessage != nil {
 		p := messageattachment.HasMessage()
 		if !*i.HasMessage {
@@ -1506,6 +1157,10 @@ type MessageLinkWhereInput struct {
 	UpdatedAtGTE   *time.Time  `json:"updatedAtGTE,omitempty"`
 	UpdatedAtLT    *time.Time  `json:"updatedAtLT,omitempty"`
 	UpdatedAtLTE   *time.Time  `json:"updatedAtLTE,omitempty"`
+
+	// "room" edge predicates.
+	HasRoom     *bool             `json:"hasRoom,omitempty"`
+	HasRoomWith []*RoomWhereInput `json:"hasRoomWith,omitempty"`
 
 	// "message" edge predicates.
 	HasMessage     *bool                `json:"hasMessage,omitempty"`
@@ -1695,6 +1350,24 @@ func (i *MessageLinkWhereInput) P() (predicate.MessageLink, error) {
 		predicates = append(predicates, messagelink.UpdatedAtLTE(*i.UpdatedAtLTE))
 	}
 
+	if i.HasRoom != nil {
+		p := messagelink.HasRoom()
+		if !*i.HasRoom {
+			p = messagelink.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasRoomWith) > 0 {
+		with := make([]predicate.Room, 0, len(i.HasRoomWith))
+		for _, w := range i.HasRoomWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasRoomWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, messagelink.HasRoomWith(with...))
+	}
 	if i.HasMessage != nil {
 		p := messagelink.HasMessage()
 		if !*i.HasMessage {
@@ -1759,6 +1432,14 @@ type MessageVoiceWhereInput struct {
 	AttachedAtGTE   *time.Time  `json:"attachedAtGTE,omitempty"`
 	AttachedAtLT    *time.Time  `json:"attachedAtLT,omitempty"`
 	AttachedAtLTE   *time.Time  `json:"attachedAtLTE,omitempty"`
+
+	// "room" edge predicates.
+	HasRoom     *bool             `json:"hasRoom,omitempty"`
+	HasRoomWith []*RoomWhereInput `json:"hasRoomWith,omitempty"`
+
+	// "message" edge predicates.
+	HasMessage     *bool                `json:"hasMessage,omitempty"`
+	HasMessageWith []*MessageWhereInput `json:"hasMessageWith,omitempty"`
 
 	// "file" edge predicates.
 	HasFile     *bool             `json:"hasFile,omitempty"`
@@ -1909,6 +1590,42 @@ func (i *MessageVoiceWhereInput) P() (predicate.MessageVoice, error) {
 		predicates = append(predicates, messagevoice.AttachedAtLTE(*i.AttachedAtLTE))
 	}
 
+	if i.HasRoom != nil {
+		p := messagevoice.HasRoom()
+		if !*i.HasRoom {
+			p = messagevoice.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasRoomWith) > 0 {
+		with := make([]predicate.Room, 0, len(i.HasRoomWith))
+		for _, w := range i.HasRoomWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasRoomWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, messagevoice.HasRoomWith(with...))
+	}
+	if i.HasMessage != nil {
+		p := messagevoice.HasMessage()
+		if !*i.HasMessage {
+			p = messagevoice.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasMessageWith) > 0 {
+		with := make([]predicate.Message, 0, len(i.HasMessageWith))
+		for _, w := range i.HasMessageWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasMessageWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, messagevoice.HasMessageWith(with...))
+	}
 	if i.HasFile != nil {
 		p := messagevoice.HasFile()
 		if !*i.HasFile {
@@ -2012,6 +1729,18 @@ type RoomWhereInput struct {
 	// "messages" edge predicates.
 	HasMessages     *bool                `json:"hasMessages,omitempty"`
 	HasMessagesWith []*MessageWhereInput `json:"hasMessagesWith,omitempty"`
+
+	// "message_voices" edge predicates.
+	HasMessageVoices     *bool                     `json:"hasMessageVoices,omitempty"`
+	HasMessageVoicesWith []*MessageVoiceWhereInput `json:"hasMessageVoicesWith,omitempty"`
+
+	// "message_attachments" edge predicates.
+	HasMessageAttachments     *bool                          `json:"hasMessageAttachments,omitempty"`
+	HasMessageAttachmentsWith []*MessageAttachmentWhereInput `json:"hasMessageAttachmentsWith,omitempty"`
+
+	// "message_links" edge predicates.
+	HasMessageLinks     *bool                    `json:"hasMessageLinks,omitempty"`
+	HasMessageLinksWith []*MessageLinkWhereInput `json:"hasMessageLinksWith,omitempty"`
 
 	// "room_members" edge predicates.
 	HasRoomMembers     *bool                   `json:"hasRoomMembers,omitempty"`
@@ -2272,6 +2001,60 @@ func (i *RoomWhereInput) P() (predicate.Room, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, room.HasMessagesWith(with...))
+	}
+	if i.HasMessageVoices != nil {
+		p := room.HasMessageVoices()
+		if !*i.HasMessageVoices {
+			p = room.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasMessageVoicesWith) > 0 {
+		with := make([]predicate.MessageVoice, 0, len(i.HasMessageVoicesWith))
+		for _, w := range i.HasMessageVoicesWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasMessageVoicesWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, room.HasMessageVoicesWith(with...))
+	}
+	if i.HasMessageAttachments != nil {
+		p := room.HasMessageAttachments()
+		if !*i.HasMessageAttachments {
+			p = room.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasMessageAttachmentsWith) > 0 {
+		with := make([]predicate.MessageAttachment, 0, len(i.HasMessageAttachmentsWith))
+		for _, w := range i.HasMessageAttachmentsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasMessageAttachmentsWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, room.HasMessageAttachmentsWith(with...))
+	}
+	if i.HasMessageLinks != nil {
+		p := room.HasMessageLinks()
+		if !*i.HasMessageLinks {
+			p = room.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasMessageLinksWith) > 0 {
+		with := make([]predicate.MessageLink, 0, len(i.HasMessageLinksWith))
+		for _, w := range i.HasMessageLinksWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasMessageLinksWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, room.HasMessageLinksWith(with...))
 	}
 	if i.HasRoomMembers != nil {
 		p := room.HasRoomMembers()
@@ -2685,8 +2468,25 @@ type UserWhereInput struct {
 	EmailContains     *string  `json:"emailContains,omitempty"`
 	EmailHasPrefix    *string  `json:"emailHasPrefix,omitempty"`
 	EmailHasSuffix    *string  `json:"emailHasSuffix,omitempty"`
+	EmailIsNil        bool     `json:"emailIsNil,omitempty"`
+	EmailNotNil       bool     `json:"emailNotNil,omitempty"`
 	EmailEqualFold    *string  `json:"emailEqualFold,omitempty"`
 	EmailContainsFold *string  `json:"emailContainsFold,omitempty"`
+
+	// "contact_pin" field predicates.
+	ContactPin             *string  `json:"contactPin,omitempty"`
+	ContactPinNEQ          *string  `json:"contactPinNEQ,omitempty"`
+	ContactPinIn           []string `json:"contactPinIn,omitempty"`
+	ContactPinNotIn        []string `json:"contactPinNotIn,omitempty"`
+	ContactPinGT           *string  `json:"contactPinGT,omitempty"`
+	ContactPinGTE          *string  `json:"contactPinGTE,omitempty"`
+	ContactPinLT           *string  `json:"contactPinLT,omitempty"`
+	ContactPinLTE          *string  `json:"contactPinLTE,omitempty"`
+	ContactPinContains     *string  `json:"contactPinContains,omitempty"`
+	ContactPinHasPrefix    *string  `json:"contactPinHasPrefix,omitempty"`
+	ContactPinHasSuffix    *string  `json:"contactPinHasSuffix,omitempty"`
+	ContactPinEqualFold    *string  `json:"contactPinEqualFold,omitempty"`
+	ContactPinContainsFold *string  `json:"contactPinContainsFold,omitempty"`
 
 	// "created_at" field predicates.
 	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
@@ -2708,9 +2508,9 @@ type UserWhereInput struct {
 	UpdatedAtLT    *time.Time  `json:"updatedAtLT,omitempty"`
 	UpdatedAtLTE   *time.Time  `json:"updatedAtLTE,omitempty"`
 
-	// "friends" edge predicates.
-	HasFriends     *bool             `json:"hasFriends,omitempty"`
-	HasFriendsWith []*UserWhereInput `json:"hasFriendsWith,omitempty"`
+	// "contacts" edge predicates.
+	HasContacts     *bool             `json:"hasContacts,omitempty"`
+	HasContactsWith []*UserWhereInput `json:"hasContactsWith,omitempty"`
 
 	// "rooms" edge predicates.
 	HasRooms     *bool             `json:"hasRooms,omitempty"`
@@ -2720,9 +2520,9 @@ type UserWhereInput struct {
 	HasMessages     *bool                `json:"hasMessages,omitempty"`
 	HasMessagesWith []*MessageWhereInput `json:"hasMessagesWith,omitempty"`
 
-	// "friendships" edge predicates.
-	HasFriendships     *bool                   `json:"hasFriendships,omitempty"`
-	HasFriendshipsWith []*FriendshipWhereInput `json:"hasFriendshipsWith,omitempty"`
+	// "user_contacts" edge predicates.
+	HasUserContacts     *bool                    `json:"hasUserContacts,omitempty"`
+	HasUserContactsWith []*UserContactWhereInput `json:"hasUserContactsWith,omitempty"`
 
 	// "memberships" edge predicates.
 	HasMemberships     *bool                   `json:"hasMemberships,omitempty"`
@@ -2974,11 +2774,56 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 	if i.EmailHasSuffix != nil {
 		predicates = append(predicates, user.EmailHasSuffix(*i.EmailHasSuffix))
 	}
+	if i.EmailIsNil {
+		predicates = append(predicates, user.EmailIsNil())
+	}
+	if i.EmailNotNil {
+		predicates = append(predicates, user.EmailNotNil())
+	}
 	if i.EmailEqualFold != nil {
 		predicates = append(predicates, user.EmailEqualFold(*i.EmailEqualFold))
 	}
 	if i.EmailContainsFold != nil {
 		predicates = append(predicates, user.EmailContainsFold(*i.EmailContainsFold))
+	}
+	if i.ContactPin != nil {
+		predicates = append(predicates, user.ContactPinEQ(*i.ContactPin))
+	}
+	if i.ContactPinNEQ != nil {
+		predicates = append(predicates, user.ContactPinNEQ(*i.ContactPinNEQ))
+	}
+	if len(i.ContactPinIn) > 0 {
+		predicates = append(predicates, user.ContactPinIn(i.ContactPinIn...))
+	}
+	if len(i.ContactPinNotIn) > 0 {
+		predicates = append(predicates, user.ContactPinNotIn(i.ContactPinNotIn...))
+	}
+	if i.ContactPinGT != nil {
+		predicates = append(predicates, user.ContactPinGT(*i.ContactPinGT))
+	}
+	if i.ContactPinGTE != nil {
+		predicates = append(predicates, user.ContactPinGTE(*i.ContactPinGTE))
+	}
+	if i.ContactPinLT != nil {
+		predicates = append(predicates, user.ContactPinLT(*i.ContactPinLT))
+	}
+	if i.ContactPinLTE != nil {
+		predicates = append(predicates, user.ContactPinLTE(*i.ContactPinLTE))
+	}
+	if i.ContactPinContains != nil {
+		predicates = append(predicates, user.ContactPinContains(*i.ContactPinContains))
+	}
+	if i.ContactPinHasPrefix != nil {
+		predicates = append(predicates, user.ContactPinHasPrefix(*i.ContactPinHasPrefix))
+	}
+	if i.ContactPinHasSuffix != nil {
+		predicates = append(predicates, user.ContactPinHasSuffix(*i.ContactPinHasSuffix))
+	}
+	if i.ContactPinEqualFold != nil {
+		predicates = append(predicates, user.ContactPinEqualFold(*i.ContactPinEqualFold))
+	}
+	if i.ContactPinContainsFold != nil {
+		predicates = append(predicates, user.ContactPinContainsFold(*i.ContactPinContainsFold))
 	}
 	if i.CreatedAt != nil {
 		predicates = append(predicates, user.CreatedAtEQ(*i.CreatedAt))
@@ -3029,23 +2874,23 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 		predicates = append(predicates, user.UpdatedAtLTE(*i.UpdatedAtLTE))
 	}
 
-	if i.HasFriends != nil {
-		p := user.HasFriends()
-		if !*i.HasFriends {
+	if i.HasContacts != nil {
+		p := user.HasContacts()
+		if !*i.HasContacts {
 			p = user.Not(p)
 		}
 		predicates = append(predicates, p)
 	}
-	if len(i.HasFriendsWith) > 0 {
-		with := make([]predicate.User, 0, len(i.HasFriendsWith))
-		for _, w := range i.HasFriendsWith {
+	if len(i.HasContactsWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasContactsWith))
+		for _, w := range i.HasContactsWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, fmt.Errorf("%w: field 'HasFriendsWith'", err)
+				return nil, fmt.Errorf("%w: field 'HasContactsWith'", err)
 			}
 			with = append(with, p)
 		}
-		predicates = append(predicates, user.HasFriendsWith(with...))
+		predicates = append(predicates, user.HasContactsWith(with...))
 	}
 	if i.HasRooms != nil {
 		p := user.HasRooms()
@@ -3083,23 +2928,23 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 		}
 		predicates = append(predicates, user.HasMessagesWith(with...))
 	}
-	if i.HasFriendships != nil {
-		p := user.HasFriendships()
-		if !*i.HasFriendships {
+	if i.HasUserContacts != nil {
+		p := user.HasUserContacts()
+		if !*i.HasUserContacts {
 			p = user.Not(p)
 		}
 		predicates = append(predicates, p)
 	}
-	if len(i.HasFriendshipsWith) > 0 {
-		with := make([]predicate.Friendship, 0, len(i.HasFriendshipsWith))
-		for _, w := range i.HasFriendshipsWith {
+	if len(i.HasUserContactsWith) > 0 {
+		with := make([]predicate.UserContact, 0, len(i.HasUserContactsWith))
+		for _, w := range i.HasUserContactsWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, fmt.Errorf("%w: field 'HasFriendshipsWith'", err)
+				return nil, fmt.Errorf("%w: field 'HasUserContactsWith'", err)
 			}
 			with = append(with, p)
 		}
-		predicates = append(predicates, user.HasFriendshipsWith(with...))
+		predicates = append(predicates, user.HasUserContactsWith(with...))
 	}
 	if i.HasMemberships != nil {
 		p := user.HasMemberships()
@@ -3126,5 +2971,793 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 		return predicates[0], nil
 	default:
 		return user.And(predicates...), nil
+	}
+}
+
+// UserContactWhereInput represents a where input for filtering UserContact queries.
+type UserContactWhereInput struct {
+	Predicates []predicate.UserContact  `json:"-"`
+	Not        *UserContactWhereInput   `json:"not,omitempty"`
+	Or         []*UserContactWhereInput `json:"or,omitempty"`
+	And        []*UserContactWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *pulid.ID  `json:"id,omitempty"`
+	IDNEQ   *pulid.ID  `json:"idNEQ,omitempty"`
+	IDIn    []pulid.ID `json:"idIn,omitempty"`
+	IDNotIn []pulid.ID `json:"idNotIn,omitempty"`
+	IDGT    *pulid.ID  `json:"idGT,omitempty"`
+	IDGTE   *pulid.ID  `json:"idGTE,omitempty"`
+	IDLT    *pulid.ID  `json:"idLT,omitempty"`
+	IDLTE   *pulid.ID  `json:"idLTE,omitempty"`
+
+	// "user_id" field predicates.
+	UserID             *pulid.ID  `json:"userID,omitempty"`
+	UserIDNEQ          *pulid.ID  `json:"userIDNEQ,omitempty"`
+	UserIDIn           []pulid.ID `json:"userIDIn,omitempty"`
+	UserIDNotIn        []pulid.ID `json:"userIDNotIn,omitempty"`
+	UserIDGT           *pulid.ID  `json:"userIDGT,omitempty"`
+	UserIDGTE          *pulid.ID  `json:"userIDGTE,omitempty"`
+	UserIDLT           *pulid.ID  `json:"userIDLT,omitempty"`
+	UserIDLTE          *pulid.ID  `json:"userIDLTE,omitempty"`
+	UserIDContains     *pulid.ID  `json:"userIDContains,omitempty"`
+	UserIDHasPrefix    *pulid.ID  `json:"userIDHasPrefix,omitempty"`
+	UserIDHasSuffix    *pulid.ID  `json:"userIDHasSuffix,omitempty"`
+	UserIDEqualFold    *pulid.ID  `json:"userIDEqualFold,omitempty"`
+	UserIDContainsFold *pulid.ID  `json:"userIDContainsFold,omitempty"`
+
+	// "contact_id" field predicates.
+	ContactID             *pulid.ID  `json:"contactID,omitempty"`
+	ContactIDNEQ          *pulid.ID  `json:"contactIDNEQ,omitempty"`
+	ContactIDIn           []pulid.ID `json:"contactIDIn,omitempty"`
+	ContactIDNotIn        []pulid.ID `json:"contactIDNotIn,omitempty"`
+	ContactIDGT           *pulid.ID  `json:"contactIDGT,omitempty"`
+	ContactIDGTE          *pulid.ID  `json:"contactIDGTE,omitempty"`
+	ContactIDLT           *pulid.ID  `json:"contactIDLT,omitempty"`
+	ContactIDLTE          *pulid.ID  `json:"contactIDLTE,omitempty"`
+	ContactIDContains     *pulid.ID  `json:"contactIDContains,omitempty"`
+	ContactIDHasPrefix    *pulid.ID  `json:"contactIDHasPrefix,omitempty"`
+	ContactIDHasSuffix    *pulid.ID  `json:"contactIDHasSuffix,omitempty"`
+	ContactIDEqualFold    *pulid.ID  `json:"contactIDEqualFold,omitempty"`
+	ContactIDContainsFold *pulid.ID  `json:"contactIDContainsFold,omitempty"`
+
+	// "room_id" field predicates.
+	RoomID             *pulid.ID  `json:"roomID,omitempty"`
+	RoomIDNEQ          *pulid.ID  `json:"roomIDNEQ,omitempty"`
+	RoomIDIn           []pulid.ID `json:"roomIDIn,omitempty"`
+	RoomIDNotIn        []pulid.ID `json:"roomIDNotIn,omitempty"`
+	RoomIDGT           *pulid.ID  `json:"roomIDGT,omitempty"`
+	RoomIDGTE          *pulid.ID  `json:"roomIDGTE,omitempty"`
+	RoomIDLT           *pulid.ID  `json:"roomIDLT,omitempty"`
+	RoomIDLTE          *pulid.ID  `json:"roomIDLTE,omitempty"`
+	RoomIDContains     *pulid.ID  `json:"roomIDContains,omitempty"`
+	RoomIDHasPrefix    *pulid.ID  `json:"roomIDHasPrefix,omitempty"`
+	RoomIDHasSuffix    *pulid.ID  `json:"roomIDHasSuffix,omitempty"`
+	RoomIDIsNil        bool       `json:"roomIDIsNil,omitempty"`
+	RoomIDNotNil       bool       `json:"roomIDNotNil,omitempty"`
+	RoomIDEqualFold    *pulid.ID  `json:"roomIDEqualFold,omitempty"`
+	RoomIDContainsFold *pulid.ID  `json:"roomIDContainsFold,omitempty"`
+
+	// "created_at" field predicates.
+	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
+	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
+	CreatedAtIn    []time.Time `json:"createdAtIn,omitempty"`
+	CreatedAtNotIn []time.Time `json:"createdAtNotIn,omitempty"`
+	CreatedAtGT    *time.Time  `json:"createdAtGT,omitempty"`
+	CreatedAtGTE   *time.Time  `json:"createdAtGTE,omitempty"`
+	CreatedAtLT    *time.Time  `json:"createdAtLT,omitempty"`
+	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
+
+	// "user" edge predicates.
+	HasUser     *bool             `json:"hasUser,omitempty"`
+	HasUserWith []*UserWhereInput `json:"hasUserWith,omitempty"`
+
+	// "contact" edge predicates.
+	HasContact     *bool             `json:"hasContact,omitempty"`
+	HasContactWith []*UserWhereInput `json:"hasContactWith,omitempty"`
+
+	// "room" edge predicates.
+	HasRoom     *bool             `json:"hasRoom,omitempty"`
+	HasRoomWith []*RoomWhereInput `json:"hasRoomWith,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *UserContactWhereInput) AddPredicates(predicates ...predicate.UserContact) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Filter applies the UserContactWhereInput filter on the UserContactQuery builder.
+func (i *UserContactWhereInput) Filter(q *UserContactQuery) (*UserContactQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		if err == ErrEmptyUserContactWhereInput {
+			return q, nil
+		}
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// ErrEmptyUserContactWhereInput is returned in case the UserContactWhereInput is empty.
+var ErrEmptyUserContactWhereInput = errors.New("ent: empty predicate UserContactWhereInput")
+
+// P returns a predicate for filtering usercontacts.
+// An error is returned if the input is empty or invalid.
+func (i *UserContactWhereInput) P() (predicate.UserContact, error) {
+	var predicates []predicate.UserContact
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'not'", err)
+		}
+		predicates = append(predicates, usercontact.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'or'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.UserContact, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'or'", err)
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, usercontact.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'and'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.UserContact, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'and'", err)
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, usercontact.And(and...))
+	}
+	predicates = append(predicates, i.Predicates...)
+	if i.ID != nil {
+		predicates = append(predicates, usercontact.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, usercontact.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, usercontact.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, usercontact.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, usercontact.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, usercontact.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, usercontact.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, usercontact.IDLTE(*i.IDLTE))
+	}
+	if i.UserID != nil {
+		predicates = append(predicates, usercontact.UserIDEQ(*i.UserID))
+	}
+	if i.UserIDNEQ != nil {
+		predicates = append(predicates, usercontact.UserIDNEQ(*i.UserIDNEQ))
+	}
+	if len(i.UserIDIn) > 0 {
+		predicates = append(predicates, usercontact.UserIDIn(i.UserIDIn...))
+	}
+	if len(i.UserIDNotIn) > 0 {
+		predicates = append(predicates, usercontact.UserIDNotIn(i.UserIDNotIn...))
+	}
+	if i.UserIDGT != nil {
+		predicates = append(predicates, usercontact.UserIDGT(*i.UserIDGT))
+	}
+	if i.UserIDGTE != nil {
+		predicates = append(predicates, usercontact.UserIDGTE(*i.UserIDGTE))
+	}
+	if i.UserIDLT != nil {
+		predicates = append(predicates, usercontact.UserIDLT(*i.UserIDLT))
+	}
+	if i.UserIDLTE != nil {
+		predicates = append(predicates, usercontact.UserIDLTE(*i.UserIDLTE))
+	}
+	if i.UserIDContains != nil {
+		predicates = append(predicates, usercontact.UserIDContains(*i.UserIDContains))
+	}
+	if i.UserIDHasPrefix != nil {
+		predicates = append(predicates, usercontact.UserIDHasPrefix(*i.UserIDHasPrefix))
+	}
+	if i.UserIDHasSuffix != nil {
+		predicates = append(predicates, usercontact.UserIDHasSuffix(*i.UserIDHasSuffix))
+	}
+	if i.UserIDEqualFold != nil {
+		predicates = append(predicates, usercontact.UserIDEqualFold(*i.UserIDEqualFold))
+	}
+	if i.UserIDContainsFold != nil {
+		predicates = append(predicates, usercontact.UserIDContainsFold(*i.UserIDContainsFold))
+	}
+	if i.ContactID != nil {
+		predicates = append(predicates, usercontact.ContactIDEQ(*i.ContactID))
+	}
+	if i.ContactIDNEQ != nil {
+		predicates = append(predicates, usercontact.ContactIDNEQ(*i.ContactIDNEQ))
+	}
+	if len(i.ContactIDIn) > 0 {
+		predicates = append(predicates, usercontact.ContactIDIn(i.ContactIDIn...))
+	}
+	if len(i.ContactIDNotIn) > 0 {
+		predicates = append(predicates, usercontact.ContactIDNotIn(i.ContactIDNotIn...))
+	}
+	if i.ContactIDGT != nil {
+		predicates = append(predicates, usercontact.ContactIDGT(*i.ContactIDGT))
+	}
+	if i.ContactIDGTE != nil {
+		predicates = append(predicates, usercontact.ContactIDGTE(*i.ContactIDGTE))
+	}
+	if i.ContactIDLT != nil {
+		predicates = append(predicates, usercontact.ContactIDLT(*i.ContactIDLT))
+	}
+	if i.ContactIDLTE != nil {
+		predicates = append(predicates, usercontact.ContactIDLTE(*i.ContactIDLTE))
+	}
+	if i.ContactIDContains != nil {
+		predicates = append(predicates, usercontact.ContactIDContains(*i.ContactIDContains))
+	}
+	if i.ContactIDHasPrefix != nil {
+		predicates = append(predicates, usercontact.ContactIDHasPrefix(*i.ContactIDHasPrefix))
+	}
+	if i.ContactIDHasSuffix != nil {
+		predicates = append(predicates, usercontact.ContactIDHasSuffix(*i.ContactIDHasSuffix))
+	}
+	if i.ContactIDEqualFold != nil {
+		predicates = append(predicates, usercontact.ContactIDEqualFold(*i.ContactIDEqualFold))
+	}
+	if i.ContactIDContainsFold != nil {
+		predicates = append(predicates, usercontact.ContactIDContainsFold(*i.ContactIDContainsFold))
+	}
+	if i.RoomID != nil {
+		predicates = append(predicates, usercontact.RoomIDEQ(*i.RoomID))
+	}
+	if i.RoomIDNEQ != nil {
+		predicates = append(predicates, usercontact.RoomIDNEQ(*i.RoomIDNEQ))
+	}
+	if len(i.RoomIDIn) > 0 {
+		predicates = append(predicates, usercontact.RoomIDIn(i.RoomIDIn...))
+	}
+	if len(i.RoomIDNotIn) > 0 {
+		predicates = append(predicates, usercontact.RoomIDNotIn(i.RoomIDNotIn...))
+	}
+	if i.RoomIDGT != nil {
+		predicates = append(predicates, usercontact.RoomIDGT(*i.RoomIDGT))
+	}
+	if i.RoomIDGTE != nil {
+		predicates = append(predicates, usercontact.RoomIDGTE(*i.RoomIDGTE))
+	}
+	if i.RoomIDLT != nil {
+		predicates = append(predicates, usercontact.RoomIDLT(*i.RoomIDLT))
+	}
+	if i.RoomIDLTE != nil {
+		predicates = append(predicates, usercontact.RoomIDLTE(*i.RoomIDLTE))
+	}
+	if i.RoomIDContains != nil {
+		predicates = append(predicates, usercontact.RoomIDContains(*i.RoomIDContains))
+	}
+	if i.RoomIDHasPrefix != nil {
+		predicates = append(predicates, usercontact.RoomIDHasPrefix(*i.RoomIDHasPrefix))
+	}
+	if i.RoomIDHasSuffix != nil {
+		predicates = append(predicates, usercontact.RoomIDHasSuffix(*i.RoomIDHasSuffix))
+	}
+	if i.RoomIDIsNil {
+		predicates = append(predicates, usercontact.RoomIDIsNil())
+	}
+	if i.RoomIDNotNil {
+		predicates = append(predicates, usercontact.RoomIDNotNil())
+	}
+	if i.RoomIDEqualFold != nil {
+		predicates = append(predicates, usercontact.RoomIDEqualFold(*i.RoomIDEqualFold))
+	}
+	if i.RoomIDContainsFold != nil {
+		predicates = append(predicates, usercontact.RoomIDContainsFold(*i.RoomIDContainsFold))
+	}
+	if i.CreatedAt != nil {
+		predicates = append(predicates, usercontact.CreatedAtEQ(*i.CreatedAt))
+	}
+	if i.CreatedAtNEQ != nil {
+		predicates = append(predicates, usercontact.CreatedAtNEQ(*i.CreatedAtNEQ))
+	}
+	if len(i.CreatedAtIn) > 0 {
+		predicates = append(predicates, usercontact.CreatedAtIn(i.CreatedAtIn...))
+	}
+	if len(i.CreatedAtNotIn) > 0 {
+		predicates = append(predicates, usercontact.CreatedAtNotIn(i.CreatedAtNotIn...))
+	}
+	if i.CreatedAtGT != nil {
+		predicates = append(predicates, usercontact.CreatedAtGT(*i.CreatedAtGT))
+	}
+	if i.CreatedAtGTE != nil {
+		predicates = append(predicates, usercontact.CreatedAtGTE(*i.CreatedAtGTE))
+	}
+	if i.CreatedAtLT != nil {
+		predicates = append(predicates, usercontact.CreatedAtLT(*i.CreatedAtLT))
+	}
+	if i.CreatedAtLTE != nil {
+		predicates = append(predicates, usercontact.CreatedAtLTE(*i.CreatedAtLTE))
+	}
+
+	if i.HasUser != nil {
+		p := usercontact.HasUser()
+		if !*i.HasUser {
+			p = usercontact.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasUserWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasUserWith))
+		for _, w := range i.HasUserWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasUserWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, usercontact.HasUserWith(with...))
+	}
+	if i.HasContact != nil {
+		p := usercontact.HasContact()
+		if !*i.HasContact {
+			p = usercontact.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasContactWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasContactWith))
+		for _, w := range i.HasContactWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasContactWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, usercontact.HasContactWith(with...))
+	}
+	if i.HasRoom != nil {
+		p := usercontact.HasRoom()
+		if !*i.HasRoom {
+			p = usercontact.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasRoomWith) > 0 {
+		with := make([]predicate.Room, 0, len(i.HasRoomWith))
+		for _, w := range i.HasRoomWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasRoomWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, usercontact.HasRoomWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyUserContactWhereInput
+	case 1:
+		return predicates[0], nil
+	default:
+		return usercontact.And(predicates...), nil
+	}
+}
+
+// UserPinCodeWhereInput represents a where input for filtering UserPinCode queries.
+type UserPinCodeWhereInput struct {
+	Predicates []predicate.UserPinCode  `json:"-"`
+	Not        *UserPinCodeWhereInput   `json:"not,omitempty"`
+	Or         []*UserPinCodeWhereInput `json:"or,omitempty"`
+	And        []*UserPinCodeWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *pulid.ID  `json:"id,omitempty"`
+	IDNEQ   *pulid.ID  `json:"idNEQ,omitempty"`
+	IDIn    []pulid.ID `json:"idIn,omitempty"`
+	IDNotIn []pulid.ID `json:"idNotIn,omitempty"`
+	IDGT    *pulid.ID  `json:"idGT,omitempty"`
+	IDGTE   *pulid.ID  `json:"idGTE,omitempty"`
+	IDLT    *pulid.ID  `json:"idLT,omitempty"`
+	IDLTE   *pulid.ID  `json:"idLTE,omitempty"`
+
+	// "user_id" field predicates.
+	UserID             *pulid.ID  `json:"userID,omitempty"`
+	UserIDNEQ          *pulid.ID  `json:"userIDNEQ,omitempty"`
+	UserIDIn           []pulid.ID `json:"userIDIn,omitempty"`
+	UserIDNotIn        []pulid.ID `json:"userIDNotIn,omitempty"`
+	UserIDGT           *pulid.ID  `json:"userIDGT,omitempty"`
+	UserIDGTE          *pulid.ID  `json:"userIDGTE,omitempty"`
+	UserIDLT           *pulid.ID  `json:"userIDLT,omitempty"`
+	UserIDLTE          *pulid.ID  `json:"userIDLTE,omitempty"`
+	UserIDContains     *pulid.ID  `json:"userIDContains,omitempty"`
+	UserIDHasPrefix    *pulid.ID  `json:"userIDHasPrefix,omitempty"`
+	UserIDHasSuffix    *pulid.ID  `json:"userIDHasSuffix,omitempty"`
+	UserIDEqualFold    *pulid.ID  `json:"userIDEqualFold,omitempty"`
+	UserIDContainsFold *pulid.ID  `json:"userIDContainsFold,omitempty"`
+
+	// "contact_id" field predicates.
+	ContactID             *pulid.ID  `json:"contactID,omitempty"`
+	ContactIDNEQ          *pulid.ID  `json:"contactIDNEQ,omitempty"`
+	ContactIDIn           []pulid.ID `json:"contactIDIn,omitempty"`
+	ContactIDNotIn        []pulid.ID `json:"contactIDNotIn,omitempty"`
+	ContactIDGT           *pulid.ID  `json:"contactIDGT,omitempty"`
+	ContactIDGTE          *pulid.ID  `json:"contactIDGTE,omitempty"`
+	ContactIDLT           *pulid.ID  `json:"contactIDLT,omitempty"`
+	ContactIDLTE          *pulid.ID  `json:"contactIDLTE,omitempty"`
+	ContactIDContains     *pulid.ID  `json:"contactIDContains,omitempty"`
+	ContactIDHasPrefix    *pulid.ID  `json:"contactIDHasPrefix,omitempty"`
+	ContactIDHasSuffix    *pulid.ID  `json:"contactIDHasSuffix,omitempty"`
+	ContactIDEqualFold    *pulid.ID  `json:"contactIDEqualFold,omitempty"`
+	ContactIDContainsFold *pulid.ID  `json:"contactIDContainsFold,omitempty"`
+
+	// "room_id" field predicates.
+	RoomID             *pulid.ID  `json:"roomID,omitempty"`
+	RoomIDNEQ          *pulid.ID  `json:"roomIDNEQ,omitempty"`
+	RoomIDIn           []pulid.ID `json:"roomIDIn,omitempty"`
+	RoomIDNotIn        []pulid.ID `json:"roomIDNotIn,omitempty"`
+	RoomIDGT           *pulid.ID  `json:"roomIDGT,omitempty"`
+	RoomIDGTE          *pulid.ID  `json:"roomIDGTE,omitempty"`
+	RoomIDLT           *pulid.ID  `json:"roomIDLT,omitempty"`
+	RoomIDLTE          *pulid.ID  `json:"roomIDLTE,omitempty"`
+	RoomIDContains     *pulid.ID  `json:"roomIDContains,omitempty"`
+	RoomIDHasPrefix    *pulid.ID  `json:"roomIDHasPrefix,omitempty"`
+	RoomIDHasSuffix    *pulid.ID  `json:"roomIDHasSuffix,omitempty"`
+	RoomIDIsNil        bool       `json:"roomIDIsNil,omitempty"`
+	RoomIDNotNil       bool       `json:"roomIDNotNil,omitempty"`
+	RoomIDEqualFold    *pulid.ID  `json:"roomIDEqualFold,omitempty"`
+	RoomIDContainsFold *pulid.ID  `json:"roomIDContainsFold,omitempty"`
+
+	// "created_at" field predicates.
+	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
+	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
+	CreatedAtIn    []time.Time `json:"createdAtIn,omitempty"`
+	CreatedAtNotIn []time.Time `json:"createdAtNotIn,omitempty"`
+	CreatedAtGT    *time.Time  `json:"createdAtGT,omitempty"`
+	CreatedAtGTE   *time.Time  `json:"createdAtGTE,omitempty"`
+	CreatedAtLT    *time.Time  `json:"createdAtLT,omitempty"`
+	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
+
+	// "user" edge predicates.
+	HasUser     *bool             `json:"hasUser,omitempty"`
+	HasUserWith []*UserWhereInput `json:"hasUserWith,omitempty"`
+
+	// "contact" edge predicates.
+	HasContact     *bool             `json:"hasContact,omitempty"`
+	HasContactWith []*UserWhereInput `json:"hasContactWith,omitempty"`
+
+	// "room" edge predicates.
+	HasRoom     *bool             `json:"hasRoom,omitempty"`
+	HasRoomWith []*RoomWhereInput `json:"hasRoomWith,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *UserPinCodeWhereInput) AddPredicates(predicates ...predicate.UserPinCode) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Filter applies the UserPinCodeWhereInput filter on the UserPinCodeQuery builder.
+func (i *UserPinCodeWhereInput) Filter(q *UserPinCodeQuery) (*UserPinCodeQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		if err == ErrEmptyUserPinCodeWhereInput {
+			return q, nil
+		}
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// ErrEmptyUserPinCodeWhereInput is returned in case the UserPinCodeWhereInput is empty.
+var ErrEmptyUserPinCodeWhereInput = errors.New("ent: empty predicate UserPinCodeWhereInput")
+
+// P returns a predicate for filtering userpincodes.
+// An error is returned if the input is empty or invalid.
+func (i *UserPinCodeWhereInput) P() (predicate.UserPinCode, error) {
+	var predicates []predicate.UserPinCode
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'not'", err)
+		}
+		predicates = append(predicates, userpincode.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'or'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.UserPinCode, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'or'", err)
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, userpincode.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'and'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.UserPinCode, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'and'", err)
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, userpincode.And(and...))
+	}
+	predicates = append(predicates, i.Predicates...)
+	if i.ID != nil {
+		predicates = append(predicates, userpincode.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, userpincode.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, userpincode.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, userpincode.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, userpincode.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, userpincode.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, userpincode.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, userpincode.IDLTE(*i.IDLTE))
+	}
+	if i.UserID != nil {
+		predicates = append(predicates, userpincode.UserIDEQ(*i.UserID))
+	}
+	if i.UserIDNEQ != nil {
+		predicates = append(predicates, userpincode.UserIDNEQ(*i.UserIDNEQ))
+	}
+	if len(i.UserIDIn) > 0 {
+		predicates = append(predicates, userpincode.UserIDIn(i.UserIDIn...))
+	}
+	if len(i.UserIDNotIn) > 0 {
+		predicates = append(predicates, userpincode.UserIDNotIn(i.UserIDNotIn...))
+	}
+	if i.UserIDGT != nil {
+		predicates = append(predicates, userpincode.UserIDGT(*i.UserIDGT))
+	}
+	if i.UserIDGTE != nil {
+		predicates = append(predicates, userpincode.UserIDGTE(*i.UserIDGTE))
+	}
+	if i.UserIDLT != nil {
+		predicates = append(predicates, userpincode.UserIDLT(*i.UserIDLT))
+	}
+	if i.UserIDLTE != nil {
+		predicates = append(predicates, userpincode.UserIDLTE(*i.UserIDLTE))
+	}
+	if i.UserIDContains != nil {
+		predicates = append(predicates, userpincode.UserIDContains(*i.UserIDContains))
+	}
+	if i.UserIDHasPrefix != nil {
+		predicates = append(predicates, userpincode.UserIDHasPrefix(*i.UserIDHasPrefix))
+	}
+	if i.UserIDHasSuffix != nil {
+		predicates = append(predicates, userpincode.UserIDHasSuffix(*i.UserIDHasSuffix))
+	}
+	if i.UserIDEqualFold != nil {
+		predicates = append(predicates, userpincode.UserIDEqualFold(*i.UserIDEqualFold))
+	}
+	if i.UserIDContainsFold != nil {
+		predicates = append(predicates, userpincode.UserIDContainsFold(*i.UserIDContainsFold))
+	}
+	if i.ContactID != nil {
+		predicates = append(predicates, userpincode.ContactIDEQ(*i.ContactID))
+	}
+	if i.ContactIDNEQ != nil {
+		predicates = append(predicates, userpincode.ContactIDNEQ(*i.ContactIDNEQ))
+	}
+	if len(i.ContactIDIn) > 0 {
+		predicates = append(predicates, userpincode.ContactIDIn(i.ContactIDIn...))
+	}
+	if len(i.ContactIDNotIn) > 0 {
+		predicates = append(predicates, userpincode.ContactIDNotIn(i.ContactIDNotIn...))
+	}
+	if i.ContactIDGT != nil {
+		predicates = append(predicates, userpincode.ContactIDGT(*i.ContactIDGT))
+	}
+	if i.ContactIDGTE != nil {
+		predicates = append(predicates, userpincode.ContactIDGTE(*i.ContactIDGTE))
+	}
+	if i.ContactIDLT != nil {
+		predicates = append(predicates, userpincode.ContactIDLT(*i.ContactIDLT))
+	}
+	if i.ContactIDLTE != nil {
+		predicates = append(predicates, userpincode.ContactIDLTE(*i.ContactIDLTE))
+	}
+	if i.ContactIDContains != nil {
+		predicates = append(predicates, userpincode.ContactIDContains(*i.ContactIDContains))
+	}
+	if i.ContactIDHasPrefix != nil {
+		predicates = append(predicates, userpincode.ContactIDHasPrefix(*i.ContactIDHasPrefix))
+	}
+	if i.ContactIDHasSuffix != nil {
+		predicates = append(predicates, userpincode.ContactIDHasSuffix(*i.ContactIDHasSuffix))
+	}
+	if i.ContactIDEqualFold != nil {
+		predicates = append(predicates, userpincode.ContactIDEqualFold(*i.ContactIDEqualFold))
+	}
+	if i.ContactIDContainsFold != nil {
+		predicates = append(predicates, userpincode.ContactIDContainsFold(*i.ContactIDContainsFold))
+	}
+	if i.RoomID != nil {
+		predicates = append(predicates, userpincode.RoomIDEQ(*i.RoomID))
+	}
+	if i.RoomIDNEQ != nil {
+		predicates = append(predicates, userpincode.RoomIDNEQ(*i.RoomIDNEQ))
+	}
+	if len(i.RoomIDIn) > 0 {
+		predicates = append(predicates, userpincode.RoomIDIn(i.RoomIDIn...))
+	}
+	if len(i.RoomIDNotIn) > 0 {
+		predicates = append(predicates, userpincode.RoomIDNotIn(i.RoomIDNotIn...))
+	}
+	if i.RoomIDGT != nil {
+		predicates = append(predicates, userpincode.RoomIDGT(*i.RoomIDGT))
+	}
+	if i.RoomIDGTE != nil {
+		predicates = append(predicates, userpincode.RoomIDGTE(*i.RoomIDGTE))
+	}
+	if i.RoomIDLT != nil {
+		predicates = append(predicates, userpincode.RoomIDLT(*i.RoomIDLT))
+	}
+	if i.RoomIDLTE != nil {
+		predicates = append(predicates, userpincode.RoomIDLTE(*i.RoomIDLTE))
+	}
+	if i.RoomIDContains != nil {
+		predicates = append(predicates, userpincode.RoomIDContains(*i.RoomIDContains))
+	}
+	if i.RoomIDHasPrefix != nil {
+		predicates = append(predicates, userpincode.RoomIDHasPrefix(*i.RoomIDHasPrefix))
+	}
+	if i.RoomIDHasSuffix != nil {
+		predicates = append(predicates, userpincode.RoomIDHasSuffix(*i.RoomIDHasSuffix))
+	}
+	if i.RoomIDIsNil {
+		predicates = append(predicates, userpincode.RoomIDIsNil())
+	}
+	if i.RoomIDNotNil {
+		predicates = append(predicates, userpincode.RoomIDNotNil())
+	}
+	if i.RoomIDEqualFold != nil {
+		predicates = append(predicates, userpincode.RoomIDEqualFold(*i.RoomIDEqualFold))
+	}
+	if i.RoomIDContainsFold != nil {
+		predicates = append(predicates, userpincode.RoomIDContainsFold(*i.RoomIDContainsFold))
+	}
+	if i.CreatedAt != nil {
+		predicates = append(predicates, userpincode.CreatedAtEQ(*i.CreatedAt))
+	}
+	if i.CreatedAtNEQ != nil {
+		predicates = append(predicates, userpincode.CreatedAtNEQ(*i.CreatedAtNEQ))
+	}
+	if len(i.CreatedAtIn) > 0 {
+		predicates = append(predicates, userpincode.CreatedAtIn(i.CreatedAtIn...))
+	}
+	if len(i.CreatedAtNotIn) > 0 {
+		predicates = append(predicates, userpincode.CreatedAtNotIn(i.CreatedAtNotIn...))
+	}
+	if i.CreatedAtGT != nil {
+		predicates = append(predicates, userpincode.CreatedAtGT(*i.CreatedAtGT))
+	}
+	if i.CreatedAtGTE != nil {
+		predicates = append(predicates, userpincode.CreatedAtGTE(*i.CreatedAtGTE))
+	}
+	if i.CreatedAtLT != nil {
+		predicates = append(predicates, userpincode.CreatedAtLT(*i.CreatedAtLT))
+	}
+	if i.CreatedAtLTE != nil {
+		predicates = append(predicates, userpincode.CreatedAtLTE(*i.CreatedAtLTE))
+	}
+
+	if i.HasUser != nil {
+		p := userpincode.HasUser()
+		if !*i.HasUser {
+			p = userpincode.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasUserWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasUserWith))
+		for _, w := range i.HasUserWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasUserWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, userpincode.HasUserWith(with...))
+	}
+	if i.HasContact != nil {
+		p := userpincode.HasContact()
+		if !*i.HasContact {
+			p = userpincode.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasContactWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasContactWith))
+		for _, w := range i.HasContactWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasContactWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, userpincode.HasContactWith(with...))
+	}
+	if i.HasRoom != nil {
+		p := userpincode.HasRoom()
+		if !*i.HasRoom {
+			p = userpincode.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasRoomWith) > 0 {
+		with := make([]predicate.Room, 0, len(i.HasRoomWith))
+		for _, w := range i.HasRoomWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasRoomWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, userpincode.HasRoomWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyUserPinCodeWhereInput
+	case 1:
+		return predicates[0], nil
+	default:
+		return userpincode.And(predicates...), nil
 	}
 }

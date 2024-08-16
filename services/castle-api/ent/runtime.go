@@ -4,7 +4,6 @@ package ent
 
 import (
 	"journeyhub/ent/file"
-	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/messagelink"
@@ -14,6 +13,8 @@ import (
 	"journeyhub/ent/schema"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
+	"journeyhub/ent/usercontact"
+	"journeyhub/ent/userpincode"
 	"time"
 )
 
@@ -40,19 +41,6 @@ func init() {
 	fileDescID := fileMixinFields0[0].Descriptor()
 	// file.DefaultID holds the default value on creation for the id field.
 	file.DefaultID = fileDescID.Default.(func() pulid.ID)
-	friendshipMixin := schema.Friendship{}.Mixin()
-	friendshipMixinFields0 := friendshipMixin[0].Fields()
-	_ = friendshipMixinFields0
-	friendshipFields := schema.Friendship{}.Fields()
-	_ = friendshipFields
-	// friendshipDescCreatedAt is the schema descriptor for created_at field.
-	friendshipDescCreatedAt := friendshipFields[3].Descriptor()
-	// friendship.DefaultCreatedAt holds the default value on creation for the created_at field.
-	friendship.DefaultCreatedAt = friendshipDescCreatedAt.Default.(func() time.Time)
-	// friendshipDescID is the schema descriptor for id field.
-	friendshipDescID := friendshipMixinFields0[0].Descriptor()
-	// friendship.DefaultID holds the default value on creation for the id field.
-	friendship.DefaultID = friendshipDescID.Default.(func() pulid.ID)
 	messageMixin := schema.Message{}.Mixin()
 	messageMixinFields0 := messageMixin[0].Fields()
 	_ = messageMixinFields0
@@ -161,11 +149,11 @@ func init() {
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[5].Descriptor()
+	userDescCreatedAt := userFields[6].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[6].Descriptor()
+	userDescUpdatedAt := userFields[7].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -174,4 +162,30 @@ func init() {
 	userDescID := userMixinFields0[0].Descriptor()
 	// user.DefaultID holds the default value on creation for the id field.
 	user.DefaultID = userDescID.Default.(func() pulid.ID)
+	usercontactMixin := schema.UserContact{}.Mixin()
+	usercontactMixinFields0 := usercontactMixin[0].Fields()
+	_ = usercontactMixinFields0
+	usercontactFields := schema.UserContact{}.Fields()
+	_ = usercontactFields
+	// usercontactDescCreatedAt is the schema descriptor for created_at field.
+	usercontactDescCreatedAt := usercontactFields[3].Descriptor()
+	// usercontact.DefaultCreatedAt holds the default value on creation for the created_at field.
+	usercontact.DefaultCreatedAt = usercontactDescCreatedAt.Default.(func() time.Time)
+	// usercontactDescID is the schema descriptor for id field.
+	usercontactDescID := usercontactMixinFields0[0].Descriptor()
+	// usercontact.DefaultID holds the default value on creation for the id field.
+	usercontact.DefaultID = usercontactDescID.Default.(func() pulid.ID)
+	userpincodeMixin := schema.UserPinCode{}.Mixin()
+	userpincodeMixinFields0 := userpincodeMixin[0].Fields()
+	_ = userpincodeMixinFields0
+	userpincodeFields := schema.UserPinCode{}.Fields()
+	_ = userpincodeFields
+	// userpincodeDescCreatedAt is the schema descriptor for created_at field.
+	userpincodeDescCreatedAt := userpincodeFields[3].Descriptor()
+	// userpincode.DefaultCreatedAt holds the default value on creation for the created_at field.
+	userpincode.DefaultCreatedAt = userpincodeDescCreatedAt.Default.(func() time.Time)
+	// userpincodeDescID is the schema descriptor for id field.
+	userpincodeDescID := userpincodeMixinFields0[0].Descriptor()
+	// userpincode.DefaultID holds the default value on creation for the id field.
+	userpincode.DefaultID = userpincodeDescID.Default.(func() pulid.ID)
 }

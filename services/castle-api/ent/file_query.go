@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"journeyhub/ent/file"
 	"journeyhub/ent/messageattachment"
@@ -27,7 +28,6 @@ type FileQuery struct {
 	predicates            []predicate.File
 	withMessageAttachment *MessageAttachmentQuery
 	withMessageVoice      *MessageVoiceQuery
-	withFKs               bool
 	modifiers             []func(*sql.Selector)
 	loadTotal             []func(context.Context, []*File) error
 	// intermediate query (i.e. traversal path).
@@ -80,7 +80,7 @@ func (fq *FileQuery) QueryMessageAttachment() *MessageAttachmentQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(file.Table, file.FieldID, selector),
 			sqlgraph.To(messageattachment.Table, messageattachment.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, file.MessageAttachmentTable, file.MessageAttachmentColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, file.MessageAttachmentTable, file.MessageAttachmentColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
 		return fromU, nil
@@ -102,7 +102,7 @@ func (fq *FileQuery) QueryMessageVoice() *MessageVoiceQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(file.Table, file.FieldID, selector),
 			sqlgraph.To(messagevoice.Table, messagevoice.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, file.MessageVoiceTable, file.MessageVoiceColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, file.MessageVoiceTable, file.MessageVoiceColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
 		return fromU, nil
@@ -409,19 +409,12 @@ func (fq *FileQuery) prepareQuery(ctx context.Context) error {
 func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, error) {
 	var (
 		nodes       = []*File{}
-		withFKs     = fq.withFKs
 		_spec       = fq.querySpec()
 		loadedTypes = [2]bool{
 			fq.withMessageAttachment != nil,
 			fq.withMessageVoice != nil,
 		}
 	)
-	if fq.withMessageAttachment != nil || fq.withMessageVoice != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, file.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*File).scanValues(nil, columns)
 	}
@@ -464,66 +457,58 @@ func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, e
 }
 
 func (fq *FileQuery) loadMessageAttachment(ctx context.Context, query *MessageAttachmentQuery, nodes []*File, init func(*File), assign func(*File, *MessageAttachment)) error {
-	ids := make([]pulid.ID, 0, len(nodes))
-	nodeids := make(map[pulid.ID][]*File)
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[pulid.ID]*File)
 	for i := range nodes {
-		if nodes[i].message_attachment_file == nil {
-			continue
-		}
-		fk := *nodes[i].message_attachment_file
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
 	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(messageattachment.IDIn(ids...))
+	query.withFKs = true
+	query.Where(predicate.MessageAttachment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(file.MessageAttachmentColumn), fks...))
+	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
+		fk := n.file_message_attachment
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "file_message_attachment" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "message_attachment_file" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "file_message_attachment" returned %v for node %v`, *fk, n.ID)
 		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
+		assign(node, n)
 	}
 	return nil
 }
 func (fq *FileQuery) loadMessageVoice(ctx context.Context, query *MessageVoiceQuery, nodes []*File, init func(*File), assign func(*File, *MessageVoice)) error {
-	ids := make([]pulid.ID, 0, len(nodes))
-	nodeids := make(map[pulid.ID][]*File)
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[pulid.ID]*File)
 	for i := range nodes {
-		if nodes[i].message_voice_file == nil {
-			continue
-		}
-		fk := *nodes[i].message_voice_file
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
 	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(messagevoice.IDIn(ids...))
+	query.withFKs = true
+	query.Where(predicate.MessageVoice(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(file.MessageVoiceColumn), fks...))
+	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
+		fk := n.file_message_voice
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "file_message_voice" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "message_voice_file" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "file_message_voice" returned %v for node %v`, *fk, n.ID)
 		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
+		assign(node, n)
 	}
 	return nil
 }

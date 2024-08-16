@@ -8,6 +8,7 @@ import (
 	"journeyhub/ent/message"
 	"journeyhub/ent/messagelink"
 	"journeyhub/ent/predicate"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"math"
 
@@ -24,6 +25,7 @@ type MessageLinkQuery struct {
 	order       []messagelink.OrderOption
 	inters      []Interceptor
 	predicates  []predicate.MessageLink
+	withRoom    *RoomQuery
 	withMessage *MessageQuery
 	withFKs     bool
 	modifiers   []func(*sql.Selector)
@@ -62,6 +64,28 @@ func (mlq *MessageLinkQuery) Unique(unique bool) *MessageLinkQuery {
 func (mlq *MessageLinkQuery) Order(o ...messagelink.OrderOption) *MessageLinkQuery {
 	mlq.order = append(mlq.order, o...)
 	return mlq
+}
+
+// QueryRoom chains the current query on the "room" edge.
+func (mlq *MessageLinkQuery) QueryRoom() *RoomQuery {
+	query := (&RoomClient{config: mlq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mlq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mlq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(messagelink.Table, messagelink.FieldID, selector),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, messagelink.RoomTable, messagelink.RoomColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mlq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryMessage chains the current query on the "message" edge.
@@ -278,11 +302,23 @@ func (mlq *MessageLinkQuery) Clone() *MessageLinkQuery {
 		order:       append([]messagelink.OrderOption{}, mlq.order...),
 		inters:      append([]Interceptor{}, mlq.inters...),
 		predicates:  append([]predicate.MessageLink{}, mlq.predicates...),
+		withRoom:    mlq.withRoom.Clone(),
 		withMessage: mlq.withMessage.Clone(),
 		// clone intermediate query.
 		sql:  mlq.sql.Clone(),
 		path: mlq.path,
 	}
+}
+
+// WithRoom tells the query-builder to eager-load the nodes that are connected to
+// the "room" edge. The optional arguments are used to configure the query builder of the edge.
+func (mlq *MessageLinkQuery) WithRoom(opts ...func(*RoomQuery)) *MessageLinkQuery {
+	query := (&RoomClient{config: mlq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	mlq.withRoom = query
+	return mlq
 }
 
 // WithMessage tells the query-builder to eager-load the nodes that are connected to
@@ -375,11 +411,12 @@ func (mlq *MessageLinkQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		nodes       = []*MessageLink{}
 		withFKs     = mlq.withFKs
 		_spec       = mlq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
+			mlq.withRoom != nil,
 			mlq.withMessage != nil,
 		}
 	)
-	if mlq.withMessage != nil {
+	if mlq.withRoom != nil || mlq.withMessage != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -406,6 +443,12 @@ func (mlq *MessageLinkQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := mlq.withRoom; query != nil {
+		if err := mlq.loadRoom(ctx, query, nodes, nil,
+			func(n *MessageLink, e *Room) { n.Edges.Room = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := mlq.withMessage; query != nil {
 		if err := mlq.loadMessage(ctx, query, nodes, nil,
 			func(n *MessageLink, e *Message) { n.Edges.Message = e }); err != nil {
@@ -420,6 +463,38 @@ func (mlq *MessageLinkQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	return nodes, nil
 }
 
+func (mlq *MessageLinkQuery) loadRoom(ctx context.Context, query *RoomQuery, nodes []*MessageLink, init func(*MessageLink), assign func(*MessageLink, *Room)) error {
+	ids := make([]pulid.ID, 0, len(nodes))
+	nodeids := make(map[pulid.ID][]*MessageLink)
+	for i := range nodes {
+		if nodes[i].room_message_links == nil {
+			continue
+		}
+		fk := *nodes[i].room_message_links
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(room.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "room_message_links" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (mlq *MessageLinkQuery) loadMessage(ctx context.Context, query *MessageQuery, nodes []*MessageLink, init func(*MessageLink), assign func(*MessageLink, *Message)) error {
 	ids := make([]pulid.ID, 0, len(nodes))
 	nodeids := make(map[pulid.ID][]*MessageLink)

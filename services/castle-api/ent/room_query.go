@@ -7,6 +7,9 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
@@ -23,18 +26,24 @@ import (
 // RoomQuery is the builder for querying Room entities.
 type RoomQuery struct {
 	config
-	ctx                  *QueryContext
-	order                []room.OrderOption
-	inters               []Interceptor
-	predicates           []predicate.Room
-	withUsers            *UserQuery
-	withMessages         *MessageQuery
-	withRoomMembers      *RoomMemberQuery
-	modifiers            []func(*sql.Selector)
-	loadTotal            []func(context.Context, []*Room) error
-	withNamedUsers       map[string]*UserQuery
-	withNamedMessages    map[string]*MessageQuery
-	withNamedRoomMembers map[string]*RoomMemberQuery
+	ctx                         *QueryContext
+	order                       []room.OrderOption
+	inters                      []Interceptor
+	predicates                  []predicate.Room
+	withUsers                   *UserQuery
+	withMessages                *MessageQuery
+	withMessageVoices           *MessageVoiceQuery
+	withMessageAttachments      *MessageAttachmentQuery
+	withMessageLinks            *MessageLinkQuery
+	withRoomMembers             *RoomMemberQuery
+	modifiers                   []func(*sql.Selector)
+	loadTotal                   []func(context.Context, []*Room) error
+	withNamedUsers              map[string]*UserQuery
+	withNamedMessages           map[string]*MessageQuery
+	withNamedMessageVoices      map[string]*MessageVoiceQuery
+	withNamedMessageAttachments map[string]*MessageAttachmentQuery
+	withNamedMessageLinks       map[string]*MessageLinkQuery
+	withNamedRoomMembers        map[string]*RoomMemberQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -108,6 +117,72 @@ func (rq *RoomQuery) QueryMessages() *MessageQuery {
 			sqlgraph.From(room.Table, room.FieldID, selector),
 			sqlgraph.To(message.Table, message.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, room.MessagesTable, room.MessagesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMessageVoices chains the current query on the "message_voices" edge.
+func (rq *RoomQuery) QueryMessageVoices() *MessageVoiceQuery {
+	query := (&MessageVoiceClient{config: rq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, selector),
+			sqlgraph.To(messagevoice.Table, messagevoice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, room.MessageVoicesTable, room.MessageVoicesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMessageAttachments chains the current query on the "message_attachments" edge.
+func (rq *RoomQuery) QueryMessageAttachments() *MessageAttachmentQuery {
+	query := (&MessageAttachmentClient{config: rq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, selector),
+			sqlgraph.To(messageattachment.Table, messageattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, room.MessageAttachmentsTable, room.MessageAttachmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMessageLinks chains the current query on the "message_links" edge.
+func (rq *RoomQuery) QueryMessageLinks() *MessageLinkQuery {
+	query := (&MessageLinkClient{config: rq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, selector),
+			sqlgraph.To(messagelink.Table, messagelink.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, room.MessageLinksTable, room.MessageLinksColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
 		return fromU, nil
@@ -324,14 +399,17 @@ func (rq *RoomQuery) Clone() *RoomQuery {
 		return nil
 	}
 	return &RoomQuery{
-		config:          rq.config,
-		ctx:             rq.ctx.Clone(),
-		order:           append([]room.OrderOption{}, rq.order...),
-		inters:          append([]Interceptor{}, rq.inters...),
-		predicates:      append([]predicate.Room{}, rq.predicates...),
-		withUsers:       rq.withUsers.Clone(),
-		withMessages:    rq.withMessages.Clone(),
-		withRoomMembers: rq.withRoomMembers.Clone(),
+		config:                 rq.config,
+		ctx:                    rq.ctx.Clone(),
+		order:                  append([]room.OrderOption{}, rq.order...),
+		inters:                 append([]Interceptor{}, rq.inters...),
+		predicates:             append([]predicate.Room{}, rq.predicates...),
+		withUsers:              rq.withUsers.Clone(),
+		withMessages:           rq.withMessages.Clone(),
+		withMessageVoices:      rq.withMessageVoices.Clone(),
+		withMessageAttachments: rq.withMessageAttachments.Clone(),
+		withMessageLinks:       rq.withMessageLinks.Clone(),
+		withRoomMembers:        rq.withRoomMembers.Clone(),
 		// clone intermediate query.
 		sql:  rq.sql.Clone(),
 		path: rq.path,
@@ -357,6 +435,39 @@ func (rq *RoomQuery) WithMessages(opts ...func(*MessageQuery)) *RoomQuery {
 		opt(query)
 	}
 	rq.withMessages = query
+	return rq
+}
+
+// WithMessageVoices tells the query-builder to eager-load the nodes that are connected to
+// the "message_voices" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithMessageVoices(opts ...func(*MessageVoiceQuery)) *RoomQuery {
+	query := (&MessageVoiceClient{config: rq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withMessageVoices = query
+	return rq
+}
+
+// WithMessageAttachments tells the query-builder to eager-load the nodes that are connected to
+// the "message_attachments" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithMessageAttachments(opts ...func(*MessageAttachmentQuery)) *RoomQuery {
+	query := (&MessageAttachmentClient{config: rq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withMessageAttachments = query
+	return rq
+}
+
+// WithMessageLinks tells the query-builder to eager-load the nodes that are connected to
+// the "message_links" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithMessageLinks(opts ...func(*MessageLinkQuery)) *RoomQuery {
+	query := (&MessageLinkClient{config: rq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withMessageLinks = query
 	return rq
 }
 
@@ -449,9 +560,12 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 	var (
 		nodes       = []*Room{}
 		_spec       = rq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [6]bool{
 			rq.withUsers != nil,
 			rq.withMessages != nil,
+			rq.withMessageVoices != nil,
+			rq.withMessageAttachments != nil,
+			rq.withMessageLinks != nil,
 			rq.withRoomMembers != nil,
 		}
 	)
@@ -490,6 +604,29 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 			return nil, err
 		}
 	}
+	if query := rq.withMessageVoices; query != nil {
+		if err := rq.loadMessageVoices(ctx, query, nodes,
+			func(n *Room) { n.Edges.MessageVoices = []*MessageVoice{} },
+			func(n *Room, e *MessageVoice) { n.Edges.MessageVoices = append(n.Edges.MessageVoices, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rq.withMessageAttachments; query != nil {
+		if err := rq.loadMessageAttachments(ctx, query, nodes,
+			func(n *Room) { n.Edges.MessageAttachments = []*MessageAttachment{} },
+			func(n *Room, e *MessageAttachment) {
+				n.Edges.MessageAttachments = append(n.Edges.MessageAttachments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := rq.withMessageLinks; query != nil {
+		if err := rq.loadMessageLinks(ctx, query, nodes,
+			func(n *Room) { n.Edges.MessageLinks = []*MessageLink{} },
+			func(n *Room, e *MessageLink) { n.Edges.MessageLinks = append(n.Edges.MessageLinks, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := rq.withRoomMembers; query != nil {
 		if err := rq.loadRoomMembers(ctx, query, nodes,
 			func(n *Room) { n.Edges.RoomMembers = []*RoomMember{} },
@@ -508,6 +645,27 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 		if err := rq.loadMessages(ctx, query, nodes,
 			func(n *Room) { n.appendNamedMessages(name) },
 			func(n *Room, e *Message) { n.appendNamedMessages(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range rq.withNamedMessageVoices {
+		if err := rq.loadMessageVoices(ctx, query, nodes,
+			func(n *Room) { n.appendNamedMessageVoices(name) },
+			func(n *Room, e *MessageVoice) { n.appendNamedMessageVoices(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range rq.withNamedMessageAttachments {
+		if err := rq.loadMessageAttachments(ctx, query, nodes,
+			func(n *Room) { n.appendNamedMessageAttachments(name) },
+			func(n *Room, e *MessageAttachment) { n.appendNamedMessageAttachments(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range rq.withNamedMessageLinks {
+		if err := rq.loadMessageLinks(ctx, query, nodes,
+			func(n *Room) { n.appendNamedMessageLinks(name) },
+			func(n *Room, e *MessageLink) { n.appendNamedMessageLinks(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -613,6 +771,99 @@ func (rq *RoomQuery) loadMessages(ctx context.Context, query *MessageQuery, node
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "room_messages" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (rq *RoomQuery) loadMessageVoices(ctx context.Context, query *MessageVoiceQuery, nodes []*Room, init func(*Room), assign func(*Room, *MessageVoice)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[pulid.ID]*Room)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.MessageVoice(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(room.MessageVoicesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.room_message_voices
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "room_message_voices" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "room_message_voices" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (rq *RoomQuery) loadMessageAttachments(ctx context.Context, query *MessageAttachmentQuery, nodes []*Room, init func(*Room), assign func(*Room, *MessageAttachment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[pulid.ID]*Room)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.MessageAttachment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(room.MessageAttachmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.room_message_attachments
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "room_message_attachments" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "room_message_attachments" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (rq *RoomQuery) loadMessageLinks(ctx context.Context, query *MessageLinkQuery, nodes []*Room, init func(*Room), assign func(*Room, *MessageLink)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[pulid.ID]*Room)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.MessageLink(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(room.MessageLinksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.room_message_links
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "room_message_links" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "room_message_links" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -758,6 +1009,48 @@ func (rq *RoomQuery) WithNamedMessages(name string, opts ...func(*MessageQuery))
 		rq.withNamedMessages = make(map[string]*MessageQuery)
 	}
 	rq.withNamedMessages[name] = query
+	return rq
+}
+
+// WithNamedMessageVoices tells the query-builder to eager-load the nodes that are connected to the "message_voices"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithNamedMessageVoices(name string, opts ...func(*MessageVoiceQuery)) *RoomQuery {
+	query := (&MessageVoiceClient{config: rq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if rq.withNamedMessageVoices == nil {
+		rq.withNamedMessageVoices = make(map[string]*MessageVoiceQuery)
+	}
+	rq.withNamedMessageVoices[name] = query
+	return rq
+}
+
+// WithNamedMessageAttachments tells the query-builder to eager-load the nodes that are connected to the "message_attachments"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithNamedMessageAttachments(name string, opts ...func(*MessageAttachmentQuery)) *RoomQuery {
+	query := (&MessageAttachmentClient{config: rq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if rq.withNamedMessageAttachments == nil {
+		rq.withNamedMessageAttachments = make(map[string]*MessageAttachmentQuery)
+	}
+	rq.withNamedMessageAttachments[name] = query
+	return rq
+}
+
+// WithNamedMessageLinks tells the query-builder to eager-load the nodes that are connected to the "message_links"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithNamedMessageLinks(name string, opts ...func(*MessageLinkQuery)) *RoomQuery {
+	query := (&MessageLinkClient{config: rq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if rq.withNamedMessageLinks == nil {
+		rq.withNamedMessageLinks = make(map[string]*MessageLinkQuery)
+	}
+	rq.withNamedMessageLinks[name] = query
 	return rq
 }
 

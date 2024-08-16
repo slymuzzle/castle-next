@@ -216,44 +216,21 @@ func UpdatedAtLTE(v time.Time) predicate.Message {
 	return predicate.Message(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
-// HasUser applies the HasEdge predicate on the "user" edge.
-func HasUser() predicate.Message {
+// HasVoice applies the HasEdge predicate on the "voice" edge.
+func HasVoice() predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, VoiceTable, VoiceColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
-func HasUserWith(preds ...predicate.User) predicate.Message {
+// HasVoiceWith applies the HasEdge predicate on the "voice" edge with a given conditions (other predicates).
+func HasVoiceWith(preds ...predicate.MessageVoice) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
-		step := newUserStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasRoom applies the HasEdge predicate on the "room" edge.
-func HasRoom() predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasRoomWith applies the HasEdge predicate on the "room" edge with a given conditions (other predicates).
-func HasRoomWith(preds ...predicate.Room) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		step := newRoomStep()
+		step := newVoiceStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -323,6 +300,52 @@ func HasLinks() predicate.Message {
 func HasLinksWith(preds ...predicate.MessageLink) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		step := newLinksStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUser applies the HasEdge predicate on the "user" edge.
+func HasUser() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
+func HasUserWith(preds ...predicate.User) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := newUserStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRoom applies the HasEdge predicate on the "room" edge.
+func HasRoom() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRoomWith applies the HasEdge predicate on the "room" edge with a given conditions (other predicates).
+func HasRoomWith(preds ...predicate.Room) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := newRoomStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

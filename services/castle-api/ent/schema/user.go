@@ -41,12 +41,16 @@ func (User) Fields() []ent.Field {
 			),
 		field.String("email").
 			Unique().
+			Optional().
 			Annotations(
 				entgql.OrderField("EMAIL"),
 			),
-		field.String("password").Annotations(
-			entgql.Skip(entgql.SkipAll),
-		),
+		field.String("contact_pin").
+			Unique(),
+		field.String("password").
+			Annotations(
+				entgql.Skip(entgql.SkipAll),
+			),
 		field.Time("created_at").
 			Immutable().
 			Default(time.Now).
@@ -65,8 +69,8 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("friends", User.Type).
-			Through("friendships", Friendship.Type).
+		edge.To("contacts", User.Type).
+			Through("user_contacts", UserContact.Type).
 			Annotations(
 				entgql.RelayConnection(),
 			),
@@ -86,8 +90,6 @@ func (User) Edges() []ent.Edge {
 // Annotations of the User.
 func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entgql.QueryField(),
-		entgql.MultiOrder(),
 		entgql.RelayConnection(),
 	}
 }

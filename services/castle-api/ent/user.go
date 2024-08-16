@@ -26,6 +26,8 @@ type User struct {
 	Nickname string `json:"nickname,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
+	// ContactPin holds the value of the "contact_pin" field.
+	ContactPin string `json:"contact_pin,omitempty"`
 	// Password holds the value of the "password" field.
 	Password string `json:"password,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -40,14 +42,14 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Friends holds the value of the friends edge.
-	Friends []*User `json:"friends,omitempty"`
+	// Contacts holds the value of the contacts edge.
+	Contacts []*User `json:"contacts,omitempty"`
 	// Rooms holds the value of the rooms edge.
 	Rooms []*Room `json:"rooms,omitempty"`
 	// Messages holds the value of the messages edge.
 	Messages []*Message `json:"messages,omitempty"`
-	// Friendships holds the value of the friendships edge.
-	Friendships []*Friendship `json:"friendships,omitempty"`
+	// UserContacts holds the value of the user_contacts edge.
+	UserContacts []*UserContact `json:"user_contacts,omitempty"`
 	// Memberships holds the value of the memberships edge.
 	Memberships []*RoomMember `json:"memberships,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -56,20 +58,20 @@ type UserEdges struct {
 	// totalCount holds the count of the edges above.
 	totalCount [5]map[string]int
 
-	namedFriends     map[string][]*User
-	namedRooms       map[string][]*Room
-	namedMessages    map[string][]*Message
-	namedFriendships map[string][]*Friendship
-	namedMemberships map[string][]*RoomMember
+	namedContacts     map[string][]*User
+	namedRooms        map[string][]*Room
+	namedMessages     map[string][]*Message
+	namedUserContacts map[string][]*UserContact
+	namedMemberships  map[string][]*RoomMember
 }
 
-// FriendsOrErr returns the Friends value or an error if the edge
+// ContactsOrErr returns the Contacts value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) FriendsOrErr() ([]*User, error) {
+func (e UserEdges) ContactsOrErr() ([]*User, error) {
 	if e.loadedTypes[0] {
-		return e.Friends, nil
+		return e.Contacts, nil
 	}
-	return nil, &NotLoadedError{edge: "friends"}
+	return nil, &NotLoadedError{edge: "contacts"}
 }
 
 // RoomsOrErr returns the Rooms value or an error if the edge
@@ -90,13 +92,13 @@ func (e UserEdges) MessagesOrErr() ([]*Message, error) {
 	return nil, &NotLoadedError{edge: "messages"}
 }
 
-// FriendshipsOrErr returns the Friendships value or an error if the edge
+// UserContactsOrErr returns the UserContacts value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) FriendshipsOrErr() ([]*Friendship, error) {
+func (e UserEdges) UserContactsOrErr() ([]*UserContact, error) {
 	if e.loadedTypes[3] {
-		return e.Friendships, nil
+		return e.UserContacts, nil
 	}
-	return nil, &NotLoadedError{edge: "friendships"}
+	return nil, &NotLoadedError{edge: "user_contacts"}
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -115,7 +117,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(pulid.ID)
-		case user.FieldFirstName, user.FieldLastName, user.FieldNickname, user.FieldEmail, user.FieldPassword:
+		case user.FieldFirstName, user.FieldLastName, user.FieldNickname, user.FieldEmail, user.FieldContactPin, user.FieldPassword:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -164,6 +166,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.Email = value.String
 			}
+		case user.FieldContactPin:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field contact_pin", values[i])
+			} else if value.Valid {
+				u.ContactPin = value.String
+			}
 		case user.FieldPassword:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field password", values[i])
@@ -195,9 +203,9 @@ func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
 }
 
-// QueryFriends queries the "friends" edge of the User entity.
-func (u *User) QueryFriends() *UserQuery {
-	return NewUserClient(u.config).QueryFriends(u)
+// QueryContacts queries the "contacts" edge of the User entity.
+func (u *User) QueryContacts() *UserQuery {
+	return NewUserClient(u.config).QueryContacts(u)
 }
 
 // QueryRooms queries the "rooms" edge of the User entity.
@@ -210,9 +218,9 @@ func (u *User) QueryMessages() *MessageQuery {
 	return NewUserClient(u.config).QueryMessages(u)
 }
 
-// QueryFriendships queries the "friendships" edge of the User entity.
-func (u *User) QueryFriendships() *FriendshipQuery {
-	return NewUserClient(u.config).QueryFriendships(u)
+// QueryUserContacts queries the "user_contacts" edge of the User entity.
+func (u *User) QueryUserContacts() *UserContactQuery {
+	return NewUserClient(u.config).QueryUserContacts(u)
 }
 
 // QueryMemberships queries the "memberships" edge of the User entity.
@@ -255,6 +263,9 @@ func (u *User) String() string {
 	builder.WriteString("email=")
 	builder.WriteString(u.Email)
 	builder.WriteString(", ")
+	builder.WriteString("contact_pin=")
+	builder.WriteString(u.ContactPin)
+	builder.WriteString(", ")
 	builder.WriteString("password=")
 	builder.WriteString(u.Password)
 	builder.WriteString(", ")
@@ -267,27 +278,27 @@ func (u *User) String() string {
 	return builder.String()
 }
 
-// NamedFriends returns the Friends named value or an error if the edge was not
+// NamedContacts returns the Contacts named value or an error if the edge was not
 // loaded in eager-loading with this name.
-func (u *User) NamedFriends(name string) ([]*User, error) {
-	if u.Edges.namedFriends == nil {
+func (u *User) NamedContacts(name string) ([]*User, error) {
+	if u.Edges.namedContacts == nil {
 		return nil, &NotLoadedError{edge: name}
 	}
-	nodes, ok := u.Edges.namedFriends[name]
+	nodes, ok := u.Edges.namedContacts[name]
 	if !ok {
 		return nil, &NotLoadedError{edge: name}
 	}
 	return nodes, nil
 }
 
-func (u *User) appendNamedFriends(name string, edges ...*User) {
-	if u.Edges.namedFriends == nil {
-		u.Edges.namedFriends = make(map[string][]*User)
+func (u *User) appendNamedContacts(name string, edges ...*User) {
+	if u.Edges.namedContacts == nil {
+		u.Edges.namedContacts = make(map[string][]*User)
 	}
 	if len(edges) == 0 {
-		u.Edges.namedFriends[name] = []*User{}
+		u.Edges.namedContacts[name] = []*User{}
 	} else {
-		u.Edges.namedFriends[name] = append(u.Edges.namedFriends[name], edges...)
+		u.Edges.namedContacts[name] = append(u.Edges.namedContacts[name], edges...)
 	}
 }
 
@@ -339,27 +350,27 @@ func (u *User) appendNamedMessages(name string, edges ...*Message) {
 	}
 }
 
-// NamedFriendships returns the Friendships named value or an error if the edge was not
+// NamedUserContacts returns the UserContacts named value or an error if the edge was not
 // loaded in eager-loading with this name.
-func (u *User) NamedFriendships(name string) ([]*Friendship, error) {
-	if u.Edges.namedFriendships == nil {
+func (u *User) NamedUserContacts(name string) ([]*UserContact, error) {
+	if u.Edges.namedUserContacts == nil {
 		return nil, &NotLoadedError{edge: name}
 	}
-	nodes, ok := u.Edges.namedFriendships[name]
+	nodes, ok := u.Edges.namedUserContacts[name]
 	if !ok {
 		return nil, &NotLoadedError{edge: name}
 	}
 	return nodes, nil
 }
 
-func (u *User) appendNamedFriendships(name string, edges ...*Friendship) {
-	if u.Edges.namedFriendships == nil {
-		u.Edges.namedFriendships = make(map[string][]*Friendship)
+func (u *User) appendNamedUserContacts(name string, edges ...*UserContact) {
+	if u.Edges.namedUserContacts == nil {
+		u.Edges.namedUserContacts = make(map[string][]*UserContact)
 	}
 	if len(edges) == 0 {
-		u.Edges.namedFriendships[name] = []*Friendship{}
+		u.Edges.namedUserContacts[name] = []*UserContact{}
 	} else {
-		u.Edges.namedFriendships[name] = append(u.Edges.namedFriendships[name], edges...)
+		u.Edges.namedUserContacts[name] = append(u.Edges.namedUserContacts[name], edges...)
 	}
 }
 

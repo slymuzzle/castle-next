@@ -262,7 +262,7 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 	if nodes := fc.mutation.MessageAttachmentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   file.MessageAttachmentTable,
 			Columns: []string{file.MessageAttachmentColumn},
 			Bidi:    false,
@@ -273,13 +273,12 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.message_attachment_file = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := fc.mutation.MessageVoiceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   file.MessageVoiceTable,
 			Columns: []string{file.MessageVoiceColumn},
 			Bidi:    false,
@@ -290,7 +289,6 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.message_voice_file = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

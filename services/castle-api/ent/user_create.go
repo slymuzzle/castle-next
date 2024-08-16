@@ -6,12 +6,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
+	"journeyhub/ent/usercontact"
 	"time"
 
 	"entgo.io/ent/dialect"
@@ -49,6 +49,20 @@ func (uc *UserCreate) SetNickname(s string) *UserCreate {
 // SetEmail sets the "email" field.
 func (uc *UserCreate) SetEmail(s string) *UserCreate {
 	uc.mutation.SetEmail(s)
+	return uc
+}
+
+// SetNillableEmail sets the "email" field if the given value is not nil.
+func (uc *UserCreate) SetNillableEmail(s *string) *UserCreate {
+	if s != nil {
+		uc.SetEmail(*s)
+	}
+	return uc
+}
+
+// SetContactPin sets the "contact_pin" field.
+func (uc *UserCreate) SetContactPin(s string) *UserCreate {
+	uc.mutation.SetContactPin(s)
 	return uc
 }
 
@@ -100,19 +114,19 @@ func (uc *UserCreate) SetNillableID(pu *pulid.ID) *UserCreate {
 	return uc
 }
 
-// AddFriendIDs adds the "friends" edge to the User entity by IDs.
-func (uc *UserCreate) AddFriendIDs(ids ...pulid.ID) *UserCreate {
-	uc.mutation.AddFriendIDs(ids...)
+// AddContactIDs adds the "contacts" edge to the User entity by IDs.
+func (uc *UserCreate) AddContactIDs(ids ...pulid.ID) *UserCreate {
+	uc.mutation.AddContactIDs(ids...)
 	return uc
 }
 
-// AddFriends adds the "friends" edges to the User entity.
-func (uc *UserCreate) AddFriends(u ...*User) *UserCreate {
+// AddContacts adds the "contacts" edges to the User entity.
+func (uc *UserCreate) AddContacts(u ...*User) *UserCreate {
 	ids := make([]pulid.ID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
-	return uc.AddFriendIDs(ids...)
+	return uc.AddContactIDs(ids...)
 }
 
 // AddRoomIDs adds the "rooms" edge to the Room entity by IDs.
@@ -145,19 +159,19 @@ func (uc *UserCreate) AddMessages(m ...*Message) *UserCreate {
 	return uc.AddMessageIDs(ids...)
 }
 
-// AddFriendshipIDs adds the "friendships" edge to the Friendship entity by IDs.
-func (uc *UserCreate) AddFriendshipIDs(ids ...pulid.ID) *UserCreate {
-	uc.mutation.AddFriendshipIDs(ids...)
+// AddUserContactIDs adds the "user_contacts" edge to the UserContact entity by IDs.
+func (uc *UserCreate) AddUserContactIDs(ids ...pulid.ID) *UserCreate {
+	uc.mutation.AddUserContactIDs(ids...)
 	return uc
 }
 
-// AddFriendships adds the "friendships" edges to the Friendship entity.
-func (uc *UserCreate) AddFriendships(f ...*Friendship) *UserCreate {
-	ids := make([]pulid.ID, len(f))
-	for i := range f {
-		ids[i] = f[i].ID
+// AddUserContacts adds the "user_contacts" edges to the UserContact entity.
+func (uc *UserCreate) AddUserContacts(u ...*UserContact) *UserCreate {
+	ids := make([]pulid.ID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
-	return uc.AddFriendshipIDs(ids...)
+	return uc.AddUserContactIDs(ids...)
 }
 
 // AddMembershipIDs adds the "memberships" edge to the RoomMember entity by IDs.
@@ -235,8 +249,8 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Nickname(); !ok {
 		return &ValidationError{Name: "nickname", err: errors.New(`ent: missing required field "User.nickname"`)}
 	}
-	if _, ok := uc.mutation.Email(); !ok {
-		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "User.email"`)}
+	if _, ok := uc.mutation.ContactPin(); !ok {
+		return &ValidationError{Name: "contact_pin", err: errors.New(`ent: missing required field "User.contact_pin"`)}
 	}
 	if _, ok := uc.mutation.Password(); !ok {
 		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "User.password"`)}
@@ -299,6 +313,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 		_node.Email = value
 	}
+	if value, ok := uc.mutation.ContactPin(); ok {
+		_spec.SetField(user.FieldContactPin, field.TypeString, value)
+		_node.ContactPin = value
+	}
 	if value, ok := uc.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 		_node.Password = value
@@ -311,12 +329,12 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := uc.mutation.FriendsIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.ContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.FriendsTable,
-			Columns: user.FriendsPrimaryKey,
+			Table:   user.ContactsTable,
+			Columns: user.ContactsPrimaryKey,
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
@@ -325,7 +343,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		createE := &FriendshipCreate{config: uc.config, mutation: newFriendshipMutation(uc.config, OpCreate)}
+		createE := &UserContactCreate{config: uc.config, mutation: newUserContactMutation(uc.config, OpCreate)}
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
@@ -373,15 +391,15 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.FriendshipsIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.UserContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   user.FriendshipsTable,
-			Columns: []string{user.FriendshipsColumn},
+			Table:   user.UserContactsTable,
+			Columns: []string{user.UserContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(friendship.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -502,6 +520,24 @@ func (u *UserUpsert) SetEmail(v string) *UserUpsert {
 // UpdateEmail sets the "email" field to the value that was provided on create.
 func (u *UserUpsert) UpdateEmail() *UserUpsert {
 	u.SetExcluded(user.FieldEmail)
+	return u
+}
+
+// ClearEmail clears the value of the "email" field.
+func (u *UserUpsert) ClearEmail() *UserUpsert {
+	u.SetNull(user.FieldEmail)
+	return u
+}
+
+// SetContactPin sets the "contact_pin" field.
+func (u *UserUpsert) SetContactPin(v string) *UserUpsert {
+	u.Set(user.FieldContactPin, v)
+	return u
+}
+
+// UpdateContactPin sets the "contact_pin" field to the value that was provided on create.
+func (u *UserUpsert) UpdateContactPin() *UserUpsert {
+	u.SetExcluded(user.FieldContactPin)
 	return u
 }
 
@@ -633,6 +669,27 @@ func (u *UserUpsertOne) SetEmail(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateEmail() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateEmail()
+	})
+}
+
+// ClearEmail clears the value of the "email" field.
+func (u *UserUpsertOne) ClearEmail() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearEmail()
+	})
+}
+
+// SetContactPin sets the "contact_pin" field.
+func (u *UserUpsertOne) SetContactPin(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetContactPin(v)
+	})
+}
+
+// UpdateContactPin sets the "contact_pin" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateContactPin() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateContactPin()
 	})
 }
 
@@ -935,6 +992,27 @@ func (u *UserUpsertBulk) SetEmail(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateEmail() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateEmail()
+	})
+}
+
+// ClearEmail clears the value of the "email" field.
+func (u *UserUpsertBulk) ClearEmail() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearEmail()
+	})
+}
+
+// SetContactPin sets the "contact_pin" field.
+func (u *UserUpsertBulk) SetContactPin(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetContactPin(v)
+	})
+}
+
+// UpdateContactPin sets the "contact_pin" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateContactPin() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateContactPin()
 	})
 }
 

@@ -13,7 +13,6 @@ import (
 	"journeyhub/ent/schema/pulid"
 
 	"journeyhub/ent/file"
-	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/messagelink"
@@ -21,6 +20,8 @@ import (
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/user"
+	"journeyhub/ent/usercontact"
+	"journeyhub/ent/userpincode"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -35,8 +36,6 @@ type Client struct {
 	Schema *migrate.Schema
 	// File is the client for interacting with the File builders.
 	File *FileClient
-	// Friendship is the client for interacting with the Friendship builders.
-	Friendship *FriendshipClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
 	// MessageAttachment is the client for interacting with the MessageAttachment builders.
@@ -51,6 +50,10 @@ type Client struct {
 	RoomMember *RoomMemberClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserContact is the client for interacting with the UserContact builders.
+	UserContact *UserContactClient
+	// UserPinCode is the client for interacting with the UserPinCode builders.
+	UserPinCode *UserPinCodeClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -63,7 +66,6 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.File = NewFileClient(c.config)
-	c.Friendship = NewFriendshipClient(c.config)
 	c.Message = NewMessageClient(c.config)
 	c.MessageAttachment = NewMessageAttachmentClient(c.config)
 	c.MessageLink = NewMessageLinkClient(c.config)
@@ -71,6 +73,8 @@ func (c *Client) init() {
 	c.Room = NewRoomClient(c.config)
 	c.RoomMember = NewRoomMemberClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.UserContact = NewUserContactClient(c.config)
+	c.UserPinCode = NewUserPinCodeClient(c.config)
 }
 
 type (
@@ -164,7 +168,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:               ctx,
 		config:            cfg,
 		File:              NewFileClient(cfg),
-		Friendship:        NewFriendshipClient(cfg),
 		Message:           NewMessageClient(cfg),
 		MessageAttachment: NewMessageAttachmentClient(cfg),
 		MessageLink:       NewMessageLinkClient(cfg),
@@ -172,6 +175,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Room:              NewRoomClient(cfg),
 		RoomMember:        NewRoomMemberClient(cfg),
 		User:              NewUserClient(cfg),
+		UserContact:       NewUserContactClient(cfg),
+		UserPinCode:       NewUserPinCodeClient(cfg),
 	}, nil
 }
 
@@ -192,7 +197,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:               ctx,
 		config:            cfg,
 		File:              NewFileClient(cfg),
-		Friendship:        NewFriendshipClient(cfg),
 		Message:           NewMessageClient(cfg),
 		MessageAttachment: NewMessageAttachmentClient(cfg),
 		MessageLink:       NewMessageLinkClient(cfg),
@@ -200,6 +204,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Room:              NewRoomClient(cfg),
 		RoomMember:        NewRoomMemberClient(cfg),
 		User:              NewUserClient(cfg),
+		UserContact:       NewUserContactClient(cfg),
+		UserPinCode:       NewUserPinCodeClient(cfg),
 	}, nil
 }
 
@@ -229,8 +235,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.File, c.Friendship, c.Message, c.MessageAttachment, c.MessageLink,
-		c.MessageVoice, c.Room, c.RoomMember, c.User,
+		c.File, c.Message, c.MessageAttachment, c.MessageLink, c.MessageVoice, c.Room,
+		c.RoomMember, c.User, c.UserContact, c.UserPinCode,
 	} {
 		n.Use(hooks...)
 	}
@@ -240,8 +246,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.File, c.Friendship, c.Message, c.MessageAttachment, c.MessageLink,
-		c.MessageVoice, c.Room, c.RoomMember, c.User,
+		c.File, c.Message, c.MessageAttachment, c.MessageLink, c.MessageVoice, c.Room,
+		c.RoomMember, c.User, c.UserContact, c.UserPinCode,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -252,8 +258,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *FileMutation:
 		return c.File.mutate(ctx, m)
-	case *FriendshipMutation:
-		return c.Friendship.mutate(ctx, m)
 	case *MessageMutation:
 		return c.Message.mutate(ctx, m)
 	case *MessageAttachmentMutation:
@@ -268,6 +272,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.RoomMember.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
+	case *UserContactMutation:
+		return c.UserContact.mutate(ctx, m)
+	case *UserPinCodeMutation:
+		return c.UserPinCode.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -389,7 +397,7 @@ func (c *FileClient) QueryMessageAttachment(f *File) *MessageAttachmentQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(file.Table, file.FieldID, id),
 			sqlgraph.To(messageattachment.Table, messageattachment.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, file.MessageAttachmentTable, file.MessageAttachmentColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, file.MessageAttachmentTable, file.MessageAttachmentColumn),
 		)
 		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
 		return fromV, nil
@@ -405,7 +413,7 @@ func (c *FileClient) QueryMessageVoice(f *File) *MessageVoiceQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(file.Table, file.FieldID, id),
 			sqlgraph.To(messagevoice.Table, messagevoice.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, file.MessageVoiceTable, file.MessageVoiceColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, file.MessageVoiceTable, file.MessageVoiceColumn),
 		)
 		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
 		return fromV, nil
@@ -435,187 +443,6 @@ func (c *FileClient) mutate(ctx context.Context, m *FileMutation) (Value, error)
 		return (&FileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown File mutation op: %q", m.Op())
-	}
-}
-
-// FriendshipClient is a client for the Friendship schema.
-type FriendshipClient struct {
-	config
-}
-
-// NewFriendshipClient returns a client for the Friendship from the given config.
-func NewFriendshipClient(c config) *FriendshipClient {
-	return &FriendshipClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `friendship.Hooks(f(g(h())))`.
-func (c *FriendshipClient) Use(hooks ...Hook) {
-	c.hooks.Friendship = append(c.hooks.Friendship, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `friendship.Intercept(f(g(h())))`.
-func (c *FriendshipClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Friendship = append(c.inters.Friendship, interceptors...)
-}
-
-// Create returns a builder for creating a Friendship entity.
-func (c *FriendshipClient) Create() *FriendshipCreate {
-	mutation := newFriendshipMutation(c.config, OpCreate)
-	return &FriendshipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Friendship entities.
-func (c *FriendshipClient) CreateBulk(builders ...*FriendshipCreate) *FriendshipCreateBulk {
-	return &FriendshipCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *FriendshipClient) MapCreateBulk(slice any, setFunc func(*FriendshipCreate, int)) *FriendshipCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &FriendshipCreateBulk{err: fmt.Errorf("calling to FriendshipClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*FriendshipCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &FriendshipCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Friendship.
-func (c *FriendshipClient) Update() *FriendshipUpdate {
-	mutation := newFriendshipMutation(c.config, OpUpdate)
-	return &FriendshipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *FriendshipClient) UpdateOne(f *Friendship) *FriendshipUpdateOne {
-	mutation := newFriendshipMutation(c.config, OpUpdateOne, withFriendship(f))
-	return &FriendshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *FriendshipClient) UpdateOneID(id pulid.ID) *FriendshipUpdateOne {
-	mutation := newFriendshipMutation(c.config, OpUpdateOne, withFriendshipID(id))
-	return &FriendshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Friendship.
-func (c *FriendshipClient) Delete() *FriendshipDelete {
-	mutation := newFriendshipMutation(c.config, OpDelete)
-	return &FriendshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *FriendshipClient) DeleteOne(f *Friendship) *FriendshipDeleteOne {
-	return c.DeleteOneID(f.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *FriendshipClient) DeleteOneID(id pulid.ID) *FriendshipDeleteOne {
-	builder := c.Delete().Where(friendship.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &FriendshipDeleteOne{builder}
-}
-
-// Query returns a query builder for Friendship.
-func (c *FriendshipClient) Query() *FriendshipQuery {
-	return &FriendshipQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeFriendship},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Friendship entity by its id.
-func (c *FriendshipClient) Get(ctx context.Context, id pulid.ID) (*Friendship, error) {
-	return c.Query().Where(friendship.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *FriendshipClient) GetX(ctx context.Context, id pulid.ID) *Friendship {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryUser queries the user edge of a Friendship.
-func (c *FriendshipClient) QueryUser(f *Friendship) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := f.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(friendship.Table, friendship.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, friendship.UserTable, friendship.UserColumn),
-		)
-		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryFriend queries the friend edge of a Friendship.
-func (c *FriendshipClient) QueryFriend(f *Friendship) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := f.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(friendship.Table, friendship.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, friendship.FriendTable, friendship.FriendColumn),
-		)
-		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryRoom queries the room edge of a Friendship.
-func (c *FriendshipClient) QueryRoom(f *Friendship) *RoomQuery {
-	query := (&RoomClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := f.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(friendship.Table, friendship.FieldID, id),
-			sqlgraph.To(room.Table, room.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, friendship.RoomTable, friendship.RoomColumn),
-		)
-		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *FriendshipClient) Hooks() []Hook {
-	return c.hooks.Friendship
-}
-
-// Interceptors returns the client interceptors.
-func (c *FriendshipClient) Interceptors() []Interceptor {
-	return c.inters.Friendship
-}
-
-func (c *FriendshipClient) mutate(ctx context.Context, m *FriendshipMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&FriendshipCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&FriendshipUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&FriendshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&FriendshipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown Friendship mutation op: %q", m.Op())
 	}
 }
 
@@ -727,31 +554,15 @@ func (c *MessageClient) GetX(ctx context.Context, id pulid.ID) *Message {
 	return obj
 }
 
-// QueryUser queries the user edge of a Message.
-func (c *MessageClient) QueryUser(m *Message) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
+// QueryVoice queries the voice edge of a Message.
+func (c *MessageClient) QueryVoice(m *Message) *MessageVoiceQuery {
+	query := (&MessageVoiceClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(message.Table, message.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, message.UserTable, message.UserColumn),
-		)
-		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryRoom queries the room edge of a Message.
-func (c *MessageClient) QueryRoom(m *Message) *RoomQuery {
-	query := (&RoomClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(message.Table, message.FieldID, id),
-			sqlgraph.To(room.Table, room.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, message.RoomTable, message.RoomColumn),
+			sqlgraph.To(messagevoice.Table, messagevoice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, message.VoiceTable, message.VoiceColumn),
 		)
 		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
 		return fromV, nil
@@ -800,6 +611,38 @@ func (c *MessageClient) QueryLinks(m *Message) *MessageLinkQuery {
 			sqlgraph.From(message.Table, message.FieldID, id),
 			sqlgraph.To(messagelink.Table, messagelink.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, message.LinksTable, message.LinksColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUser queries the user edge of a Message.
+func (c *MessageClient) QueryUser(m *Message) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.UserTable, message.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRoom queries the room edge of a Message.
+func (c *MessageClient) QueryRoom(m *Message) *RoomQuery {
+	query := (&RoomClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, id),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.RoomTable, message.RoomColumn),
 		)
 		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
 		return fromV, nil
@@ -940,6 +783,22 @@ func (c *MessageAttachmentClient) GetX(ctx context.Context, id pulid.ID) *Messag
 	return obj
 }
 
+// QueryRoom queries the room edge of a MessageAttachment.
+func (c *MessageAttachmentClient) QueryRoom(ma *MessageAttachment) *RoomQuery {
+	query := (&RoomClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ma.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(messageattachment.Table, messageattachment.FieldID, id),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, messageattachment.RoomTable, messageattachment.RoomColumn),
+		)
+		fromV = sqlgraph.Neighbors(ma.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryMessage queries the message edge of a MessageAttachment.
 func (c *MessageAttachmentClient) QueryMessage(ma *MessageAttachment) *MessageQuery {
 	query := (&MessageClient{config: c.config}).Query()
@@ -964,7 +823,7 @@ func (c *MessageAttachmentClient) QueryFile(ma *MessageAttachment) *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(messageattachment.Table, messageattachment.FieldID, id),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, messageattachment.FileTable, messageattachment.FileColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, messageattachment.FileTable, messageattachment.FileColumn),
 		)
 		fromV = sqlgraph.Neighbors(ma.driver.Dialect(), step)
 		return fromV, nil
@@ -1103,6 +962,22 @@ func (c *MessageLinkClient) GetX(ctx context.Context, id pulid.ID) *MessageLink 
 		panic(err)
 	}
 	return obj
+}
+
+// QueryRoom queries the room edge of a MessageLink.
+func (c *MessageLinkClient) QueryRoom(ml *MessageLink) *RoomQuery {
+	query := (&RoomClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ml.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(messagelink.Table, messagelink.FieldID, id),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, messagelink.RoomTable, messagelink.RoomColumn),
+		)
+		fromV = sqlgraph.Neighbors(ml.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // QueryMessage queries the message edge of a MessageLink.
@@ -1254,6 +1129,38 @@ func (c *MessageVoiceClient) GetX(ctx context.Context, id pulid.ID) *MessageVoic
 	return obj
 }
 
+// QueryRoom queries the room edge of a MessageVoice.
+func (c *MessageVoiceClient) QueryRoom(mv *MessageVoice) *RoomQuery {
+	query := (&RoomClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := mv.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(messagevoice.Table, messagevoice.FieldID, id),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, messagevoice.RoomTable, messagevoice.RoomColumn),
+		)
+		fromV = sqlgraph.Neighbors(mv.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMessage queries the message edge of a MessageVoice.
+func (c *MessageVoiceClient) QueryMessage(mv *MessageVoice) *MessageQuery {
+	query := (&MessageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := mv.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(messagevoice.Table, messagevoice.FieldID, id),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, messagevoice.MessageTable, messagevoice.MessageColumn),
+		)
+		fromV = sqlgraph.Neighbors(mv.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryFile queries the file edge of a MessageVoice.
 func (c *MessageVoiceClient) QueryFile(mv *MessageVoice) *FileQuery {
 	query := (&FileClient{config: c.config}).Query()
@@ -1262,7 +1169,7 @@ func (c *MessageVoiceClient) QueryFile(mv *MessageVoice) *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(messagevoice.Table, messagevoice.FieldID, id),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, messagevoice.FileTable, messagevoice.FileColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, messagevoice.FileTable, messagevoice.FileColumn),
 		)
 		fromV = sqlgraph.Neighbors(mv.driver.Dialect(), step)
 		return fromV, nil
@@ -1428,6 +1335,54 @@ func (c *RoomClient) QueryMessages(r *Room) *MessageQuery {
 			sqlgraph.From(room.Table, room.FieldID, id),
 			sqlgraph.To(message.Table, message.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, room.MessagesTable, room.MessagesColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMessageVoices queries the message_voices edge of a Room.
+func (c *RoomClient) QueryMessageVoices(r *Room) *MessageVoiceQuery {
+	query := (&MessageVoiceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, id),
+			sqlgraph.To(messagevoice.Table, messagevoice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, room.MessageVoicesTable, room.MessageVoicesColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMessageAttachments queries the message_attachments edge of a Room.
+func (c *RoomClient) QueryMessageAttachments(r *Room) *MessageAttachmentQuery {
+	query := (&MessageAttachmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, id),
+			sqlgraph.To(messageattachment.Table, messageattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, room.MessageAttachmentsTable, room.MessageAttachmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMessageLinks queries the message_links edge of a Room.
+func (c *RoomClient) QueryMessageLinks(r *Room) *MessageLinkQuery {
+	query := (&MessageLinkClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, id),
+			sqlgraph.To(messagelink.Table, messagelink.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, room.MessageLinksTable, room.MessageLinksColumn),
 		)
 		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
 		return fromV, nil
@@ -1749,15 +1704,15 @@ func (c *UserClient) GetX(ctx context.Context, id pulid.ID) *User {
 	return obj
 }
 
-// QueryFriends queries the friends edge of a User.
-func (c *UserClient) QueryFriends(u *User) *UserQuery {
+// QueryContacts queries the contacts edge of a User.
+func (c *UserClient) QueryContacts(u *User) *UserQuery {
 	query := (&UserClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, user.FriendsTable, user.FriendsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.ContactsTable, user.ContactsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -1797,15 +1752,15 @@ func (c *UserClient) QueryMessages(u *User) *MessageQuery {
 	return query
 }
 
-// QueryFriendships queries the friendships edge of a User.
-func (c *UserClient) QueryFriendships(u *User) *FriendshipQuery {
-	query := (&FriendshipClient{config: c.config}).Query()
+// QueryUserContacts queries the user_contacts edge of a User.
+func (c *UserClient) QueryUserContacts(u *User) *UserContactQuery {
+	query := (&UserContactClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(friendship.Table, friendship.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, user.FriendshipsTable, user.FriendshipsColumn),
+			sqlgraph.To(usercontact.Table, usercontact.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.UserContactsTable, user.UserContactsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -1854,14 +1809,376 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 	}
 }
 
+// UserContactClient is a client for the UserContact schema.
+type UserContactClient struct {
+	config
+}
+
+// NewUserContactClient returns a client for the UserContact from the given config.
+func NewUserContactClient(c config) *UserContactClient {
+	return &UserContactClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `usercontact.Hooks(f(g(h())))`.
+func (c *UserContactClient) Use(hooks ...Hook) {
+	c.hooks.UserContact = append(c.hooks.UserContact, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `usercontact.Intercept(f(g(h())))`.
+func (c *UserContactClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserContact = append(c.inters.UserContact, interceptors...)
+}
+
+// Create returns a builder for creating a UserContact entity.
+func (c *UserContactClient) Create() *UserContactCreate {
+	mutation := newUserContactMutation(c.config, OpCreate)
+	return &UserContactCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserContact entities.
+func (c *UserContactClient) CreateBulk(builders ...*UserContactCreate) *UserContactCreateBulk {
+	return &UserContactCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserContactClient) MapCreateBulk(slice any, setFunc func(*UserContactCreate, int)) *UserContactCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserContactCreateBulk{err: fmt.Errorf("calling to UserContactClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserContactCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserContactCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserContact.
+func (c *UserContactClient) Update() *UserContactUpdate {
+	mutation := newUserContactMutation(c.config, OpUpdate)
+	return &UserContactUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserContactClient) UpdateOne(uc *UserContact) *UserContactUpdateOne {
+	mutation := newUserContactMutation(c.config, OpUpdateOne, withUserContact(uc))
+	return &UserContactUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserContactClient) UpdateOneID(id pulid.ID) *UserContactUpdateOne {
+	mutation := newUserContactMutation(c.config, OpUpdateOne, withUserContactID(id))
+	return &UserContactUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserContact.
+func (c *UserContactClient) Delete() *UserContactDelete {
+	mutation := newUserContactMutation(c.config, OpDelete)
+	return &UserContactDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserContactClient) DeleteOne(uc *UserContact) *UserContactDeleteOne {
+	return c.DeleteOneID(uc.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserContactClient) DeleteOneID(id pulid.ID) *UserContactDeleteOne {
+	builder := c.Delete().Where(usercontact.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserContactDeleteOne{builder}
+}
+
+// Query returns a query builder for UserContact.
+func (c *UserContactClient) Query() *UserContactQuery {
+	return &UserContactQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserContact},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserContact entity by its id.
+func (c *UserContactClient) Get(ctx context.Context, id pulid.ID) (*UserContact, error) {
+	return c.Query().Where(usercontact.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserContactClient) GetX(ctx context.Context, id pulid.ID) *UserContact {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a UserContact.
+func (c *UserContactClient) QueryUser(uc *UserContact) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := uc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usercontact.Table, usercontact.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, usercontact.UserTable, usercontact.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(uc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryContact queries the contact edge of a UserContact.
+func (c *UserContactClient) QueryContact(uc *UserContact) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := uc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usercontact.Table, usercontact.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, usercontact.ContactTable, usercontact.ContactColumn),
+		)
+		fromV = sqlgraph.Neighbors(uc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRoom queries the room edge of a UserContact.
+func (c *UserContactClient) QueryRoom(uc *UserContact) *RoomQuery {
+	query := (&RoomClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := uc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usercontact.Table, usercontact.FieldID, id),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, usercontact.RoomTable, usercontact.RoomColumn),
+		)
+		fromV = sqlgraph.Neighbors(uc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserContactClient) Hooks() []Hook {
+	return c.hooks.UserContact
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserContactClient) Interceptors() []Interceptor {
+	return c.inters.UserContact
+}
+
+func (c *UserContactClient) mutate(ctx context.Context, m *UserContactMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserContactCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserContactUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserContactUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserContactDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserContact mutation op: %q", m.Op())
+	}
+}
+
+// UserPinCodeClient is a client for the UserPinCode schema.
+type UserPinCodeClient struct {
+	config
+}
+
+// NewUserPinCodeClient returns a client for the UserPinCode from the given config.
+func NewUserPinCodeClient(c config) *UserPinCodeClient {
+	return &UserPinCodeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `userpincode.Hooks(f(g(h())))`.
+func (c *UserPinCodeClient) Use(hooks ...Hook) {
+	c.hooks.UserPinCode = append(c.hooks.UserPinCode, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `userpincode.Intercept(f(g(h())))`.
+func (c *UserPinCodeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserPinCode = append(c.inters.UserPinCode, interceptors...)
+}
+
+// Create returns a builder for creating a UserPinCode entity.
+func (c *UserPinCodeClient) Create() *UserPinCodeCreate {
+	mutation := newUserPinCodeMutation(c.config, OpCreate)
+	return &UserPinCodeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserPinCode entities.
+func (c *UserPinCodeClient) CreateBulk(builders ...*UserPinCodeCreate) *UserPinCodeCreateBulk {
+	return &UserPinCodeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserPinCodeClient) MapCreateBulk(slice any, setFunc func(*UserPinCodeCreate, int)) *UserPinCodeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserPinCodeCreateBulk{err: fmt.Errorf("calling to UserPinCodeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserPinCodeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserPinCodeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserPinCode.
+func (c *UserPinCodeClient) Update() *UserPinCodeUpdate {
+	mutation := newUserPinCodeMutation(c.config, OpUpdate)
+	return &UserPinCodeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserPinCodeClient) UpdateOne(upc *UserPinCode) *UserPinCodeUpdateOne {
+	mutation := newUserPinCodeMutation(c.config, OpUpdateOne, withUserPinCode(upc))
+	return &UserPinCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserPinCodeClient) UpdateOneID(id pulid.ID) *UserPinCodeUpdateOne {
+	mutation := newUserPinCodeMutation(c.config, OpUpdateOne, withUserPinCodeID(id))
+	return &UserPinCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserPinCode.
+func (c *UserPinCodeClient) Delete() *UserPinCodeDelete {
+	mutation := newUserPinCodeMutation(c.config, OpDelete)
+	return &UserPinCodeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserPinCodeClient) DeleteOne(upc *UserPinCode) *UserPinCodeDeleteOne {
+	return c.DeleteOneID(upc.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserPinCodeClient) DeleteOneID(id pulid.ID) *UserPinCodeDeleteOne {
+	builder := c.Delete().Where(userpincode.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserPinCodeDeleteOne{builder}
+}
+
+// Query returns a query builder for UserPinCode.
+func (c *UserPinCodeClient) Query() *UserPinCodeQuery {
+	return &UserPinCodeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserPinCode},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserPinCode entity by its id.
+func (c *UserPinCodeClient) Get(ctx context.Context, id pulid.ID) (*UserPinCode, error) {
+	return c.Query().Where(userpincode.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserPinCodeClient) GetX(ctx context.Context, id pulid.ID) *UserPinCode {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a UserPinCode.
+func (c *UserPinCodeClient) QueryUser(upc *UserPinCode) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := upc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userpincode.Table, userpincode.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, userpincode.UserTable, userpincode.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(upc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryContact queries the contact edge of a UserPinCode.
+func (c *UserPinCodeClient) QueryContact(upc *UserPinCode) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := upc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userpincode.Table, userpincode.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, userpincode.ContactTable, userpincode.ContactColumn),
+		)
+		fromV = sqlgraph.Neighbors(upc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRoom queries the room edge of a UserPinCode.
+func (c *UserPinCodeClient) QueryRoom(upc *UserPinCode) *RoomQuery {
+	query := (&RoomClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := upc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userpincode.Table, userpincode.FieldID, id),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, userpincode.RoomTable, userpincode.RoomColumn),
+		)
+		fromV = sqlgraph.Neighbors(upc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserPinCodeClient) Hooks() []Hook {
+	return c.hooks.UserPinCode
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserPinCodeClient) Interceptors() []Interceptor {
+	return c.inters.UserPinCode
+}
+
+func (c *UserPinCodeClient) mutate(ctx context.Context, m *UserPinCodeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserPinCodeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserPinCodeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserPinCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserPinCodeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserPinCode mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		File, Friendship, Message, MessageAttachment, MessageLink, MessageVoice, Room,
-		RoomMember, User []ent.Hook
+		File, Message, MessageAttachment, MessageLink, MessageVoice, Room, RoomMember,
+		User, UserContact, UserPinCode []ent.Hook
 	}
 	inters struct {
-		File, Friendship, Message, MessageAttachment, MessageLink, MessageVoice, Room,
-		RoomMember, User []ent.Interceptor
+		File, Message, MessageAttachment, MessageLink, MessageVoice, Room, RoomMember,
+		User, UserContact, UserPinCode []ent.Interceptor
 	}
 )

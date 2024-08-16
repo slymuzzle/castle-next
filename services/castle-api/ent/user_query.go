@@ -6,13 +6,13 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
-	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
+	"journeyhub/ent/usercontact"
 	"math"
 
 	"entgo.io/ent"
@@ -24,22 +24,22 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx                  *QueryContext
-	order                []user.OrderOption
-	inters               []Interceptor
-	predicates           []predicate.User
-	withFriends          *UserQuery
-	withRooms            *RoomQuery
-	withMessages         *MessageQuery
-	withFriendships      *FriendshipQuery
-	withMemberships      *RoomMemberQuery
-	modifiers            []func(*sql.Selector)
-	loadTotal            []func(context.Context, []*User) error
-	withNamedFriends     map[string]*UserQuery
-	withNamedRooms       map[string]*RoomQuery
-	withNamedMessages    map[string]*MessageQuery
-	withNamedFriendships map[string]*FriendshipQuery
-	withNamedMemberships map[string]*RoomMemberQuery
+	ctx                   *QueryContext
+	order                 []user.OrderOption
+	inters                []Interceptor
+	predicates            []predicate.User
+	withContacts          *UserQuery
+	withRooms             *RoomQuery
+	withMessages          *MessageQuery
+	withUserContacts      *UserContactQuery
+	withMemberships       *RoomMemberQuery
+	modifiers             []func(*sql.Selector)
+	loadTotal             []func(context.Context, []*User) error
+	withNamedContacts     map[string]*UserQuery
+	withNamedRooms        map[string]*RoomQuery
+	withNamedMessages     map[string]*MessageQuery
+	withNamedUserContacts map[string]*UserContactQuery
+	withNamedMemberships  map[string]*RoomMemberQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,8 +76,8 @@ func (uq *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	return uq
 }
 
-// QueryFriends chains the current query on the "friends" edge.
-func (uq *UserQuery) QueryFriends() *UserQuery {
+// QueryContacts chains the current query on the "contacts" edge.
+func (uq *UserQuery) QueryContacts() *UserQuery {
 	query := (&UserClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
@@ -90,7 +90,7 @@ func (uq *UserQuery) QueryFriends() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, user.FriendsTable, user.FriendsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.ContactsTable, user.ContactsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -142,9 +142,9 @@ func (uq *UserQuery) QueryMessages() *MessageQuery {
 	return query
 }
 
-// QueryFriendships chains the current query on the "friendships" edge.
-func (uq *UserQuery) QueryFriendships() *FriendshipQuery {
-	query := (&FriendshipClient{config: uq.config}).Query()
+// QueryUserContacts chains the current query on the "user_contacts" edge.
+func (uq *UserQuery) QueryUserContacts() *UserContactQuery {
+	query := (&UserContactClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -155,8 +155,8 @@ func (uq *UserQuery) QueryFriendships() *FriendshipQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(friendship.Table, friendship.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, user.FriendshipsTable, user.FriendshipsColumn),
+			sqlgraph.To(usercontact.Table, usercontact.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.UserContactsTable, user.UserContactsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -373,30 +373,30 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:          uq.config,
-		ctx:             uq.ctx.Clone(),
-		order:           append([]user.OrderOption{}, uq.order...),
-		inters:          append([]Interceptor{}, uq.inters...),
-		predicates:      append([]predicate.User{}, uq.predicates...),
-		withFriends:     uq.withFriends.Clone(),
-		withRooms:       uq.withRooms.Clone(),
-		withMessages:    uq.withMessages.Clone(),
-		withFriendships: uq.withFriendships.Clone(),
-		withMemberships: uq.withMemberships.Clone(),
+		config:           uq.config,
+		ctx:              uq.ctx.Clone(),
+		order:            append([]user.OrderOption{}, uq.order...),
+		inters:           append([]Interceptor{}, uq.inters...),
+		predicates:       append([]predicate.User{}, uq.predicates...),
+		withContacts:     uq.withContacts.Clone(),
+		withRooms:        uq.withRooms.Clone(),
+		withMessages:     uq.withMessages.Clone(),
+		withUserContacts: uq.withUserContacts.Clone(),
+		withMemberships:  uq.withMemberships.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
 	}
 }
 
-// WithFriends tells the query-builder to eager-load the nodes that are connected to
-// the "friends" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithFriends(opts ...func(*UserQuery)) *UserQuery {
+// WithContacts tells the query-builder to eager-load the nodes that are connected to
+// the "contacts" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithContacts(opts ...func(*UserQuery)) *UserQuery {
 	query := (&UserClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withFriends = query
+	uq.withContacts = query
 	return uq
 }
 
@@ -422,14 +422,14 @@ func (uq *UserQuery) WithMessages(opts ...func(*MessageQuery)) *UserQuery {
 	return uq
 }
 
-// WithFriendships tells the query-builder to eager-load the nodes that are connected to
-// the "friendships" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithFriendships(opts ...func(*FriendshipQuery)) *UserQuery {
-	query := (&FriendshipClient{config: uq.config}).Query()
+// WithUserContacts tells the query-builder to eager-load the nodes that are connected to
+// the "user_contacts" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithUserContacts(opts ...func(*UserContactQuery)) *UserQuery {
+	query := (&UserContactClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withFriendships = query
+	uq.withUserContacts = query
 	return uq
 }
 
@@ -523,10 +523,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
 		loadedTypes = [5]bool{
-			uq.withFriends != nil,
+			uq.withContacts != nil,
 			uq.withRooms != nil,
 			uq.withMessages != nil,
-			uq.withFriendships != nil,
+			uq.withUserContacts != nil,
 			uq.withMemberships != nil,
 		}
 	)
@@ -551,10 +551,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := uq.withFriends; query != nil {
-		if err := uq.loadFriends(ctx, query, nodes,
-			func(n *User) { n.Edges.Friends = []*User{} },
-			func(n *User, e *User) { n.Edges.Friends = append(n.Edges.Friends, e) }); err != nil {
+	if query := uq.withContacts; query != nil {
+		if err := uq.loadContacts(ctx, query, nodes,
+			func(n *User) { n.Edges.Contacts = []*User{} },
+			func(n *User, e *User) { n.Edges.Contacts = append(n.Edges.Contacts, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -572,10 +572,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	if query := uq.withFriendships; query != nil {
-		if err := uq.loadFriendships(ctx, query, nodes,
-			func(n *User) { n.Edges.Friendships = []*Friendship{} },
-			func(n *User, e *Friendship) { n.Edges.Friendships = append(n.Edges.Friendships, e) }); err != nil {
+	if query := uq.withUserContacts; query != nil {
+		if err := uq.loadUserContacts(ctx, query, nodes,
+			func(n *User) { n.Edges.UserContacts = []*UserContact{} },
+			func(n *User, e *UserContact) { n.Edges.UserContacts = append(n.Edges.UserContacts, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -586,10 +586,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	for name, query := range uq.withNamedFriends {
-		if err := uq.loadFriends(ctx, query, nodes,
-			func(n *User) { n.appendNamedFriends(name) },
-			func(n *User, e *User) { n.appendNamedFriends(name, e) }); err != nil {
+	for name, query := range uq.withNamedContacts {
+		if err := uq.loadContacts(ctx, query, nodes,
+			func(n *User) { n.appendNamedContacts(name) },
+			func(n *User, e *User) { n.appendNamedContacts(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -607,10 +607,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	for name, query := range uq.withNamedFriendships {
-		if err := uq.loadFriendships(ctx, query, nodes,
-			func(n *User) { n.appendNamedFriendships(name) },
-			func(n *User, e *Friendship) { n.appendNamedFriendships(name, e) }); err != nil {
+	for name, query := range uq.withNamedUserContacts {
+		if err := uq.loadUserContacts(ctx, query, nodes,
+			func(n *User) { n.appendNamedUserContacts(name) },
+			func(n *User, e *UserContact) { n.appendNamedUserContacts(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -629,7 +629,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	return nodes, nil
 }
 
-func (uq *UserQuery) loadFriends(ctx context.Context, query *UserQuery, nodes []*User, init func(*User), assign func(*User, *User)) error {
+func (uq *UserQuery) loadContacts(ctx context.Context, query *UserQuery, nodes []*User, init func(*User), assign func(*User, *User)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[pulid.ID]*User)
 	nids := make(map[pulid.ID]map[*User]struct{})
@@ -641,11 +641,11 @@ func (uq *UserQuery) loadFriends(ctx context.Context, query *UserQuery, nodes []
 		}
 	}
 	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(user.FriendsTable)
-		s.Join(joinT).On(s.C(user.FieldID), joinT.C(user.FriendsPrimaryKey[1]))
-		s.Where(sql.InValues(joinT.C(user.FriendsPrimaryKey[0]), edgeIDs...))
+		joinT := sql.Table(user.ContactsTable)
+		s.Join(joinT).On(s.C(user.FieldID), joinT.C(user.ContactsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.ContactsPrimaryKey[0]), edgeIDs...))
 		columns := s.SelectedColumns()
-		s.Select(joinT.C(user.FriendsPrimaryKey[0]))
+		s.Select(joinT.C(user.ContactsPrimaryKey[0]))
 		s.AppendSelect(columns...)
 		s.SetDistinct(false)
 	})
@@ -682,7 +682,7 @@ func (uq *UserQuery) loadFriends(ctx context.Context, query *UserQuery, nodes []
 	for _, n := range neighbors {
 		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "friends" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected "contacts" node returned %v`, n.ID)
 		}
 		for kn := range nodes {
 			assign(kn, n)
@@ -782,7 +782,7 @@ func (uq *UserQuery) loadMessages(ctx context.Context, query *MessageQuery, node
 	}
 	return nil
 }
-func (uq *UserQuery) loadFriendships(ctx context.Context, query *FriendshipQuery, nodes []*User, init func(*User), assign func(*User, *Friendship)) error {
+func (uq *UserQuery) loadUserContacts(ctx context.Context, query *UserContactQuery, nodes []*User, init func(*User), assign func(*User, *UserContact)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[pulid.ID]*User)
 	for i := range nodes {
@@ -793,10 +793,10 @@ func (uq *UserQuery) loadFriendships(ctx context.Context, query *FriendshipQuery
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(friendship.FieldUserID)
+		query.ctx.AppendFieldOnce(usercontact.FieldUserID)
 	}
-	query.Where(predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.FriendshipsColumn), fks...))
+	query.Where(predicate.UserContact(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.UserContactsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -927,17 +927,17 @@ func (uq *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// WithNamedFriends tells the query-builder to eager-load the nodes that are connected to the "friends"
+// WithNamedContacts tells the query-builder to eager-load the nodes that are connected to the "contacts"
 // edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithNamedFriends(name string, opts ...func(*UserQuery)) *UserQuery {
+func (uq *UserQuery) WithNamedContacts(name string, opts ...func(*UserQuery)) *UserQuery {
 	query := (&UserClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	if uq.withNamedFriends == nil {
-		uq.withNamedFriends = make(map[string]*UserQuery)
+	if uq.withNamedContacts == nil {
+		uq.withNamedContacts = make(map[string]*UserQuery)
 	}
-	uq.withNamedFriends[name] = query
+	uq.withNamedContacts[name] = query
 	return uq
 }
 
@@ -969,17 +969,17 @@ func (uq *UserQuery) WithNamedMessages(name string, opts ...func(*MessageQuery))
 	return uq
 }
 
-// WithNamedFriendships tells the query-builder to eager-load the nodes that are connected to the "friendships"
+// WithNamedUserContacts tells the query-builder to eager-load the nodes that are connected to the "user_contacts"
 // edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithNamedFriendships(name string, opts ...func(*FriendshipQuery)) *UserQuery {
-	query := (&FriendshipClient{config: uq.config}).Query()
+func (uq *UserQuery) WithNamedUserContacts(name string, opts ...func(*UserContactQuery)) *UserQuery {
+	query := (&UserContactClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	if uq.withNamedFriendships == nil {
-		uq.withNamedFriendships = make(map[string]*FriendshipQuery)
+	if uq.withNamedUserContacts == nil {
+		uq.withNamedUserContacts = make(map[string]*UserContactQuery)
 	}
-	uq.withNamedFriendships[name] = query
+	uq.withNamedUserContacts[name] = query
 	return uq
 }
 

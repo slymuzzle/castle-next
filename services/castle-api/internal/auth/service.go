@@ -5,14 +5,11 @@ import (
 	"errors"
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
-	"journeyhub/ent/user"
 	"journeyhub/graph/model"
 	"journeyhub/internal/auth/jwtauth"
+	pass "journeyhub/internal/auth/password"
 	"journeyhub/internal/config"
-	"journeyhub/internal/db"
 	"time"
-
-	"github.com/k0kubun/pp"
 )
 
 var (
@@ -30,14 +27,13 @@ type Service interface {
 		ctx context.Context,
 		firstName string,
 		lastName string,
-		email string,
 		nickname string,
 		password string,
 		passwordConfirmation string,
 	) (*ent.User, error)
 	Login(
 		ctx context.Context,
-		nicknameOrEmail string,
+		nickname string,
 		password string,
 	) (*model.LoginUser, error)
 	Auth(ctx context.Context) (*ent.User, error)
@@ -45,17 +41,17 @@ type Service interface {
 }
 
 type service struct {
-	config    config.AuthConfig
-	jwtAuth   *jwtauth.JWTAuth
-	dbService db.Service
+	config         config.AuthConfig
+	jwtAuth        *jwtauth.JWTAuth
+	authRepository Repository
 }
 
-func NewService(config config.AuthConfig, dbService db.Service) Service {
+func NewService(config config.AuthConfig, authRepository Repository) Service {
 	jwtAuth := jwtauth.New("HS256", []byte(config.Secret), nil)
 	return &service{
-		config:    config,
-		jwtAuth:   jwtAuth,
-		dbService: dbService,
+		config:         config,
+		jwtAuth:        jwtAuth,
+		authRepository: authRepository,
 	}
 }
 
@@ -63,21 +59,12 @@ func (s *service) Register(
 	ctx context.Context,
 	firstName string,
 	lastName string,
-	email string,
 	nickname string,
 	password string,
 	passwordConfirmation string,
 ) (*ent.User, error) {
-	entClient := s.dbService.Client()
-
-	existingUser, _ := entClient.User.
-		Query().
-		Where(
-			user.Or(
-				user.Email(email),
-				user.Nickname(nickname),
-			),
-		).Only(ctx)
+	existingUser, _ := s.authRepository.
+		FindUserByNickname(ctx, nickname)
 	if existingUser != nil {
 		return nil, ErrUserExist
 	}
@@ -86,19 +73,18 @@ func (s *service) Register(
 		return nil, ErrPasswordConfirm
 	}
 
-	hashedPassword, err := HashPassword(password)
+	hashedPassword, err := pass.Hash(password)
 	if err != nil {
 		return nil, ErrPasswordHash
 	}
 
-	user, err := entClient.User.
-		Create().
-		SetFirstName(firstName).
-		SetLastName(lastName).
-		SetEmail(email).
-		SetNickname(nickname).
-		SetPassword(hashedPassword).
-		Save(ctx)
+	user, err := s.authRepository.CreateUser(
+		ctx,
+		firstName,
+		lastName,
+		nickname,
+		hashedPassword,
+	)
 	if err != nil {
 		return nil, ErrCreateUser
 	}
@@ -108,24 +94,16 @@ func (s *service) Register(
 
 func (s *service) Login(
 	ctx context.Context,
-	nicknameOrEmail string,
+	nickname string,
 	password string,
 ) (*model.LoginUser, error) {
-	entClient := s.dbService.Client()
-
-	existingUser, err := entClient.User.
-		Query().
-		Where(
-			user.Or(
-				user.Email(nicknameOrEmail),
-				user.Nickname(nicknameOrEmail),
-			),
-		).Only(ctx)
+	existingUser, err := s.authRepository.
+		FindUserByNickname(ctx, nickname)
 	if err != nil {
 		return nil, ErrInvalidCredentials
 	}
 
-	err = CompareHashAndPassword(existingUser.Password, password)
+	err = pass.Compare(existingUser.Password, password)
 	if err != nil {
 		return nil, ErrInvalidCredentials
 	}
@@ -145,8 +123,6 @@ func (s *service) Login(
 }
 
 func (s *service) Auth(ctx context.Context) (*ent.User, error) {
-	pp.Print("Hello")
-
 	jwtToken, _, err := jwtauth.FromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -154,12 +130,10 @@ func (s *service) Auth(ctx context.Context) (*ent.User, error) {
 
 	subject := jwtToken.Subject()
 
-	entClient := s.dbService.Client()
-
-	user, err := entClient.User.
-		Query().
-		Where(user.ID(pulid.ID(subject))).
-		Only(ctx)
+	user, err := s.authRepository.FindUserByID(
+		ctx,
+		pulid.ID(subject),
+	)
 	if err != nil {
 		return nil, ErrUserNotFound
 	}

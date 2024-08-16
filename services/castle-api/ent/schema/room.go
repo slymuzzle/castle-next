@@ -69,6 +69,18 @@ func (Room) Edges() []ent.Edge {
 			Annotations(
 				entgql.RelayConnection(),
 			),
+		edge.To("message_voices", MessageVoice.Type).
+			Annotations(
+				entgql.RelayConnection(),
+			),
+		edge.To("message_attachments", MessageAttachment.Type).
+			Annotations(
+				entgql.RelayConnection(),
+			),
+		edge.To("message_links", MessageLink.Type).
+			Annotations(
+				entgql.RelayConnection(),
+			),
 	}
 }
 

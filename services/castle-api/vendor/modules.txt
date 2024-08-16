@@ -159,11 +159,6 @@ github.com/hashicorp/hcl/v2/hclparse
 github.com/hashicorp/hcl/v2/hclsyntax
 github.com/hashicorp/hcl/v2/hclwrite
 github.com/hashicorp/hcl/v2/json
-# github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88
-## explicit
-# github.com/k0kubun/pp v3.0.1+incompatible
-## explicit
-github.com/k0kubun/pp
 # github.com/k0kubun/pp/v3 v3.2.0
 ## explicit; go 1.17
 github.com/k0kubun/pp/v3

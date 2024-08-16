@@ -6,6 +6,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -47,9 +48,20 @@ func (MessageLink) Fields() []ent.Field {
 // Edges of the MessageLink.
 func (MessageLink) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.From("room", Room.Type).
+			Ref("message_links").
+			Unique().
+			Required(),
 		edge.From("message", Message.Type).
 			Ref("links").
 			Required().
 			Unique(),
+	}
+}
+
+// Annotations of the MessageLink.
+func (MessageLink) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.RelayConnection(),
 	}
 }

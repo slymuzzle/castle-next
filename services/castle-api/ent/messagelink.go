@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"journeyhub/ent/message"
 	"journeyhub/ent/messagelink"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"strings"
 	"time"
@@ -27,20 +28,34 @@ type MessageLink struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MessageLinkQuery when eager-loading is set.
-	Edges         MessageLinkEdges `json:"edges"`
-	message_links *pulid.ID
-	selectValues  sql.SelectValues
+	Edges              MessageLinkEdges `json:"edges"`
+	message_links      *pulid.ID
+	room_message_links *pulid.ID
+	selectValues       sql.SelectValues
 }
 
 // MessageLinkEdges holds the relations/edges for other nodes in the graph.
 type MessageLinkEdges struct {
+	// Room holds the value of the room edge.
+	Room *Room `json:"room,omitempty"`
 	// Message holds the value of the message edge.
 	Message *Message `json:"message,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
+}
+
+// RoomOrErr returns the Room value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e MessageLinkEdges) RoomOrErr() (*Room, error) {
+	if e.Room != nil {
+		return e.Room, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: room.Label}
+	}
+	return nil, &NotLoadedError{edge: "room"}
 }
 
 // MessageOrErr returns the Message value or an error if the edge
@@ -48,7 +63,7 @@ type MessageLinkEdges struct {
 func (e MessageLinkEdges) MessageOrErr() (*Message, error) {
 	if e.Message != nil {
 		return e.Message, nil
-	} else if e.loadedTypes[0] {
+	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: message.Label}
 	}
 	return nil, &NotLoadedError{edge: "message"}
@@ -66,6 +81,8 @@ func (*MessageLink) scanValues(columns []string) ([]any, error) {
 		case messagelink.FieldCreatedAt, messagelink.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case messagelink.ForeignKeys[0]: // message_links
+			values[i] = &sql.NullScanner{S: new(pulid.ID)}
+		case messagelink.ForeignKeys[1]: // room_message_links
 			values[i] = &sql.NullScanner{S: new(pulid.ID)}
 		default:
 			values[i] = new(sql.UnknownType)
@@ -113,6 +130,13 @@ func (ml *MessageLink) assignValues(columns []string, values []any) error {
 				ml.message_links = new(pulid.ID)
 				*ml.message_links = *value.S.(*pulid.ID)
 			}
+		case messagelink.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field room_message_links", values[i])
+			} else if value.Valid {
+				ml.room_message_links = new(pulid.ID)
+				*ml.room_message_links = *value.S.(*pulid.ID)
+			}
 		default:
 			ml.selectValues.Set(columns[i], values[i])
 		}
@@ -124,6 +148,11 @@ func (ml *MessageLink) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (ml *MessageLink) Value(name string) (ent.Value, error) {
 	return ml.selectValues.Get(name)
+}
+
+// QueryRoom queries the "room" edge of the MessageLink entity.
+func (ml *MessageLink) QueryRoom() *RoomQuery {
+	return NewMessageLinkClient(ml.config).QueryRoom(ml)
 }
 
 // QueryMessage queries the "message" edge of the MessageLink entity.

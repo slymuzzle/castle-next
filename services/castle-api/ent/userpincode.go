@@ -4,10 +4,10 @@ package ent
 
 import (
 	"fmt"
-	"journeyhub/ent/friendship"
 	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
+	"journeyhub/ent/userpincode"
 	"strings"
 	"time"
 
@@ -15,31 +15,31 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// Friendship is the model entity for the Friendship schema.
-type Friendship struct {
+// UserPinCode is the model entity for the UserPinCode schema.
+type UserPinCode struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID pulid.ID `json:"id,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID pulid.ID `json:"user_id,omitempty"`
-	// FriendID holds the value of the "friend_id" field.
-	FriendID pulid.ID `json:"friend_id,omitempty"`
+	// ContactID holds the value of the "contact_id" field.
+	ContactID pulid.ID `json:"contact_id,omitempty"`
 	// RoomID holds the value of the "room_id" field.
 	RoomID pulid.ID `json:"room_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the FriendshipQuery when eager-loading is set.
-	Edges        FriendshipEdges `json:"edges"`
+	// The values are being populated by the UserPinCodeQuery when eager-loading is set.
+	Edges        UserPinCodeEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
-// FriendshipEdges holds the relations/edges for other nodes in the graph.
-type FriendshipEdges struct {
+// UserPinCodeEdges holds the relations/edges for other nodes in the graph.
+type UserPinCodeEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
-	// Friend holds the value of the friend edge.
-	Friend *User `json:"friend,omitempty"`
+	// Contact holds the value of the contact edge.
+	Contact *User `json:"contact,omitempty"`
 	// Room holds the value of the room edge.
 	Room *Room `json:"room,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -51,7 +51,7 @@ type FriendshipEdges struct {
 
 // UserOrErr returns the User value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e FriendshipEdges) UserOrErr() (*User, error) {
+func (e UserPinCodeEdges) UserOrErr() (*User, error) {
 	if e.User != nil {
 		return e.User, nil
 	} else if e.loadedTypes[0] {
@@ -60,20 +60,20 @@ func (e FriendshipEdges) UserOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "user"}
 }
 
-// FriendOrErr returns the Friend value or an error if the edge
+// ContactOrErr returns the Contact value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e FriendshipEdges) FriendOrErr() (*User, error) {
-	if e.Friend != nil {
-		return e.Friend, nil
+func (e UserPinCodeEdges) ContactOrErr() (*User, error) {
+	if e.Contact != nil {
+		return e.Contact, nil
 	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: user.Label}
 	}
-	return nil, &NotLoadedError{edge: "friend"}
+	return nil, &NotLoadedError{edge: "contact"}
 }
 
 // RoomOrErr returns the Room value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e FriendshipEdges) RoomOrErr() (*Room, error) {
+func (e UserPinCodeEdges) RoomOrErr() (*Room, error) {
 	if e.Room != nil {
 		return e.Room, nil
 	} else if e.loadedTypes[2] {
@@ -83,13 +83,13 @@ func (e FriendshipEdges) RoomOrErr() (*Room, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Friendship) scanValues(columns []string) ([]any, error) {
+func (*UserPinCode) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case friendship.FieldID, friendship.FieldUserID, friendship.FieldFriendID, friendship.FieldRoomID:
+		case userpincode.FieldID, userpincode.FieldUserID, userpincode.FieldContactID, userpincode.FieldRoomID:
 			values[i] = new(pulid.ID)
-		case friendship.FieldCreatedAt:
+		case userpincode.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -99,108 +99,108 @@ func (*Friendship) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the Friendship fields.
-func (f *Friendship) assignValues(columns []string, values []any) error {
+// to the UserPinCode fields.
+func (upc *UserPinCode) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case friendship.FieldID:
+		case userpincode.FieldID:
 			if value, ok := values[i].(*pulid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
-				f.ID = *value
+				upc.ID = *value
 			}
-		case friendship.FieldUserID:
+		case userpincode.FieldUserID:
 			if value, ok := values[i].(*pulid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
 			} else if value != nil {
-				f.UserID = *value
+				upc.UserID = *value
 			}
-		case friendship.FieldFriendID:
+		case userpincode.FieldContactID:
 			if value, ok := values[i].(*pulid.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field friend_id", values[i])
+				return fmt.Errorf("unexpected type %T for field contact_id", values[i])
 			} else if value != nil {
-				f.FriendID = *value
+				upc.ContactID = *value
 			}
-		case friendship.FieldRoomID:
+		case userpincode.FieldRoomID:
 			if value, ok := values[i].(*pulid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field room_id", values[i])
 			} else if value != nil {
-				f.RoomID = *value
+				upc.RoomID = *value
 			}
-		case friendship.FieldCreatedAt:
+		case userpincode.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				f.CreatedAt = value.Time
+				upc.CreatedAt = value.Time
 			}
 		default:
-			f.selectValues.Set(columns[i], values[i])
+			upc.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the Friendship.
+// Value returns the ent.Value that was dynamically selected and assigned to the UserPinCode.
 // This includes values selected through modifiers, order, etc.
-func (f *Friendship) Value(name string) (ent.Value, error) {
-	return f.selectValues.Get(name)
+func (upc *UserPinCode) Value(name string) (ent.Value, error) {
+	return upc.selectValues.Get(name)
 }
 
-// QueryUser queries the "user" edge of the Friendship entity.
-func (f *Friendship) QueryUser() *UserQuery {
-	return NewFriendshipClient(f.config).QueryUser(f)
+// QueryUser queries the "user" edge of the UserPinCode entity.
+func (upc *UserPinCode) QueryUser() *UserQuery {
+	return NewUserPinCodeClient(upc.config).QueryUser(upc)
 }
 
-// QueryFriend queries the "friend" edge of the Friendship entity.
-func (f *Friendship) QueryFriend() *UserQuery {
-	return NewFriendshipClient(f.config).QueryFriend(f)
+// QueryContact queries the "contact" edge of the UserPinCode entity.
+func (upc *UserPinCode) QueryContact() *UserQuery {
+	return NewUserPinCodeClient(upc.config).QueryContact(upc)
 }
 
-// QueryRoom queries the "room" edge of the Friendship entity.
-func (f *Friendship) QueryRoom() *RoomQuery {
-	return NewFriendshipClient(f.config).QueryRoom(f)
+// QueryRoom queries the "room" edge of the UserPinCode entity.
+func (upc *UserPinCode) QueryRoom() *RoomQuery {
+	return NewUserPinCodeClient(upc.config).QueryRoom(upc)
 }
 
-// Update returns a builder for updating this Friendship.
-// Note that you need to call Friendship.Unwrap() before calling this method if this Friendship
+// Update returns a builder for updating this UserPinCode.
+// Note that you need to call UserPinCode.Unwrap() before calling this method if this UserPinCode
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (f *Friendship) Update() *FriendshipUpdateOne {
-	return NewFriendshipClient(f.config).UpdateOne(f)
+func (upc *UserPinCode) Update() *UserPinCodeUpdateOne {
+	return NewUserPinCodeClient(upc.config).UpdateOne(upc)
 }
 
-// Unwrap unwraps the Friendship entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the UserPinCode entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (f *Friendship) Unwrap() *Friendship {
-	_tx, ok := f.config.driver.(*txDriver)
+func (upc *UserPinCode) Unwrap() *UserPinCode {
+	_tx, ok := upc.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: Friendship is not a transactional entity")
+		panic("ent: UserPinCode is not a transactional entity")
 	}
-	f.config.driver = _tx.drv
-	return f
+	upc.config.driver = _tx.drv
+	return upc
 }
 
 // String implements the fmt.Stringer.
-func (f *Friendship) String() string {
+func (upc *UserPinCode) String() string {
 	var builder strings.Builder
-	builder.WriteString("Friendship(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", f.ID))
+	builder.WriteString("UserPinCode(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", upc.ID))
 	builder.WriteString("user_id=")
-	builder.WriteString(fmt.Sprintf("%v", f.UserID))
+	builder.WriteString(fmt.Sprintf("%v", upc.UserID))
 	builder.WriteString(", ")
-	builder.WriteString("friend_id=")
-	builder.WriteString(fmt.Sprintf("%v", f.FriendID))
+	builder.WriteString("contact_id=")
+	builder.WriteString(fmt.Sprintf("%v", upc.ContactID))
 	builder.WriteString(", ")
 	builder.WriteString("room_id=")
-	builder.WriteString(fmt.Sprintf("%v", f.RoomID))
+	builder.WriteString(fmt.Sprintf("%v", upc.RoomID))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(f.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(upc.CreatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }
 
-// Friendships is a parsable slice of Friendship.
-type Friendships []*Friendship
+// UserPinCodes is a parsable slice of UserPinCode.
+type UserPinCodes []*UserPinCode

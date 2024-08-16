@@ -10,6 +10,7 @@ import (
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/predicate"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 
 	"entgo.io/ent/dialect/sql"
@@ -45,14 +46,14 @@ func (mau *MessageAttachmentUpdate) SetNillableType(m *messageattachment.Type) *
 }
 
 // SetOrder sets the "order" field.
-func (mau *MessageAttachmentUpdate) SetOrder(u uint64) *MessageAttachmentUpdate {
+func (mau *MessageAttachmentUpdate) SetOrder(u uint) *MessageAttachmentUpdate {
 	mau.mutation.ResetOrder()
 	mau.mutation.SetOrder(u)
 	return mau
 }
 
 // SetNillableOrder sets the "order" field if the given value is not nil.
-func (mau *MessageAttachmentUpdate) SetNillableOrder(u *uint64) *MessageAttachmentUpdate {
+func (mau *MessageAttachmentUpdate) SetNillableOrder(u *uint) *MessageAttachmentUpdate {
 	if u != nil {
 		mau.SetOrder(*u)
 	}
@@ -60,9 +61,20 @@ func (mau *MessageAttachmentUpdate) SetNillableOrder(u *uint64) *MessageAttachme
 }
 
 // AddOrder adds u to the "order" field.
-func (mau *MessageAttachmentUpdate) AddOrder(u int64) *MessageAttachmentUpdate {
+func (mau *MessageAttachmentUpdate) AddOrder(u int) *MessageAttachmentUpdate {
 	mau.mutation.AddOrder(u)
 	return mau
+}
+
+// SetRoomID sets the "room" edge to the Room entity by ID.
+func (mau *MessageAttachmentUpdate) SetRoomID(id pulid.ID) *MessageAttachmentUpdate {
+	mau.mutation.SetRoomID(id)
+	return mau
+}
+
+// SetRoom sets the "room" edge to the Room entity.
+func (mau *MessageAttachmentUpdate) SetRoom(r *Room) *MessageAttachmentUpdate {
+	return mau.SetRoomID(r.ID)
 }
 
 // SetMessageID sets the "message" edge to the Message entity by ID.
@@ -90,6 +102,12 @@ func (mau *MessageAttachmentUpdate) SetFile(f *File) *MessageAttachmentUpdate {
 // Mutation returns the MessageAttachmentMutation object of the builder.
 func (mau *MessageAttachmentUpdate) Mutation() *MessageAttachmentMutation {
 	return mau.mutation
+}
+
+// ClearRoom clears the "room" edge to the Room entity.
+func (mau *MessageAttachmentUpdate) ClearRoom() *MessageAttachmentUpdate {
+	mau.mutation.ClearRoom()
+	return mau
 }
 
 // ClearMessage clears the "message" edge to the Message entity.
@@ -138,6 +156,9 @@ func (mau *MessageAttachmentUpdate) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "MessageAttachment.type": %w`, err)}
 		}
 	}
+	if mau.mutation.RoomCleared() && len(mau.mutation.RoomIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "MessageAttachment.room"`)
+	}
 	if mau.mutation.MessageCleared() && len(mau.mutation.MessageIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "MessageAttachment.message"`)
 	}
@@ -163,10 +184,39 @@ func (mau *MessageAttachmentUpdate) sqlSave(ctx context.Context) (n int, err err
 		_spec.SetField(messageattachment.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := mau.mutation.Order(); ok {
-		_spec.SetField(messageattachment.FieldOrder, field.TypeUint64, value)
+		_spec.SetField(messageattachment.FieldOrder, field.TypeUint, value)
 	}
 	if value, ok := mau.mutation.AddedOrder(); ok {
-		_spec.AddField(messageattachment.FieldOrder, field.TypeUint64, value)
+		_spec.AddField(messageattachment.FieldOrder, field.TypeUint, value)
+	}
+	if mau.mutation.RoomCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messageattachment.RoomTable,
+			Columns: []string{messageattachment.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mau.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messageattachment.RoomTable,
+			Columns: []string{messageattachment.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if mau.mutation.MessageCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -200,7 +250,7 @@ func (mau *MessageAttachmentUpdate) sqlSave(ctx context.Context) (n int, err err
 	if mau.mutation.FileCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   messageattachment.FileTable,
 			Columns: []string{messageattachment.FileColumn},
 			Bidi:    false,
@@ -213,7 +263,7 @@ func (mau *MessageAttachmentUpdate) sqlSave(ctx context.Context) (n int, err err
 	if nodes := mau.mutation.FileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   messageattachment.FileTable,
 			Columns: []string{messageattachment.FileColumn},
 			Bidi:    false,
@@ -261,14 +311,14 @@ func (mauo *MessageAttachmentUpdateOne) SetNillableType(m *messageattachment.Typ
 }
 
 // SetOrder sets the "order" field.
-func (mauo *MessageAttachmentUpdateOne) SetOrder(u uint64) *MessageAttachmentUpdateOne {
+func (mauo *MessageAttachmentUpdateOne) SetOrder(u uint) *MessageAttachmentUpdateOne {
 	mauo.mutation.ResetOrder()
 	mauo.mutation.SetOrder(u)
 	return mauo
 }
 
 // SetNillableOrder sets the "order" field if the given value is not nil.
-func (mauo *MessageAttachmentUpdateOne) SetNillableOrder(u *uint64) *MessageAttachmentUpdateOne {
+func (mauo *MessageAttachmentUpdateOne) SetNillableOrder(u *uint) *MessageAttachmentUpdateOne {
 	if u != nil {
 		mauo.SetOrder(*u)
 	}
@@ -276,9 +326,20 @@ func (mauo *MessageAttachmentUpdateOne) SetNillableOrder(u *uint64) *MessageAtta
 }
 
 // AddOrder adds u to the "order" field.
-func (mauo *MessageAttachmentUpdateOne) AddOrder(u int64) *MessageAttachmentUpdateOne {
+func (mauo *MessageAttachmentUpdateOne) AddOrder(u int) *MessageAttachmentUpdateOne {
 	mauo.mutation.AddOrder(u)
 	return mauo
+}
+
+// SetRoomID sets the "room" edge to the Room entity by ID.
+func (mauo *MessageAttachmentUpdateOne) SetRoomID(id pulid.ID) *MessageAttachmentUpdateOne {
+	mauo.mutation.SetRoomID(id)
+	return mauo
+}
+
+// SetRoom sets the "room" edge to the Room entity.
+func (mauo *MessageAttachmentUpdateOne) SetRoom(r *Room) *MessageAttachmentUpdateOne {
+	return mauo.SetRoomID(r.ID)
 }
 
 // SetMessageID sets the "message" edge to the Message entity by ID.
@@ -306,6 +367,12 @@ func (mauo *MessageAttachmentUpdateOne) SetFile(f *File) *MessageAttachmentUpdat
 // Mutation returns the MessageAttachmentMutation object of the builder.
 func (mauo *MessageAttachmentUpdateOne) Mutation() *MessageAttachmentMutation {
 	return mauo.mutation
+}
+
+// ClearRoom clears the "room" edge to the Room entity.
+func (mauo *MessageAttachmentUpdateOne) ClearRoom() *MessageAttachmentUpdateOne {
+	mauo.mutation.ClearRoom()
+	return mauo
 }
 
 // ClearMessage clears the "message" edge to the Message entity.
@@ -367,6 +434,9 @@ func (mauo *MessageAttachmentUpdateOne) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "MessageAttachment.type": %w`, err)}
 		}
 	}
+	if mauo.mutation.RoomCleared() && len(mauo.mutation.RoomIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "MessageAttachment.room"`)
+	}
 	if mauo.mutation.MessageCleared() && len(mauo.mutation.MessageIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "MessageAttachment.message"`)
 	}
@@ -409,10 +479,39 @@ func (mauo *MessageAttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Mes
 		_spec.SetField(messageattachment.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := mauo.mutation.Order(); ok {
-		_spec.SetField(messageattachment.FieldOrder, field.TypeUint64, value)
+		_spec.SetField(messageattachment.FieldOrder, field.TypeUint, value)
 	}
 	if value, ok := mauo.mutation.AddedOrder(); ok {
-		_spec.AddField(messageattachment.FieldOrder, field.TypeUint64, value)
+		_spec.AddField(messageattachment.FieldOrder, field.TypeUint, value)
+	}
+	if mauo.mutation.RoomCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messageattachment.RoomTable,
+			Columns: []string{messageattachment.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mauo.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messageattachment.RoomTable,
+			Columns: []string{messageattachment.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if mauo.mutation.MessageCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -446,7 +545,7 @@ func (mauo *MessageAttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Mes
 	if mauo.mutation.FileCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   messageattachment.FileTable,
 			Columns: []string{messageattachment.FileColumn},
 			Bidi:    false,
@@ -459,7 +558,7 @@ func (mauo *MessageAttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Mes
 	if nodes := mauo.mutation.FileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   messageattachment.FileTable,
 			Columns: []string{messageattachment.FileColumn},
 			Bidi:    false,

@@ -20,18 +20,6 @@ func (f FileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileMutation", m)
 }
 
-// The FriendshipFunc type is an adapter to allow the use of ordinary
-// function as Friendship mutator.
-type FriendshipFunc func(context.Context, *ent.FriendshipMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f FriendshipFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.FriendshipMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FriendshipMutation", m)
-}
-
 // The MessageFunc type is an adapter to allow the use of ordinary
 // function as Message mutator.
 type MessageFunc func(context.Context, *ent.MessageMutation) (ent.Value, error)
@@ -114,6 +102,30 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+}
+
+// The UserContactFunc type is an adapter to allow the use of ordinary
+// function as UserContact mutator.
+type UserContactFunc func(context.Context, *ent.UserContactMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserContactFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserContactMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserContactMutation", m)
+}
+
+// The UserPinCodeFunc type is an adapter to allow the use of ordinary
+// function as UserPinCode mutator.
+type UserPinCodeFunc func(context.Context, *ent.UserPinCodeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserPinCodeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserPinCodeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserPinCodeMutation", m)
 }
 
 // Condition is a hook condition function.

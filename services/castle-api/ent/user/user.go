@@ -23,26 +23,28 @@ const (
 	FieldNickname = "nickname"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
+	// FieldContactPin holds the string denoting the contact_pin field in the database.
+	FieldContactPin = "contact_pin"
 	// FieldPassword holds the string denoting the password field in the database.
 	FieldPassword = "password"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// EdgeFriends holds the string denoting the friends edge name in mutations.
-	EdgeFriends = "friends"
+	// EdgeContacts holds the string denoting the contacts edge name in mutations.
+	EdgeContacts = "contacts"
 	// EdgeRooms holds the string denoting the rooms edge name in mutations.
 	EdgeRooms = "rooms"
 	// EdgeMessages holds the string denoting the messages edge name in mutations.
 	EdgeMessages = "messages"
-	// EdgeFriendships holds the string denoting the friendships edge name in mutations.
-	EdgeFriendships = "friendships"
+	// EdgeUserContacts holds the string denoting the user_contacts edge name in mutations.
+	EdgeUserContacts = "user_contacts"
 	// EdgeMemberships holds the string denoting the memberships edge name in mutations.
 	EdgeMemberships = "memberships"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// FriendsTable is the table that holds the friends relation/edge. The primary key declared below.
-	FriendsTable = "friendships"
+	// ContactsTable is the table that holds the contacts relation/edge. The primary key declared below.
+	ContactsTable = "user_contacts"
 	// RoomsTable is the table that holds the rooms relation/edge. The primary key declared below.
 	RoomsTable = "room_members"
 	// RoomsInverseTable is the table name for the Room entity.
@@ -55,13 +57,13 @@ const (
 	MessagesInverseTable = "messages"
 	// MessagesColumn is the table column denoting the messages relation/edge.
 	MessagesColumn = "user_messages"
-	// FriendshipsTable is the table that holds the friendships relation/edge.
-	FriendshipsTable = "friendships"
-	// FriendshipsInverseTable is the table name for the Friendship entity.
-	// It exists in this package in order to avoid circular dependency with the "friendship" package.
-	FriendshipsInverseTable = "friendships"
-	// FriendshipsColumn is the table column denoting the friendships relation/edge.
-	FriendshipsColumn = "user_id"
+	// UserContactsTable is the table that holds the user_contacts relation/edge.
+	UserContactsTable = "user_contacts"
+	// UserContactsInverseTable is the table name for the UserContact entity.
+	// It exists in this package in order to avoid circular dependency with the "usercontact" package.
+	UserContactsInverseTable = "user_contacts"
+	// UserContactsColumn is the table column denoting the user_contacts relation/edge.
+	UserContactsColumn = "user_id"
 	// MembershipsTable is the table that holds the memberships relation/edge.
 	MembershipsTable = "room_members"
 	// MembershipsInverseTable is the table name for the RoomMember entity.
@@ -78,15 +80,16 @@ var Columns = []string{
 	FieldLastName,
 	FieldNickname,
 	FieldEmail,
+	FieldContactPin,
 	FieldPassword,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
 
 var (
-	// FriendsPrimaryKey and FriendsColumn2 are the table columns denoting the
-	// primary key for the friends relation (M2M).
-	FriendsPrimaryKey = []string{"user_id", "friend_id"}
+	// ContactsPrimaryKey and ContactsColumn2 are the table columns denoting the
+	// primary key for the contacts relation (M2M).
+	ContactsPrimaryKey = []string{"user_id", "contact_id"}
 	// RoomsPrimaryKey and RoomsColumn2 are the table columns denoting the
 	// primary key for the rooms relation (M2M).
 	RoomsPrimaryKey = []string{"room_id", "user_id"}
@@ -141,6 +144,11 @@ func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmail, opts...).ToFunc()
 }
 
+// ByContactPin orders the results by the contact_pin field.
+func ByContactPin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContactPin, opts...).ToFunc()
+}
+
 // ByPassword orders the results by the password field.
 func ByPassword(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPassword, opts...).ToFunc()
@@ -156,17 +164,17 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByFriendsCount orders the results by friends count.
-func ByFriendsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByContactsCount orders the results by contacts count.
+func ByContactsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newFriendsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newContactsStep(), opts...)
 	}
 }
 
-// ByFriends orders the results by friends terms.
-func ByFriends(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByContacts orders the results by contacts terms.
+func ByContacts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newFriendsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newContactsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -198,17 +206,17 @@ func ByMessages(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByFriendshipsCount orders the results by friendships count.
-func ByFriendshipsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByUserContactsCount orders the results by user_contacts count.
+func ByUserContactsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newFriendshipsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newUserContactsStep(), opts...)
 	}
 }
 
-// ByFriendships orders the results by friendships terms.
-func ByFriendships(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByUserContacts orders the results by user_contacts terms.
+func ByUserContacts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newFriendshipsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newUserContactsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -225,11 +233,11 @@ func ByMemberships(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newMembershipsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newFriendsStep() *sqlgraph.Step {
+func newContactsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(Table, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, FriendsTable, FriendsPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.M2M, false, ContactsTable, ContactsPrimaryKey...),
 	)
 }
 func newRoomsStep() *sqlgraph.Step {
@@ -246,11 +254,11 @@ func newMessagesStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, MessagesTable, MessagesColumn),
 	)
 }
-func newFriendshipsStep() *sqlgraph.Step {
+func newUserContactsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(FriendshipsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, FriendshipsTable, FriendshipsColumn),
+		sqlgraph.To(UserContactsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, UserContactsTable, UserContactsColumn),
 	)
 }
 func newMembershipsStep() *sqlgraph.Step {

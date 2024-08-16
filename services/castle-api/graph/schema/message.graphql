@@ -19,6 +19,45 @@ input UpdateMessageInput {
   content: String!
 }
 
+extend type Query {
+  messagesByRoom(
+    """
+    Returns the elements in the list that come with the specified roomID.
+    """
+    roomID: ID!
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for Messages returned from the connection.
+    """
+    orderBy: [MessageOrder!]
+
+    """
+    Filtering options for Messages returned from the connection.
+    """
+    where: MessageWhereInput
+  ): MessageConnection!
+}
+
 extend type Mutation {
   sendMessage(input: SendMessageInput!): Message
   updateMessage(messageID: ID!, input: UpdateMessageInput!): Message

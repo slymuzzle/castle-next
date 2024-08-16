@@ -6,13 +6,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"journeyhub/ent/friendship"
 	"journeyhub/ent/message"
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
+	"journeyhub/ent/usercontact"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -89,6 +89,26 @@ func (uu *UserUpdate) SetNillableEmail(s *string) *UserUpdate {
 	return uu
 }
 
+// ClearEmail clears the value of the "email" field.
+func (uu *UserUpdate) ClearEmail() *UserUpdate {
+	uu.mutation.ClearEmail()
+	return uu
+}
+
+// SetContactPin sets the "contact_pin" field.
+func (uu *UserUpdate) SetContactPin(s string) *UserUpdate {
+	uu.mutation.SetContactPin(s)
+	return uu
+}
+
+// SetNillableContactPin sets the "contact_pin" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableContactPin(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetContactPin(*s)
+	}
+	return uu
+}
+
 // SetPassword sets the "password" field.
 func (uu *UserUpdate) SetPassword(s string) *UserUpdate {
 	uu.mutation.SetPassword(s)
@@ -109,19 +129,19 @@ func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	return uu
 }
 
-// AddFriendIDs adds the "friends" edge to the User entity by IDs.
-func (uu *UserUpdate) AddFriendIDs(ids ...pulid.ID) *UserUpdate {
-	uu.mutation.AddFriendIDs(ids...)
+// AddContactIDs adds the "contacts" edge to the User entity by IDs.
+func (uu *UserUpdate) AddContactIDs(ids ...pulid.ID) *UserUpdate {
+	uu.mutation.AddContactIDs(ids...)
 	return uu
 }
 
-// AddFriends adds the "friends" edges to the User entity.
-func (uu *UserUpdate) AddFriends(u ...*User) *UserUpdate {
+// AddContacts adds the "contacts" edges to the User entity.
+func (uu *UserUpdate) AddContacts(u ...*User) *UserUpdate {
 	ids := make([]pulid.ID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
-	return uu.AddFriendIDs(ids...)
+	return uu.AddContactIDs(ids...)
 }
 
 // AddRoomIDs adds the "rooms" edge to the Room entity by IDs.
@@ -154,19 +174,19 @@ func (uu *UserUpdate) AddMessages(m ...*Message) *UserUpdate {
 	return uu.AddMessageIDs(ids...)
 }
 
-// AddFriendshipIDs adds the "friendships" edge to the Friendship entity by IDs.
-func (uu *UserUpdate) AddFriendshipIDs(ids ...pulid.ID) *UserUpdate {
-	uu.mutation.AddFriendshipIDs(ids...)
+// AddUserContactIDs adds the "user_contacts" edge to the UserContact entity by IDs.
+func (uu *UserUpdate) AddUserContactIDs(ids ...pulid.ID) *UserUpdate {
+	uu.mutation.AddUserContactIDs(ids...)
 	return uu
 }
 
-// AddFriendships adds the "friendships" edges to the Friendship entity.
-func (uu *UserUpdate) AddFriendships(f ...*Friendship) *UserUpdate {
-	ids := make([]pulid.ID, len(f))
-	for i := range f {
-		ids[i] = f[i].ID
+// AddUserContacts adds the "user_contacts" edges to the UserContact entity.
+func (uu *UserUpdate) AddUserContacts(u ...*UserContact) *UserUpdate {
+	ids := make([]pulid.ID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
-	return uu.AddFriendshipIDs(ids...)
+	return uu.AddUserContactIDs(ids...)
 }
 
 // AddMembershipIDs adds the "memberships" edge to the RoomMember entity by IDs.
@@ -189,25 +209,25 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
 }
 
-// ClearFriends clears all "friends" edges to the User entity.
-func (uu *UserUpdate) ClearFriends() *UserUpdate {
-	uu.mutation.ClearFriends()
+// ClearContacts clears all "contacts" edges to the User entity.
+func (uu *UserUpdate) ClearContacts() *UserUpdate {
+	uu.mutation.ClearContacts()
 	return uu
 }
 
-// RemoveFriendIDs removes the "friends" edge to User entities by IDs.
-func (uu *UserUpdate) RemoveFriendIDs(ids ...pulid.ID) *UserUpdate {
-	uu.mutation.RemoveFriendIDs(ids...)
+// RemoveContactIDs removes the "contacts" edge to User entities by IDs.
+func (uu *UserUpdate) RemoveContactIDs(ids ...pulid.ID) *UserUpdate {
+	uu.mutation.RemoveContactIDs(ids...)
 	return uu
 }
 
-// RemoveFriends removes "friends" edges to User entities.
-func (uu *UserUpdate) RemoveFriends(u ...*User) *UserUpdate {
+// RemoveContacts removes "contacts" edges to User entities.
+func (uu *UserUpdate) RemoveContacts(u ...*User) *UserUpdate {
 	ids := make([]pulid.ID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
-	return uu.RemoveFriendIDs(ids...)
+	return uu.RemoveContactIDs(ids...)
 }
 
 // ClearRooms clears all "rooms" edges to the Room entity.
@@ -252,25 +272,25 @@ func (uu *UserUpdate) RemoveMessages(m ...*Message) *UserUpdate {
 	return uu.RemoveMessageIDs(ids...)
 }
 
-// ClearFriendships clears all "friendships" edges to the Friendship entity.
-func (uu *UserUpdate) ClearFriendships() *UserUpdate {
-	uu.mutation.ClearFriendships()
+// ClearUserContacts clears all "user_contacts" edges to the UserContact entity.
+func (uu *UserUpdate) ClearUserContacts() *UserUpdate {
+	uu.mutation.ClearUserContacts()
 	return uu
 }
 
-// RemoveFriendshipIDs removes the "friendships" edge to Friendship entities by IDs.
-func (uu *UserUpdate) RemoveFriendshipIDs(ids ...pulid.ID) *UserUpdate {
-	uu.mutation.RemoveFriendshipIDs(ids...)
+// RemoveUserContactIDs removes the "user_contacts" edge to UserContact entities by IDs.
+func (uu *UserUpdate) RemoveUserContactIDs(ids ...pulid.ID) *UserUpdate {
+	uu.mutation.RemoveUserContactIDs(ids...)
 	return uu
 }
 
-// RemoveFriendships removes "friendships" edges to Friendship entities.
-func (uu *UserUpdate) RemoveFriendships(f ...*Friendship) *UserUpdate {
-	ids := make([]pulid.ID, len(f))
-	for i := range f {
-		ids[i] = f[i].ID
+// RemoveUserContacts removes "user_contacts" edges to UserContact entities.
+func (uu *UserUpdate) RemoveUserContacts(u ...*UserContact) *UserUpdate {
+	ids := make([]pulid.ID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
-	return uu.RemoveFriendshipIDs(ids...)
+	return uu.RemoveUserContactIDs(ids...)
 }
 
 // ClearMemberships clears all "memberships" edges to the RoomMember entity.
@@ -351,24 +371,30 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 	}
+	if uu.mutation.EmailCleared() {
+		_spec.ClearField(user.FieldEmail, field.TypeString)
+	}
+	if value, ok := uu.mutation.ContactPin(); ok {
+		_spec.SetField(user.FieldContactPin, field.TypeString, value)
+	}
 	if value, ok := uu.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if uu.mutation.FriendsCleared() {
+	if uu.mutation.ContactsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.FriendsTable,
-			Columns: user.FriendsPrimaryKey,
+			Table:   user.ContactsTable,
+			Columns: user.ContactsPrimaryKey,
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
 			},
 		}
-		createE := &FriendshipCreate{config: uu.config, mutation: newFriendshipMutation(uu.config, OpCreate)}
+		createE := &UserContactCreate{config: uu.config, mutation: newUserContactMutation(uu.config, OpCreate)}
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
@@ -377,12 +403,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedFriendsIDs(); len(nodes) > 0 && !uu.mutation.FriendsCleared() {
+	if nodes := uu.mutation.RemovedContactsIDs(); len(nodes) > 0 && !uu.mutation.ContactsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.FriendsTable,
-			Columns: user.FriendsPrimaryKey,
+			Table:   user.ContactsTable,
+			Columns: user.ContactsPrimaryKey,
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
@@ -391,7 +417,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		createE := &FriendshipCreate{config: uu.config, mutation: newFriendshipMutation(uu.config, OpCreate)}
+		createE := &UserContactCreate{config: uu.config, mutation: newUserContactMutation(uu.config, OpCreate)}
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
@@ -400,12 +426,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.FriendsIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.ContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.FriendsTable,
-			Columns: user.FriendsPrimaryKey,
+			Table:   user.ContactsTable,
+			Columns: user.ContactsPrimaryKey,
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
@@ -414,7 +440,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		createE := &FriendshipCreate{config: uu.config, mutation: newFriendshipMutation(uu.config, OpCreate)}
+		createE := &UserContactCreate{config: uu.config, mutation: newUserContactMutation(uu.config, OpCreate)}
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
@@ -534,28 +560,28 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uu.mutation.FriendshipsCleared() {
+	if uu.mutation.UserContactsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   user.FriendshipsTable,
-			Columns: []string{user.FriendshipsColumn},
+			Table:   user.UserContactsTable,
+			Columns: []string{user.UserContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(friendship.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedFriendshipsIDs(); len(nodes) > 0 && !uu.mutation.FriendshipsCleared() {
+	if nodes := uu.mutation.RemovedUserContactsIDs(); len(nodes) > 0 && !uu.mutation.UserContactsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   user.FriendshipsTable,
-			Columns: []string{user.FriendshipsColumn},
+			Table:   user.UserContactsTable,
+			Columns: []string{user.UserContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(friendship.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -563,15 +589,15 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.FriendshipsIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.UserContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   user.FriendshipsTable,
-			Columns: []string{user.FriendshipsColumn},
+			Table:   user.UserContactsTable,
+			Columns: []string{user.UserContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(friendship.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -700,6 +726,26 @@ func (uuo *UserUpdateOne) SetNillableEmail(s *string) *UserUpdateOne {
 	return uuo
 }
 
+// ClearEmail clears the value of the "email" field.
+func (uuo *UserUpdateOne) ClearEmail() *UserUpdateOne {
+	uuo.mutation.ClearEmail()
+	return uuo
+}
+
+// SetContactPin sets the "contact_pin" field.
+func (uuo *UserUpdateOne) SetContactPin(s string) *UserUpdateOne {
+	uuo.mutation.SetContactPin(s)
+	return uuo
+}
+
+// SetNillableContactPin sets the "contact_pin" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableContactPin(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetContactPin(*s)
+	}
+	return uuo
+}
+
 // SetPassword sets the "password" field.
 func (uuo *UserUpdateOne) SetPassword(s string) *UserUpdateOne {
 	uuo.mutation.SetPassword(s)
@@ -720,19 +766,19 @@ func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	return uuo
 }
 
-// AddFriendIDs adds the "friends" edge to the User entity by IDs.
-func (uuo *UserUpdateOne) AddFriendIDs(ids ...pulid.ID) *UserUpdateOne {
-	uuo.mutation.AddFriendIDs(ids...)
+// AddContactIDs adds the "contacts" edge to the User entity by IDs.
+func (uuo *UserUpdateOne) AddContactIDs(ids ...pulid.ID) *UserUpdateOne {
+	uuo.mutation.AddContactIDs(ids...)
 	return uuo
 }
 
-// AddFriends adds the "friends" edges to the User entity.
-func (uuo *UserUpdateOne) AddFriends(u ...*User) *UserUpdateOne {
+// AddContacts adds the "contacts" edges to the User entity.
+func (uuo *UserUpdateOne) AddContacts(u ...*User) *UserUpdateOne {
 	ids := make([]pulid.ID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
-	return uuo.AddFriendIDs(ids...)
+	return uuo.AddContactIDs(ids...)
 }
 
 // AddRoomIDs adds the "rooms" edge to the Room entity by IDs.
@@ -765,19 +811,19 @@ func (uuo *UserUpdateOne) AddMessages(m ...*Message) *UserUpdateOne {
 	return uuo.AddMessageIDs(ids...)
 }
 
-// AddFriendshipIDs adds the "friendships" edge to the Friendship entity by IDs.
-func (uuo *UserUpdateOne) AddFriendshipIDs(ids ...pulid.ID) *UserUpdateOne {
-	uuo.mutation.AddFriendshipIDs(ids...)
+// AddUserContactIDs adds the "user_contacts" edge to the UserContact entity by IDs.
+func (uuo *UserUpdateOne) AddUserContactIDs(ids ...pulid.ID) *UserUpdateOne {
+	uuo.mutation.AddUserContactIDs(ids...)
 	return uuo
 }
 
-// AddFriendships adds the "friendships" edges to the Friendship entity.
-func (uuo *UserUpdateOne) AddFriendships(f ...*Friendship) *UserUpdateOne {
-	ids := make([]pulid.ID, len(f))
-	for i := range f {
-		ids[i] = f[i].ID
+// AddUserContacts adds the "user_contacts" edges to the UserContact entity.
+func (uuo *UserUpdateOne) AddUserContacts(u ...*UserContact) *UserUpdateOne {
+	ids := make([]pulid.ID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
-	return uuo.AddFriendshipIDs(ids...)
+	return uuo.AddUserContactIDs(ids...)
 }
 
 // AddMembershipIDs adds the "memberships" edge to the RoomMember entity by IDs.
@@ -800,25 +846,25 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
 }
 
-// ClearFriends clears all "friends" edges to the User entity.
-func (uuo *UserUpdateOne) ClearFriends() *UserUpdateOne {
-	uuo.mutation.ClearFriends()
+// ClearContacts clears all "contacts" edges to the User entity.
+func (uuo *UserUpdateOne) ClearContacts() *UserUpdateOne {
+	uuo.mutation.ClearContacts()
 	return uuo
 }
 
-// RemoveFriendIDs removes the "friends" edge to User entities by IDs.
-func (uuo *UserUpdateOne) RemoveFriendIDs(ids ...pulid.ID) *UserUpdateOne {
-	uuo.mutation.RemoveFriendIDs(ids...)
+// RemoveContactIDs removes the "contacts" edge to User entities by IDs.
+func (uuo *UserUpdateOne) RemoveContactIDs(ids ...pulid.ID) *UserUpdateOne {
+	uuo.mutation.RemoveContactIDs(ids...)
 	return uuo
 }
 
-// RemoveFriends removes "friends" edges to User entities.
-func (uuo *UserUpdateOne) RemoveFriends(u ...*User) *UserUpdateOne {
+// RemoveContacts removes "contacts" edges to User entities.
+func (uuo *UserUpdateOne) RemoveContacts(u ...*User) *UserUpdateOne {
 	ids := make([]pulid.ID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
-	return uuo.RemoveFriendIDs(ids...)
+	return uuo.RemoveContactIDs(ids...)
 }
 
 // ClearRooms clears all "rooms" edges to the Room entity.
@@ -863,25 +909,25 @@ func (uuo *UserUpdateOne) RemoveMessages(m ...*Message) *UserUpdateOne {
 	return uuo.RemoveMessageIDs(ids...)
 }
 
-// ClearFriendships clears all "friendships" edges to the Friendship entity.
-func (uuo *UserUpdateOne) ClearFriendships() *UserUpdateOne {
-	uuo.mutation.ClearFriendships()
+// ClearUserContacts clears all "user_contacts" edges to the UserContact entity.
+func (uuo *UserUpdateOne) ClearUserContacts() *UserUpdateOne {
+	uuo.mutation.ClearUserContacts()
 	return uuo
 }
 
-// RemoveFriendshipIDs removes the "friendships" edge to Friendship entities by IDs.
-func (uuo *UserUpdateOne) RemoveFriendshipIDs(ids ...pulid.ID) *UserUpdateOne {
-	uuo.mutation.RemoveFriendshipIDs(ids...)
+// RemoveUserContactIDs removes the "user_contacts" edge to UserContact entities by IDs.
+func (uuo *UserUpdateOne) RemoveUserContactIDs(ids ...pulid.ID) *UserUpdateOne {
+	uuo.mutation.RemoveUserContactIDs(ids...)
 	return uuo
 }
 
-// RemoveFriendships removes "friendships" edges to Friendship entities.
-func (uuo *UserUpdateOne) RemoveFriendships(f ...*Friendship) *UserUpdateOne {
-	ids := make([]pulid.ID, len(f))
-	for i := range f {
-		ids[i] = f[i].ID
+// RemoveUserContacts removes "user_contacts" edges to UserContact entities.
+func (uuo *UserUpdateOne) RemoveUserContacts(u ...*UserContact) *UserUpdateOne {
+	ids := make([]pulid.ID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
-	return uuo.RemoveFriendshipIDs(ids...)
+	return uuo.RemoveUserContactIDs(ids...)
 }
 
 // ClearMemberships clears all "memberships" edges to the RoomMember entity.
@@ -992,24 +1038,30 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 	}
+	if uuo.mutation.EmailCleared() {
+		_spec.ClearField(user.FieldEmail, field.TypeString)
+	}
+	if value, ok := uuo.mutation.ContactPin(); ok {
+		_spec.SetField(user.FieldContactPin, field.TypeString, value)
+	}
 	if value, ok := uuo.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if uuo.mutation.FriendsCleared() {
+	if uuo.mutation.ContactsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.FriendsTable,
-			Columns: user.FriendsPrimaryKey,
+			Table:   user.ContactsTable,
+			Columns: user.ContactsPrimaryKey,
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
 			},
 		}
-		createE := &FriendshipCreate{config: uuo.config, mutation: newFriendshipMutation(uuo.config, OpCreate)}
+		createE := &UserContactCreate{config: uuo.config, mutation: newUserContactMutation(uuo.config, OpCreate)}
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
@@ -1018,12 +1070,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedFriendsIDs(); len(nodes) > 0 && !uuo.mutation.FriendsCleared() {
+	if nodes := uuo.mutation.RemovedContactsIDs(); len(nodes) > 0 && !uuo.mutation.ContactsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.FriendsTable,
-			Columns: user.FriendsPrimaryKey,
+			Table:   user.ContactsTable,
+			Columns: user.ContactsPrimaryKey,
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
@@ -1032,7 +1084,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		createE := &FriendshipCreate{config: uuo.config, mutation: newFriendshipMutation(uuo.config, OpCreate)}
+		createE := &UserContactCreate{config: uuo.config, mutation: newUserContactMutation(uuo.config, OpCreate)}
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
@@ -1041,12 +1093,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.FriendsIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.ContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.FriendsTable,
-			Columns: user.FriendsPrimaryKey,
+			Table:   user.ContactsTable,
+			Columns: user.ContactsPrimaryKey,
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
@@ -1055,7 +1107,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		createE := &FriendshipCreate{config: uuo.config, mutation: newFriendshipMutation(uuo.config, OpCreate)}
+		createE := &UserContactCreate{config: uuo.config, mutation: newUserContactMutation(uuo.config, OpCreate)}
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
@@ -1175,28 +1227,28 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uuo.mutation.FriendshipsCleared() {
+	if uuo.mutation.UserContactsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   user.FriendshipsTable,
-			Columns: []string{user.FriendshipsColumn},
+			Table:   user.UserContactsTable,
+			Columns: []string{user.UserContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(friendship.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedFriendshipsIDs(); len(nodes) > 0 && !uuo.mutation.FriendshipsCleared() {
+	if nodes := uuo.mutation.RemovedUserContactsIDs(); len(nodes) > 0 && !uuo.mutation.UserContactsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   user.FriendshipsTable,
-			Columns: []string{user.FriendshipsColumn},
+			Table:   user.UserContactsTable,
+			Columns: []string{user.UserContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(friendship.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -1204,15 +1256,15 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.FriendshipsIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.UserContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   user.FriendshipsTable,
-			Columns: []string{user.FriendshipsColumn},
+			Table:   user.UserContactsTable,
+			Columns: []string{user.UserContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(friendship.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

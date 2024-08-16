@@ -21,32 +21,27 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// EdgeUser holds the string denoting the user edge name in mutations.
-	EdgeUser = "user"
-	// EdgeRoom holds the string denoting the room edge name in mutations.
-	EdgeRoom = "room"
+	// EdgeVoice holds the string denoting the voice edge name in mutations.
+	EdgeVoice = "voice"
 	// EdgeReplyTo holds the string denoting the reply_to edge name in mutations.
 	EdgeReplyTo = "reply_to"
 	// EdgeAttachments holds the string denoting the attachments edge name in mutations.
 	EdgeAttachments = "attachments"
 	// EdgeLinks holds the string denoting the links edge name in mutations.
 	EdgeLinks = "links"
+	// EdgeUser holds the string denoting the user edge name in mutations.
+	EdgeUser = "user"
+	// EdgeRoom holds the string denoting the room edge name in mutations.
+	EdgeRoom = "room"
 	// Table holds the table name of the message in the database.
 	Table = "messages"
-	// UserTable is the table that holds the user relation/edge.
-	UserTable = "messages"
-	// UserInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	UserInverseTable = "users"
-	// UserColumn is the table column denoting the user relation/edge.
-	UserColumn = "user_messages"
-	// RoomTable is the table that holds the room relation/edge.
-	RoomTable = "messages"
-	// RoomInverseTable is the table name for the Room entity.
-	// It exists in this package in order to avoid circular dependency with the "room" package.
-	RoomInverseTable = "rooms"
-	// RoomColumn is the table column denoting the room relation/edge.
-	RoomColumn = "room_messages"
+	// VoiceTable is the table that holds the voice relation/edge.
+	VoiceTable = "message_voices"
+	// VoiceInverseTable is the table name for the MessageVoice entity.
+	// It exists in this package in order to avoid circular dependency with the "messagevoice" package.
+	VoiceInverseTable = "message_voices"
+	// VoiceColumn is the table column denoting the voice relation/edge.
+	VoiceColumn = "message_voice"
 	// ReplyToTable is the table that holds the reply_to relation/edge.
 	ReplyToTable = "messages"
 	// ReplyToColumn is the table column denoting the reply_to relation/edge.
@@ -65,6 +60,20 @@ const (
 	LinksInverseTable = "message_links"
 	// LinksColumn is the table column denoting the links relation/edge.
 	LinksColumn = "message_links"
+	// UserTable is the table that holds the user relation/edge.
+	UserTable = "messages"
+	// UserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UserInverseTable = "users"
+	// UserColumn is the table column denoting the user relation/edge.
+	UserColumn = "user_messages"
+	// RoomTable is the table that holds the room relation/edge.
+	RoomTable = "messages"
+	// RoomInverseTable is the table name for the Room entity.
+	// It exists in this package in order to avoid circular dependency with the "room" package.
+	RoomInverseTable = "rooms"
+	// RoomColumn is the table column denoting the room relation/edge.
+	RoomColumn = "room_messages"
 )
 
 // Columns holds all SQL columns for message fields.
@@ -132,17 +141,10 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByUserField orders the results by user field.
-func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByVoiceField orders the results by voice field.
+func ByVoiceField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
-	}
-}
-
-// ByRoomField orders the results by room field.
-func ByRoomField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newRoomStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newVoiceStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -180,18 +182,25 @@ func ByLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newUserStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(UserInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
-	)
+
+// ByUserField orders the results by user field.
+func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+	}
 }
-func newRoomStep() *sqlgraph.Step {
+
+// ByRoomField orders the results by room field.
+func ByRoomField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRoomStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newVoiceStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(RoomInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
+		sqlgraph.To(VoiceInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, VoiceTable, VoiceColumn),
 	)
 }
 func newReplyToStep() *sqlgraph.Step {
@@ -213,5 +222,19 @@ func newLinksStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LinksInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, LinksTable, LinksColumn),
+	)
+}
+func newUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newRoomStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RoomInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
 	)
 }

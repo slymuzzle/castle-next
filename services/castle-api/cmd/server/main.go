@@ -45,19 +45,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	var natsService nats.Service
-	natsService = nats.NewService(config.Nats)
-	natsService = nats.NewLoggingService(
-		log.With(logger, "component", "nats"),
-		natsService,
-	)
-
-	if err = natsService.Connect(); err != nil {
-		level.Error(logger).Log("exit", err)
-		os.Exit(1)
-	}
-	defer natsService.Close()
-
 	var dbService db.Service
 	dbService = db.NewService(config.Database)
 	dbService = db.NewLoggingService(
@@ -71,6 +58,19 @@ func main() {
 	}
 	defer dbService.Close()
 
+	var natsService nats.Service
+	natsService = nats.NewService(config.Nats)
+	natsService = nats.NewLoggingService(
+		log.With(logger, "component", "nats"),
+		natsService,
+	)
+
+	if err = natsService.Connect(); err != nil {
+		level.Error(logger).Log("exit", err)
+		os.Exit(1)
+	}
+	defer natsService.Close()
+
 	var validationService validation.Service
 	validationService = validation.NewService()
 	validationService = validation.NewLoggingService(
@@ -79,14 +79,15 @@ func main() {
 	)
 
 	var authService auth.Service
-	authService = auth.NewService(config.Auth, dbService)
+	authRepository := auth.NewRepository(dbService.Client())
+	authService = auth.NewService(config.Auth, authRepository)
 	authService = auth.NewLoggingService(
 		log.With(logger, "component", "auth"),
 		authService,
 	)
 
 	var chatService chat.Service
-	chatRepository := chat.NewRepository(dbService)
+	chatRepository := chat.NewRepository(dbService.Client())
 	chatService = chat.NewService(chatRepository, natsService)
 	chatService = chat.NewLoggingService(
 		log.With(logger, "component", "chat"),

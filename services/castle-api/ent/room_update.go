@@ -7,6 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
@@ -117,6 +120,51 @@ func (ru *RoomUpdate) AddMessages(m ...*Message) *RoomUpdate {
 	return ru.AddMessageIDs(ids...)
 }
 
+// AddMessageVoiceIDs adds the "message_voices" edge to the MessageVoice entity by IDs.
+func (ru *RoomUpdate) AddMessageVoiceIDs(ids ...pulid.ID) *RoomUpdate {
+	ru.mutation.AddMessageVoiceIDs(ids...)
+	return ru
+}
+
+// AddMessageVoices adds the "message_voices" edges to the MessageVoice entity.
+func (ru *RoomUpdate) AddMessageVoices(m ...*MessageVoice) *RoomUpdate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ru.AddMessageVoiceIDs(ids...)
+}
+
+// AddMessageAttachmentIDs adds the "message_attachments" edge to the MessageAttachment entity by IDs.
+func (ru *RoomUpdate) AddMessageAttachmentIDs(ids ...pulid.ID) *RoomUpdate {
+	ru.mutation.AddMessageAttachmentIDs(ids...)
+	return ru
+}
+
+// AddMessageAttachments adds the "message_attachments" edges to the MessageAttachment entity.
+func (ru *RoomUpdate) AddMessageAttachments(m ...*MessageAttachment) *RoomUpdate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ru.AddMessageAttachmentIDs(ids...)
+}
+
+// AddMessageLinkIDs adds the "message_links" edge to the MessageLink entity by IDs.
+func (ru *RoomUpdate) AddMessageLinkIDs(ids ...pulid.ID) *RoomUpdate {
+	ru.mutation.AddMessageLinkIDs(ids...)
+	return ru
+}
+
+// AddMessageLinks adds the "message_links" edges to the MessageLink entity.
+func (ru *RoomUpdate) AddMessageLinks(m ...*MessageLink) *RoomUpdate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ru.AddMessageLinkIDs(ids...)
+}
+
 // AddRoomMemberIDs adds the "room_members" edge to the RoomMember entity by IDs.
 func (ru *RoomUpdate) AddRoomMemberIDs(ids ...pulid.ID) *RoomUpdate {
 	ru.mutation.AddRoomMemberIDs(ids...)
@@ -177,6 +225,69 @@ func (ru *RoomUpdate) RemoveMessages(m ...*Message) *RoomUpdate {
 		ids[i] = m[i].ID
 	}
 	return ru.RemoveMessageIDs(ids...)
+}
+
+// ClearMessageVoices clears all "message_voices" edges to the MessageVoice entity.
+func (ru *RoomUpdate) ClearMessageVoices() *RoomUpdate {
+	ru.mutation.ClearMessageVoices()
+	return ru
+}
+
+// RemoveMessageVoiceIDs removes the "message_voices" edge to MessageVoice entities by IDs.
+func (ru *RoomUpdate) RemoveMessageVoiceIDs(ids ...pulid.ID) *RoomUpdate {
+	ru.mutation.RemoveMessageVoiceIDs(ids...)
+	return ru
+}
+
+// RemoveMessageVoices removes "message_voices" edges to MessageVoice entities.
+func (ru *RoomUpdate) RemoveMessageVoices(m ...*MessageVoice) *RoomUpdate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ru.RemoveMessageVoiceIDs(ids...)
+}
+
+// ClearMessageAttachments clears all "message_attachments" edges to the MessageAttachment entity.
+func (ru *RoomUpdate) ClearMessageAttachments() *RoomUpdate {
+	ru.mutation.ClearMessageAttachments()
+	return ru
+}
+
+// RemoveMessageAttachmentIDs removes the "message_attachments" edge to MessageAttachment entities by IDs.
+func (ru *RoomUpdate) RemoveMessageAttachmentIDs(ids ...pulid.ID) *RoomUpdate {
+	ru.mutation.RemoveMessageAttachmentIDs(ids...)
+	return ru
+}
+
+// RemoveMessageAttachments removes "message_attachments" edges to MessageAttachment entities.
+func (ru *RoomUpdate) RemoveMessageAttachments(m ...*MessageAttachment) *RoomUpdate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ru.RemoveMessageAttachmentIDs(ids...)
+}
+
+// ClearMessageLinks clears all "message_links" edges to the MessageLink entity.
+func (ru *RoomUpdate) ClearMessageLinks() *RoomUpdate {
+	ru.mutation.ClearMessageLinks()
+	return ru
+}
+
+// RemoveMessageLinkIDs removes the "message_links" edge to MessageLink entities by IDs.
+func (ru *RoomUpdate) RemoveMessageLinkIDs(ids ...pulid.ID) *RoomUpdate {
+	ru.mutation.RemoveMessageLinkIDs(ids...)
+	return ru
+}
+
+// RemoveMessageLinks removes "message_links" edges to MessageLink entities.
+func (ru *RoomUpdate) RemoveMessageLinks(m ...*MessageLink) *RoomUpdate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ru.RemoveMessageLinkIDs(ids...)
 }
 
 // ClearRoomMembers clears all "room_members" edges to the RoomMember entity.
@@ -389,6 +500,141 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ru.mutation.MessageVoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageVoicesTable,
+			Columns: []string{room.MessageVoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagevoice.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RemovedMessageVoicesIDs(); len(nodes) > 0 && !ru.mutation.MessageVoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageVoicesTable,
+			Columns: []string{room.MessageVoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagevoice.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.MessageVoicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageVoicesTable,
+			Columns: []string{room.MessageVoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagevoice.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ru.mutation.MessageAttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageAttachmentsTable,
+			Columns: []string{room.MessageAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RemovedMessageAttachmentsIDs(); len(nodes) > 0 && !ru.mutation.MessageAttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageAttachmentsTable,
+			Columns: []string{room.MessageAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.MessageAttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageAttachmentsTable,
+			Columns: []string{room.MessageAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ru.mutation.MessageLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageLinksTable,
+			Columns: []string{room.MessageLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagelink.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RemovedMessageLinksIDs(); len(nodes) > 0 && !ru.mutation.MessageLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageLinksTable,
+			Columns: []string{room.MessageLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagelink.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.MessageLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageLinksTable,
+			Columns: []string{room.MessageLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagelink.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if ru.mutation.RoomMembersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -539,6 +785,51 @@ func (ruo *RoomUpdateOne) AddMessages(m ...*Message) *RoomUpdateOne {
 	return ruo.AddMessageIDs(ids...)
 }
 
+// AddMessageVoiceIDs adds the "message_voices" edge to the MessageVoice entity by IDs.
+func (ruo *RoomUpdateOne) AddMessageVoiceIDs(ids ...pulid.ID) *RoomUpdateOne {
+	ruo.mutation.AddMessageVoiceIDs(ids...)
+	return ruo
+}
+
+// AddMessageVoices adds the "message_voices" edges to the MessageVoice entity.
+func (ruo *RoomUpdateOne) AddMessageVoices(m ...*MessageVoice) *RoomUpdateOne {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ruo.AddMessageVoiceIDs(ids...)
+}
+
+// AddMessageAttachmentIDs adds the "message_attachments" edge to the MessageAttachment entity by IDs.
+func (ruo *RoomUpdateOne) AddMessageAttachmentIDs(ids ...pulid.ID) *RoomUpdateOne {
+	ruo.mutation.AddMessageAttachmentIDs(ids...)
+	return ruo
+}
+
+// AddMessageAttachments adds the "message_attachments" edges to the MessageAttachment entity.
+func (ruo *RoomUpdateOne) AddMessageAttachments(m ...*MessageAttachment) *RoomUpdateOne {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ruo.AddMessageAttachmentIDs(ids...)
+}
+
+// AddMessageLinkIDs adds the "message_links" edge to the MessageLink entity by IDs.
+func (ruo *RoomUpdateOne) AddMessageLinkIDs(ids ...pulid.ID) *RoomUpdateOne {
+	ruo.mutation.AddMessageLinkIDs(ids...)
+	return ruo
+}
+
+// AddMessageLinks adds the "message_links" edges to the MessageLink entity.
+func (ruo *RoomUpdateOne) AddMessageLinks(m ...*MessageLink) *RoomUpdateOne {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ruo.AddMessageLinkIDs(ids...)
+}
+
 // AddRoomMemberIDs adds the "room_members" edge to the RoomMember entity by IDs.
 func (ruo *RoomUpdateOne) AddRoomMemberIDs(ids ...pulid.ID) *RoomUpdateOne {
 	ruo.mutation.AddRoomMemberIDs(ids...)
@@ -599,6 +890,69 @@ func (ruo *RoomUpdateOne) RemoveMessages(m ...*Message) *RoomUpdateOne {
 		ids[i] = m[i].ID
 	}
 	return ruo.RemoveMessageIDs(ids...)
+}
+
+// ClearMessageVoices clears all "message_voices" edges to the MessageVoice entity.
+func (ruo *RoomUpdateOne) ClearMessageVoices() *RoomUpdateOne {
+	ruo.mutation.ClearMessageVoices()
+	return ruo
+}
+
+// RemoveMessageVoiceIDs removes the "message_voices" edge to MessageVoice entities by IDs.
+func (ruo *RoomUpdateOne) RemoveMessageVoiceIDs(ids ...pulid.ID) *RoomUpdateOne {
+	ruo.mutation.RemoveMessageVoiceIDs(ids...)
+	return ruo
+}
+
+// RemoveMessageVoices removes "message_voices" edges to MessageVoice entities.
+func (ruo *RoomUpdateOne) RemoveMessageVoices(m ...*MessageVoice) *RoomUpdateOne {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ruo.RemoveMessageVoiceIDs(ids...)
+}
+
+// ClearMessageAttachments clears all "message_attachments" edges to the MessageAttachment entity.
+func (ruo *RoomUpdateOne) ClearMessageAttachments() *RoomUpdateOne {
+	ruo.mutation.ClearMessageAttachments()
+	return ruo
+}
+
+// RemoveMessageAttachmentIDs removes the "message_attachments" edge to MessageAttachment entities by IDs.
+func (ruo *RoomUpdateOne) RemoveMessageAttachmentIDs(ids ...pulid.ID) *RoomUpdateOne {
+	ruo.mutation.RemoveMessageAttachmentIDs(ids...)
+	return ruo
+}
+
+// RemoveMessageAttachments removes "message_attachments" edges to MessageAttachment entities.
+func (ruo *RoomUpdateOne) RemoveMessageAttachments(m ...*MessageAttachment) *RoomUpdateOne {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ruo.RemoveMessageAttachmentIDs(ids...)
+}
+
+// ClearMessageLinks clears all "message_links" edges to the MessageLink entity.
+func (ruo *RoomUpdateOne) ClearMessageLinks() *RoomUpdateOne {
+	ruo.mutation.ClearMessageLinks()
+	return ruo
+}
+
+// RemoveMessageLinkIDs removes the "message_links" edge to MessageLink entities by IDs.
+func (ruo *RoomUpdateOne) RemoveMessageLinkIDs(ids ...pulid.ID) *RoomUpdateOne {
+	ruo.mutation.RemoveMessageLinkIDs(ids...)
+	return ruo
+}
+
+// RemoveMessageLinks removes "message_links" edges to MessageLink entities.
+func (ruo *RoomUpdateOne) RemoveMessageLinks(m ...*MessageLink) *RoomUpdateOne {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ruo.RemoveMessageLinkIDs(ids...)
 }
 
 // ClearRoomMembers clears all "room_members" edges to the RoomMember entity.
@@ -834,6 +1188,141 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ruo.mutation.MessageVoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageVoicesTable,
+			Columns: []string{room.MessageVoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagevoice.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RemovedMessageVoicesIDs(); len(nodes) > 0 && !ruo.mutation.MessageVoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageVoicesTable,
+			Columns: []string{room.MessageVoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagevoice.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.MessageVoicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageVoicesTable,
+			Columns: []string{room.MessageVoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagevoice.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ruo.mutation.MessageAttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageAttachmentsTable,
+			Columns: []string{room.MessageAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RemovedMessageAttachmentsIDs(); len(nodes) > 0 && !ruo.mutation.MessageAttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageAttachmentsTable,
+			Columns: []string{room.MessageAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.MessageAttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageAttachmentsTable,
+			Columns: []string{room.MessageAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messageattachment.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ruo.mutation.MessageLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageLinksTable,
+			Columns: []string{room.MessageLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagelink.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RemovedMessageLinksIDs(); len(nodes) > 0 && !ruo.mutation.MessageLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageLinksTable,
+			Columns: []string{room.MessageLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagelink.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.MessageLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessageLinksTable,
+			Columns: []string{room.MessageLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messagelink.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

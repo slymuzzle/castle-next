@@ -68,7 +68,6 @@ func (RoomMember) Indexes() []ent.Index {
 // Annotations of the RoomMember.
 func (RoomMember) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entgql.QueryField(),
 		entgql.MultiOrder(),
 		entgql.RelayConnection(),
 	}

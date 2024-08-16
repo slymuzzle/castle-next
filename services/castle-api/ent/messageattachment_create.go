@@ -9,6 +9,7 @@ import (
 	"journeyhub/ent/file"
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"time"
 
@@ -33,7 +34,7 @@ func (mac *MessageAttachmentCreate) SetType(m messageattachment.Type) *MessageAt
 }
 
 // SetOrder sets the "order" field.
-func (mac *MessageAttachmentCreate) SetOrder(u uint64) *MessageAttachmentCreate {
+func (mac *MessageAttachmentCreate) SetOrder(u uint) *MessageAttachmentCreate {
 	mac.mutation.SetOrder(u)
 	return mac
 }
@@ -64,6 +65,17 @@ func (mac *MessageAttachmentCreate) SetNillableID(pu *pulid.ID) *MessageAttachme
 		mac.SetID(*pu)
 	}
 	return mac
+}
+
+// SetRoomID sets the "room" edge to the Room entity by ID.
+func (mac *MessageAttachmentCreate) SetRoomID(id pulid.ID) *MessageAttachmentCreate {
+	mac.mutation.SetRoomID(id)
+	return mac
+}
+
+// SetRoom sets the "room" edge to the Room entity.
+func (mac *MessageAttachmentCreate) SetRoom(r *Room) *MessageAttachmentCreate {
+	return mac.SetRoomID(r.ID)
 }
 
 // SetMessageID sets the "message" edge to the Message entity by ID.
@@ -149,6 +161,9 @@ func (mac *MessageAttachmentCreate) check() error {
 	if _, ok := mac.mutation.AttachedAt(); !ok {
 		return &ValidationError{Name: "attached_at", err: errors.New(`ent: missing required field "MessageAttachment.attached_at"`)}
 	}
+	if len(mac.mutation.RoomIDs()) == 0 {
+		return &ValidationError{Name: "room", err: errors.New(`ent: missing required edge "MessageAttachment.room"`)}
+	}
 	if len(mac.mutation.MessageIDs()) == 0 {
 		return &ValidationError{Name: "message", err: errors.New(`ent: missing required edge "MessageAttachment.message"`)}
 	}
@@ -196,12 +211,29 @@ func (mac *MessageAttachmentCreate) createSpec() (*MessageAttachment, *sqlgraph.
 		_node.Type = value
 	}
 	if value, ok := mac.mutation.Order(); ok {
-		_spec.SetField(messageattachment.FieldOrder, field.TypeUint64, value)
+		_spec.SetField(messageattachment.FieldOrder, field.TypeUint, value)
 		_node.Order = value
 	}
 	if value, ok := mac.mutation.AttachedAt(); ok {
 		_spec.SetField(messageattachment.FieldAttachedAt, field.TypeTime, value)
 		_node.AttachedAt = value
+	}
+	if nodes := mac.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   messageattachment.RoomTable,
+			Columns: []string{messageattachment.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.room_message_attachments = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := mac.mutation.MessageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -223,7 +255,7 @@ func (mac *MessageAttachmentCreate) createSpec() (*MessageAttachment, *sqlgraph.
 	if nodes := mac.mutation.FileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   messageattachment.FileTable,
 			Columns: []string{messageattachment.FileColumn},
 			Bidi:    false,
@@ -234,6 +266,7 @@ func (mac *MessageAttachmentCreate) createSpec() (*MessageAttachment, *sqlgraph.
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.file_message_attachment = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -301,7 +334,7 @@ func (u *MessageAttachmentUpsert) UpdateType() *MessageAttachmentUpsert {
 }
 
 // SetOrder sets the "order" field.
-func (u *MessageAttachmentUpsert) SetOrder(v uint64) *MessageAttachmentUpsert {
+func (u *MessageAttachmentUpsert) SetOrder(v uint) *MessageAttachmentUpsert {
 	u.Set(messageattachment.FieldOrder, v)
 	return u
 }
@@ -313,7 +346,7 @@ func (u *MessageAttachmentUpsert) UpdateOrder() *MessageAttachmentUpsert {
 }
 
 // AddOrder adds v to the "order" field.
-func (u *MessageAttachmentUpsert) AddOrder(v uint64) *MessageAttachmentUpsert {
+func (u *MessageAttachmentUpsert) AddOrder(v uint) *MessageAttachmentUpsert {
 	u.Add(messageattachment.FieldOrder, v)
 	return u
 }
@@ -384,14 +417,14 @@ func (u *MessageAttachmentUpsertOne) UpdateType() *MessageAttachmentUpsertOne {
 }
 
 // SetOrder sets the "order" field.
-func (u *MessageAttachmentUpsertOne) SetOrder(v uint64) *MessageAttachmentUpsertOne {
+func (u *MessageAttachmentUpsertOne) SetOrder(v uint) *MessageAttachmentUpsertOne {
 	return u.Update(func(s *MessageAttachmentUpsert) {
 		s.SetOrder(v)
 	})
 }
 
 // AddOrder adds v to the "order" field.
-func (u *MessageAttachmentUpsertOne) AddOrder(v uint64) *MessageAttachmentUpsertOne {
+func (u *MessageAttachmentUpsertOne) AddOrder(v uint) *MessageAttachmentUpsertOne {
 	return u.Update(func(s *MessageAttachmentUpsert) {
 		s.AddOrder(v)
 	})
@@ -637,14 +670,14 @@ func (u *MessageAttachmentUpsertBulk) UpdateType() *MessageAttachmentUpsertBulk 
 }
 
 // SetOrder sets the "order" field.
-func (u *MessageAttachmentUpsertBulk) SetOrder(v uint64) *MessageAttachmentUpsertBulk {
+func (u *MessageAttachmentUpsertBulk) SetOrder(v uint) *MessageAttachmentUpsertBulk {
 	return u.Update(func(s *MessageAttachmentUpsert) {
 		s.SetOrder(v)
 	})
 }
 
 // AddOrder adds v to the "order" field.
-func (u *MessageAttachmentUpsertBulk) AddOrder(v uint64) *MessageAttachmentUpsertBulk {
+func (u *MessageAttachmentUpsertBulk) AddOrder(v uint) *MessageAttachmentUpsertBulk {
 	return u.Update(func(s *MessageAttachmentUpsert) {
 		s.AddOrder(v)
 	})

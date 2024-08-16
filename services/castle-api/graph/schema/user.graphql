@@ -4,7 +4,6 @@ UserRegisterInput is used for user register.
 input UserRegisterInput {
   firstName: String! @goTag(key: "validate", value: "min=1,max=255")
   lastName: String! @goTag(key: "validate", value: "min=1,max=255")
-  email: String! @goTag(key: "validate", value: "min=1,max=255,email")
   nickname: String! @goTag(key: "validate", value: "min=8,max=255")
   password: String! @goTag(key: "validate", value: "min=8,max=64")
   passwordConfirmation: String! @goTag(key: "validate", value: "min=8,max=64")
@@ -14,7 +13,7 @@ input UserRegisterInput {
 UserLoginInput is used for user login.
 """
 input UserLoginInput {
-  nicknameOrEmail: String!
+  nickname: String!
   password: String!
 }
 

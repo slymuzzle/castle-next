@@ -36,11 +36,9 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	MessageAttachment() MessageAttachmentResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Subscription() SubscriptionResolver
-	MessageAttachmentWhereInput() MessageAttachmentWhereInputResolver
 }
 
 type DirectiveRoot struct {
@@ -59,28 +57,6 @@ type ComplexityRoot struct {
 		UpdatedAt         func(childComplexity int) int
 	}
 
-	Friendship struct {
-		CreatedAt func(childComplexity int) int
-		Friend    func(childComplexity int) int
-		FriendID  func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Room      func(childComplexity int) int
-		RoomID    func(childComplexity int) int
-		User      func(childComplexity int) int
-		UserID    func(childComplexity int) int
-	}
-
-	FriendshipConnection struct {
-		Edges      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
-	}
-
-	FriendshipEdge struct {
-		Cursor func(childComplexity int) int
-		Node   func(childComplexity int) int
-	}
-
 	LoginUser struct {
 		Token func(childComplexity int) int
 		User  func(childComplexity int) int
@@ -96,6 +72,7 @@ type ComplexityRoot struct {
 		Room        func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
 		User        func(childComplexity int) int
+		Voice       func(childComplexity int) int
 	}
 
 	MessageAttachment struct {
@@ -104,7 +81,19 @@ type ComplexityRoot struct {
 		ID         func(childComplexity int) int
 		Message    func(childComplexity int) int
 		Order      func(childComplexity int) int
+		Room       func(childComplexity int) int
 		Type       func(childComplexity int) int
+	}
+
+	MessageAttachmentConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	MessageAttachmentEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
 	}
 
 	MessageConnection struct {
@@ -122,8 +111,20 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Message   func(childComplexity int) int
+		Room      func(childComplexity int) int
 		URL       func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
+	}
+
+	MessageLinkConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	MessageLinkEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
 	}
 
 	MessageVoice struct {
@@ -131,6 +132,19 @@ type ComplexityRoot struct {
 		File       func(childComplexity int) int
 		ID         func(childComplexity int) int
 		Length     func(childComplexity int) int
+		Message    func(childComplexity int) int
+		Room       func(childComplexity int) int
+	}
+
+	MessageVoiceConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	MessageVoiceEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -152,26 +166,31 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Friendships func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, where *ent.FriendshipWhereInput) int
-		Messages    func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) int
-		Node        func(childComplexity int, id pulid.ID) int
-		Nodes       func(childComplexity int, ids []pulid.ID) int
-		RoomMembers func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
-		Rooms       func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomOrder, where *ent.RoomWhereInput) int
-		Self        func(childComplexity int) int
-		Users       func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) int
+		MessageAttachmentsByRoom func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageAttachmentOrder, where *ent.MessageAttachmentWhereInput) int
+		MessageLinksByRoom       func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageLinkOrder, where *ent.MessageLinkWhereInput) int
+		MessageVoicesByRoom      func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageVoiceOrder, where *ent.MessageVoiceWhereInput) int
+		MessagesByRoom           func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) int
+		Node                     func(childComplexity int, id pulid.ID) int
+		Nodes                    func(childComplexity int, ids []pulid.ID) int
+		RoomMembersByRoom        func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
+		Rooms                    func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomOrder, where *ent.RoomWhereInput) int
+		Self                     func(childComplexity int) int
+		UserContacts             func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserContactOrder, where *ent.UserContactWhereInput) int
 	}
 
 	Room struct {
-		CreatedAt   func(childComplexity int) int
-		ID          func(childComplexity int) int
-		Messages    func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) int
-		Name        func(childComplexity int) int
-		RoomMembers func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
-		Type        func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
-		Users       func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) int
-		Version     func(childComplexity int) int
+		CreatedAt          func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		MessageAttachments func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageAttachmentOrder, where *ent.MessageAttachmentWhereInput) int
+		MessageLinks       func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageLinkOrder, where *ent.MessageLinkWhereInput) int
+		MessageVoices      func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageVoiceOrder, where *ent.MessageVoiceWhereInput) int
+		Messages           func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) int
+		Name               func(childComplexity int) int
+		RoomMembers        func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
+		Type               func(childComplexity int) int
+		UpdatedAt          func(childComplexity int) int
+		Users              func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) int
+		Version            func(childComplexity int) int
 	}
 
 	RoomConnection struct {
@@ -213,18 +232,19 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		CreatedAt   func(childComplexity int) int
-		Email       func(childComplexity int) int
-		FirstName   func(childComplexity int) int
-		Friends     func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) int
-		Friendships func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, where *ent.FriendshipWhereInput) int
-		ID          func(childComplexity int) int
-		LastName    func(childComplexity int) int
-		Memberships func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
-		Messages    func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) int
-		Nickname    func(childComplexity int) int
-		Rooms       func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomOrder, where *ent.RoomWhereInput) int
-		UpdatedAt   func(childComplexity int) int
+		ContactPin   func(childComplexity int) int
+		Contacts     func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) int
+		CreatedAt    func(childComplexity int) int
+		Email        func(childComplexity int) int
+		FirstName    func(childComplexity int) int
+		ID           func(childComplexity int) int
+		LastName     func(childComplexity int) int
+		Memberships  func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
+		Messages     func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) int
+		Nickname     func(childComplexity int) int
+		Rooms        func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomOrder, where *ent.RoomWhereInput) int
+		UpdatedAt    func(childComplexity int) int
+		UserContacts func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserContactOrder, where *ent.UserContactWhereInput) int
 	}
 
 	UserConnection struct {
@@ -233,9 +253,42 @@ type ComplexityRoot struct {
 		TotalCount func(childComplexity int) int
 	}
 
+	UserContact struct {
+		Contact   func(childComplexity int) int
+		ContactID func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Room      func(childComplexity int) int
+		RoomID    func(childComplexity int) int
+		User      func(childComplexity int) int
+		UserID    func(childComplexity int) int
+	}
+
+	UserContactConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	UserContactEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	UserEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
+	}
+
+	UserPinCode struct {
+		Contact   func(childComplexity int) int
+		ContactID func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Room      func(childComplexity int) int
+		RoomID    func(childComplexity int) int
+		User      func(childComplexity int) int
+		UserID    func(childComplexity int) int
 	}
 }
 
@@ -321,97 +374,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.File.UpdatedAt(childComplexity), true
 
-	case "Friendship.createdAt":
-		if e.complexity.Friendship.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.Friendship.CreatedAt(childComplexity), true
-
-	case "Friendship.friend":
-		if e.complexity.Friendship.Friend == nil {
-			break
-		}
-
-		return e.complexity.Friendship.Friend(childComplexity), true
-
-	case "Friendship.friendID":
-		if e.complexity.Friendship.FriendID == nil {
-			break
-		}
-
-		return e.complexity.Friendship.FriendID(childComplexity), true
-
-	case "Friendship.id":
-		if e.complexity.Friendship.ID == nil {
-			break
-		}
-
-		return e.complexity.Friendship.ID(childComplexity), true
-
-	case "Friendship.room":
-		if e.complexity.Friendship.Room == nil {
-			break
-		}
-
-		return e.complexity.Friendship.Room(childComplexity), true
-
-	case "Friendship.roomID":
-		if e.complexity.Friendship.RoomID == nil {
-			break
-		}
-
-		return e.complexity.Friendship.RoomID(childComplexity), true
-
-	case "Friendship.user":
-		if e.complexity.Friendship.User == nil {
-			break
-		}
-
-		return e.complexity.Friendship.User(childComplexity), true
-
-	case "Friendship.userID":
-		if e.complexity.Friendship.UserID == nil {
-			break
-		}
-
-		return e.complexity.Friendship.UserID(childComplexity), true
-
-	case "FriendshipConnection.edges":
-		if e.complexity.FriendshipConnection.Edges == nil {
-			break
-		}
-
-		return e.complexity.FriendshipConnection.Edges(childComplexity), true
-
-	case "FriendshipConnection.pageInfo":
-		if e.complexity.FriendshipConnection.PageInfo == nil {
-			break
-		}
-
-		return e.complexity.FriendshipConnection.PageInfo(childComplexity), true
-
-	case "FriendshipConnection.totalCount":
-		if e.complexity.FriendshipConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.FriendshipConnection.TotalCount(childComplexity), true
-
-	case "FriendshipEdge.cursor":
-		if e.complexity.FriendshipEdge.Cursor == nil {
-			break
-		}
-
-		return e.complexity.FriendshipEdge.Cursor(childComplexity), true
-
-	case "FriendshipEdge.node":
-		if e.complexity.FriendshipEdge.Node == nil {
-			break
-		}
-
-		return e.complexity.FriendshipEdge.Node(childComplexity), true
-
 	case "LoginUser.token":
 		if e.complexity.LoginUser.Token == nil {
 			break
@@ -489,6 +451,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Message.User(childComplexity), true
 
+	case "Message.voice":
+		if e.complexity.Message.Voice == nil {
+			break
+		}
+
+		return e.complexity.Message.Voice(childComplexity), true
+
 	case "MessageAttachment.attachedAt":
 		if e.complexity.MessageAttachment.AttachedAt == nil {
 			break
@@ -524,12 +493,54 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MessageAttachment.Order(childComplexity), true
 
+	case "MessageAttachment.room":
+		if e.complexity.MessageAttachment.Room == nil {
+			break
+		}
+
+		return e.complexity.MessageAttachment.Room(childComplexity), true
+
 	case "MessageAttachment.type":
 		if e.complexity.MessageAttachment.Type == nil {
 			break
 		}
 
 		return e.complexity.MessageAttachment.Type(childComplexity), true
+
+	case "MessageAttachmentConnection.edges":
+		if e.complexity.MessageAttachmentConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.MessageAttachmentConnection.Edges(childComplexity), true
+
+	case "MessageAttachmentConnection.pageInfo":
+		if e.complexity.MessageAttachmentConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.MessageAttachmentConnection.PageInfo(childComplexity), true
+
+	case "MessageAttachmentConnection.totalCount":
+		if e.complexity.MessageAttachmentConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.MessageAttachmentConnection.TotalCount(childComplexity), true
+
+	case "MessageAttachmentEdge.cursor":
+		if e.complexity.MessageAttachmentEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.MessageAttachmentEdge.Cursor(childComplexity), true
+
+	case "MessageAttachmentEdge.node":
+		if e.complexity.MessageAttachmentEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.MessageAttachmentEdge.Node(childComplexity), true
 
 	case "MessageConnection.edges":
 		if e.complexity.MessageConnection.Edges == nil {
@@ -587,6 +598,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MessageLink.Message(childComplexity), true
 
+	case "MessageLink.room":
+		if e.complexity.MessageLink.Room == nil {
+			break
+		}
+
+		return e.complexity.MessageLink.Room(childComplexity), true
+
 	case "MessageLink.url":
 		if e.complexity.MessageLink.URL == nil {
 			break
@@ -600,6 +618,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MessageLink.UpdatedAt(childComplexity), true
+
+	case "MessageLinkConnection.edges":
+		if e.complexity.MessageLinkConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.MessageLinkConnection.Edges(childComplexity), true
+
+	case "MessageLinkConnection.pageInfo":
+		if e.complexity.MessageLinkConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.MessageLinkConnection.PageInfo(childComplexity), true
+
+	case "MessageLinkConnection.totalCount":
+		if e.complexity.MessageLinkConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.MessageLinkConnection.TotalCount(childComplexity), true
+
+	case "MessageLinkEdge.cursor":
+		if e.complexity.MessageLinkEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.MessageLinkEdge.Cursor(childComplexity), true
+
+	case "MessageLinkEdge.node":
+		if e.complexity.MessageLinkEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.MessageLinkEdge.Node(childComplexity), true
 
 	case "MessageVoice.attachedAt":
 		if e.complexity.MessageVoice.AttachedAt == nil {
@@ -628,6 +681,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MessageVoice.Length(childComplexity), true
+
+	case "MessageVoice.message":
+		if e.complexity.MessageVoice.Message == nil {
+			break
+		}
+
+		return e.complexity.MessageVoice.Message(childComplexity), true
+
+	case "MessageVoice.room":
+		if e.complexity.MessageVoice.Room == nil {
+			break
+		}
+
+		return e.complexity.MessageVoice.Room(childComplexity), true
+
+	case "MessageVoiceConnection.edges":
+		if e.complexity.MessageVoiceConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.MessageVoiceConnection.Edges(childComplexity), true
+
+	case "MessageVoiceConnection.pageInfo":
+		if e.complexity.MessageVoiceConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.MessageVoiceConnection.PageInfo(childComplexity), true
+
+	case "MessageVoiceConnection.totalCount":
+		if e.complexity.MessageVoiceConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.MessageVoiceConnection.TotalCount(childComplexity), true
+
+	case "MessageVoiceEdge.cursor":
+		if e.complexity.MessageVoiceEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.MessageVoiceEdge.Cursor(childComplexity), true
+
+	case "MessageVoiceEdge.node":
+		if e.complexity.MessageVoiceEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.MessageVoiceEdge.Node(childComplexity), true
 
 	case "Mutation.createRoom":
 		if e.complexity.Mutation.CreateRoom == nil {
@@ -753,29 +855,53 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
 
-	case "Query.friendships":
-		if e.complexity.Query.Friendships == nil {
+	case "Query.messageAttachmentsByRoom":
+		if e.complexity.Query.MessageAttachmentsByRoom == nil {
 			break
 		}
 
-		args, err := ec.field_Query_friendships_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_messageAttachmentsByRoom_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.Friendships(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["where"].(*ent.FriendshipWhereInput)), true
+		return e.complexity.Query.MessageAttachmentsByRoom(childComplexity, args["roomID"].(pulid.ID), args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.MessageAttachmentOrder), args["where"].(*ent.MessageAttachmentWhereInput)), true
 
-	case "Query.messages":
-		if e.complexity.Query.Messages == nil {
+	case "Query.messageLinksByRoom":
+		if e.complexity.Query.MessageLinksByRoom == nil {
 			break
 		}
 
-		args, err := ec.field_Query_messages_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_messageLinksByRoom_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.Messages(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.MessageOrder), args["where"].(*ent.MessageWhereInput)), true
+		return e.complexity.Query.MessageLinksByRoom(childComplexity, args["roomID"].(pulid.ID), args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.MessageLinkOrder), args["where"].(*ent.MessageLinkWhereInput)), true
+
+	case "Query.messageVoicesByRoom":
+		if e.complexity.Query.MessageVoicesByRoom == nil {
+			break
+		}
+
+		args, err := ec.field_Query_messageVoicesByRoom_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MessageVoicesByRoom(childComplexity, args["roomID"].(pulid.ID), args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.MessageVoiceOrder), args["where"].(*ent.MessageVoiceWhereInput)), true
+
+	case "Query.messagesByRoom":
+		if e.complexity.Query.MessagesByRoom == nil {
+			break
+		}
+
+		args, err := ec.field_Query_messagesByRoom_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MessagesByRoom(childComplexity, args["roomID"].(pulid.ID), args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.MessageOrder), args["where"].(*ent.MessageWhereInput)), true
 
 	case "Query.node":
 		if e.complexity.Query.Node == nil {
@@ -801,17 +927,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Nodes(childComplexity, args["ids"].([]pulid.ID)), true
 
-	case "Query.roomMembers":
-		if e.complexity.Query.RoomMembers == nil {
+	case "Query.roomMembersByRoom":
+		if e.complexity.Query.RoomMembersByRoom == nil {
 			break
 		}
 
-		args, err := ec.field_Query_roomMembers_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_roomMembersByRoom_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.RoomMembers(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.RoomMemberOrder), args["where"].(*ent.RoomMemberWhereInput)), true
+		return e.complexity.Query.RoomMembersByRoom(childComplexity, args["roomID"].(pulid.ID), args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.RoomMemberOrder), args["where"].(*ent.RoomMemberWhereInput)), true
 
 	case "Query.rooms":
 		if e.complexity.Query.Rooms == nil {
@@ -832,17 +958,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Self(childComplexity), true
 
-	case "Query.users":
-		if e.complexity.Query.Users == nil {
+	case "Query.userContacts":
+		if e.complexity.Query.UserContacts == nil {
 			break
 		}
 
-		args, err := ec.field_Query_users_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_userContacts_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.Users(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.UserOrder), args["where"].(*ent.UserWhereInput)), true
+		return e.complexity.Query.UserContacts(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.UserContactOrder), args["where"].(*ent.UserContactWhereInput)), true
 
 	case "Room.createdAt":
 		if e.complexity.Room.CreatedAt == nil {
@@ -857,6 +983,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Room.ID(childComplexity), true
+
+	case "Room.messageAttachments":
+		if e.complexity.Room.MessageAttachments == nil {
+			break
+		}
+
+		args, err := ec.field_Room_messageAttachments_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Room.MessageAttachments(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.MessageAttachmentOrder), args["where"].(*ent.MessageAttachmentWhereInput)), true
+
+	case "Room.messageLinks":
+		if e.complexity.Room.MessageLinks == nil {
+			break
+		}
+
+		args, err := ec.field_Room_messageLinks_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Room.MessageLinks(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.MessageLinkOrder), args["where"].(*ent.MessageLinkWhereInput)), true
+
+	case "Room.messageVoices":
+		if e.complexity.Room.MessageVoices == nil {
+			break
+		}
+
+		args, err := ec.field_Room_messageVoices_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Room.MessageVoices(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.MessageVoiceOrder), args["where"].(*ent.MessageVoiceWhereInput)), true
 
 	case "Room.messages":
 		if e.complexity.Room.Messages == nil {
@@ -913,7 +1075,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Room.Users(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.UserOrder), args["where"].(*ent.UserWhereInput)), true
+		return e.complexity.Room.Users(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.UserOrder), args["where"].(*ent.UserWhereInput)), true
 
 	case "Room.version":
 		if e.complexity.Room.Version == nil {
@@ -1077,6 +1239,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Subscription.RoomChanged(childComplexity), true
 
+	case "User.contactPin":
+		if e.complexity.User.ContactPin == nil {
+			break
+		}
+
+		return e.complexity.User.ContactPin(childComplexity), true
+
+	case "User.contacts":
+		if e.complexity.User.Contacts == nil {
+			break
+		}
+
+		args, err := ec.field_User_contacts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.User.Contacts(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.UserOrder), args["where"].(*ent.UserWhereInput)), true
+
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
 			break
@@ -1097,30 +1278,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.FirstName(childComplexity), true
-
-	case "User.friends":
-		if e.complexity.User.Friends == nil {
-			break
-		}
-
-		args, err := ec.field_User_friends_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.User.Friends(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.UserOrder), args["where"].(*ent.UserWhereInput)), true
-
-	case "User.friendships":
-		if e.complexity.User.Friendships == nil {
-			break
-		}
-
-		args, err := ec.field_User_friendships_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.User.Friendships(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["where"].(*ent.FriendshipWhereInput)), true
 
 	case "User.id":
 		if e.complexity.User.ID == nil {
@@ -1186,6 +1343,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.UpdatedAt(childComplexity), true
 
+	case "User.userContacts":
+		if e.complexity.User.UserContacts == nil {
+			break
+		}
+
+		args, err := ec.field_User_userContacts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.User.UserContacts(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.UserContactOrder), args["where"].(*ent.UserContactWhereInput)), true
+
 	case "UserConnection.edges":
 		if e.complexity.UserConnection.Edges == nil {
 			break
@@ -1207,6 +1376,97 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserConnection.TotalCount(childComplexity), true
 
+	case "UserContact.contact":
+		if e.complexity.UserContact.Contact == nil {
+			break
+		}
+
+		return e.complexity.UserContact.Contact(childComplexity), true
+
+	case "UserContact.contactID":
+		if e.complexity.UserContact.ContactID == nil {
+			break
+		}
+
+		return e.complexity.UserContact.ContactID(childComplexity), true
+
+	case "UserContact.createdAt":
+		if e.complexity.UserContact.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.UserContact.CreatedAt(childComplexity), true
+
+	case "UserContact.id":
+		if e.complexity.UserContact.ID == nil {
+			break
+		}
+
+		return e.complexity.UserContact.ID(childComplexity), true
+
+	case "UserContact.room":
+		if e.complexity.UserContact.Room == nil {
+			break
+		}
+
+		return e.complexity.UserContact.Room(childComplexity), true
+
+	case "UserContact.roomID":
+		if e.complexity.UserContact.RoomID == nil {
+			break
+		}
+
+		return e.complexity.UserContact.RoomID(childComplexity), true
+
+	case "UserContact.user":
+		if e.complexity.UserContact.User == nil {
+			break
+		}
+
+		return e.complexity.UserContact.User(childComplexity), true
+
+	case "UserContact.userID":
+		if e.complexity.UserContact.UserID == nil {
+			break
+		}
+
+		return e.complexity.UserContact.UserID(childComplexity), true
+
+	case "UserContactConnection.edges":
+		if e.complexity.UserContactConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.UserContactConnection.Edges(childComplexity), true
+
+	case "UserContactConnection.pageInfo":
+		if e.complexity.UserContactConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.UserContactConnection.PageInfo(childComplexity), true
+
+	case "UserContactConnection.totalCount":
+		if e.complexity.UserContactConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.UserContactConnection.TotalCount(childComplexity), true
+
+	case "UserContactEdge.cursor":
+		if e.complexity.UserContactEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.UserContactEdge.Cursor(childComplexity), true
+
+	case "UserContactEdge.node":
+		if e.complexity.UserContactEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.UserContactEdge.Node(childComplexity), true
+
 	case "UserEdge.cursor":
 		if e.complexity.UserEdge.Cursor == nil {
 			break
@@ -1221,6 +1481,62 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserEdge.Node(childComplexity), true
 
+	case "UserPinCode.contact":
+		if e.complexity.UserPinCode.Contact == nil {
+			break
+		}
+
+		return e.complexity.UserPinCode.Contact(childComplexity), true
+
+	case "UserPinCode.contactID":
+		if e.complexity.UserPinCode.ContactID == nil {
+			break
+		}
+
+		return e.complexity.UserPinCode.ContactID(childComplexity), true
+
+	case "UserPinCode.createdAt":
+		if e.complexity.UserPinCode.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.UserPinCode.CreatedAt(childComplexity), true
+
+	case "UserPinCode.id":
+		if e.complexity.UserPinCode.ID == nil {
+			break
+		}
+
+		return e.complexity.UserPinCode.ID(childComplexity), true
+
+	case "UserPinCode.room":
+		if e.complexity.UserPinCode.Room == nil {
+			break
+		}
+
+		return e.complexity.UserPinCode.Room(childComplexity), true
+
+	case "UserPinCode.roomID":
+		if e.complexity.UserPinCode.RoomID == nil {
+			break
+		}
+
+		return e.complexity.UserPinCode.RoomID(childComplexity), true
+
+	case "UserPinCode.user":
+		if e.complexity.UserPinCode.User == nil {
+			break
+		}
+
+		return e.complexity.UserPinCode.User(childComplexity), true
+
+	case "UserPinCode.userID":
+		if e.complexity.UserPinCode.UserID == nil {
+			break
+		}
+
+		return e.complexity.UserPinCode.UserID(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -1232,7 +1548,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateRoomInput,
 		ec.unmarshalInputFileOrder,
 		ec.unmarshalInputFileWhereInput,
-		ec.unmarshalInputFriendshipWhereInput,
 		ec.unmarshalInputMessageAttachmentOrder,
 		ec.unmarshalInputMessageAttachmentWhereInput,
 		ec.unmarshalInputMessageLinkOrder,
@@ -1248,8 +1563,12 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSendMessageInput,
 		ec.unmarshalInputUpdateMessageInput,
 		ec.unmarshalInputUpdateRoomInput,
+		ec.unmarshalInputUserContactOrder,
+		ec.unmarshalInputUserContactWhereInput,
 		ec.unmarshalInputUserLoginInput,
 		ec.unmarshalInputUserOrder,
+		ec.unmarshalInputUserPinCodeOrder,
+		ec.unmarshalInputUserPinCodeWhereInput,
 		ec.unmarshalInputUserRegisterInput,
 		ec.unmarshalInputUserWhereInput,
 	)
@@ -1524,24 +1843,35 @@ input FileWhereInput {
   hasMessageVoice: Boolean
   hasMessageVoiceWith: [MessageVoiceWhereInput!]
 }
-type Friendship implements Node {
+type Message implements Node {
   id: ID!
-  userID: ID!
-  friendID: ID!
-  roomID: ID
+  content: String!
   createdAt: Time!
-  user: User!
-  friend: User!
+  updatedAt: Time!
+  voice: MessageVoice
+  replyTo: Message
+  attachments: [MessageAttachment!]
+  links: [MessageLink!]
+  user: User
   room: Room
+}
+type MessageAttachment implements Node {
+  id: ID!
+  type: MessageAttachmentType!
+  order: Uint!
+  attachedAt: Time!
+  room: Room!
+  message: Message!
+  file: File!
 }
 """
 A connection to a list of items.
 """
-type FriendshipConnection {
+type MessageAttachmentConnection {
   """
   A list of edges.
   """
-  edges: [FriendshipEdge]
+  edges: [MessageAttachmentEdge]
   """
   Information to aid in pagination.
   """
@@ -1554,65 +1884,15 @@ type FriendshipConnection {
 """
 An edge in a connection.
 """
-type FriendshipEdge {
+type MessageAttachmentEdge {
   """
   The item at the end of the edge.
   """
-  node: Friendship
+  node: MessageAttachment
   """
   A cursor for use in pagination.
   """
   cursor: Cursor!
-}
-"""
-FriendshipWhereInput is used for filtering Friendship objects.
-Input was generated by ent.
-"""
-input FriendshipWhereInput {
-  not: FriendshipWhereInput
-  and: [FriendshipWhereInput!]
-  or: [FriendshipWhereInput!]
-  """
-  id field predicates
-  """
-  id: ID
-  idNEQ: ID
-  idIn: [ID!]
-  idNotIn: [ID!]
-  idGT: ID
-  idGTE: ID
-  idLT: ID
-  idLTE: ID
-  """
-  created_at field predicates
-  """
-  createdAt: Time
-  createdAtNEQ: Time
-  createdAtIn: [Time!]
-  createdAtNotIn: [Time!]
-  createdAtGT: Time
-  createdAtGTE: Time
-  createdAtLT: Time
-  createdAtLTE: Time
-}
-type Message implements Node {
-  id: ID!
-  content: String!
-  createdAt: Time!
-  updatedAt: Time!
-  user: User
-  room: Room
-  replyTo: Message
-  attachments: [MessageAttachment!]
-  links: [MessageLink!]
-}
-type MessageAttachment implements Node {
-  id: ID!
-  type: MessageAttachmentType!
-  order: Uint!
-  attachedAt: Time!
-  message: Message!
-  file: File!
 }
 """
 Ordering options for MessageAttachment connections
@@ -1692,6 +1972,11 @@ input MessageAttachmentWhereInput {
   attachedAtLT: Time
   attachedAtLTE: Time
   """
+  room edge predicates
+  """
+  hasRoom: Boolean
+  hasRoomWith: [RoomWhereInput!]
+  """
   message edge predicates
   """
   hasMessage: Boolean
@@ -1737,7 +2022,38 @@ type MessageLink implements Node {
   url: String!
   createdAt: Time!
   updatedAt: Time!
+  room: Room!
   message: Message!
+}
+"""
+A connection to a list of items.
+"""
+type MessageLinkConnection {
+  """
+  A list of edges.
+  """
+  edges: [MessageLinkEdge]
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+  """
+  Identifies the total count of items in the connection.
+  """
+  totalCount: Int!
+}
+"""
+An edge in a connection.
+"""
+type MessageLinkEdge {
+  """
+  The item at the end of the edge.
+  """
+  node: MessageLink
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
 }
 """
 Ordering options for MessageLink connections
@@ -1818,6 +2134,11 @@ input MessageLinkWhereInput {
   updatedAtLT: Time
   updatedAtLTE: Time
   """
+  room edge predicates
+  """
+  hasRoom: Boolean
+  hasRoomWith: [RoomWhereInput!]
+  """
   message edge predicates
   """
   hasMessage: Boolean
@@ -1847,7 +2168,39 @@ type MessageVoice implements Node {
   id: ID!
   length: Int!
   attachedAt: Time!
+  room: Room!
+  message: Message!
   file: File!
+}
+"""
+A connection to a list of items.
+"""
+type MessageVoiceConnection {
+  """
+  A list of edges.
+  """
+  edges: [MessageVoiceEdge]
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+  """
+  Identifies the total count of items in the connection.
+  """
+  totalCount: Int!
+}
+"""
+An edge in a connection.
+"""
+type MessageVoiceEdge {
+  """
+  The item at the end of the edge.
+  """
+  node: MessageVoice
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
 }
 """
 Ordering options for MessageVoice connections
@@ -1910,6 +2263,16 @@ input MessageVoiceWhereInput {
   attachedAtGTE: Time
   attachedAtLT: Time
   attachedAtLTE: Time
+  """
+  room edge predicates
+  """
+  hasRoom: Boolean
+  hasRoomWith: [RoomWhereInput!]
+  """
+  message edge predicates
+  """
+  hasMessage: Boolean
+  hasMessageWith: [MessageWhereInput!]
   """
   file edge predicates
   """
@@ -1974,15 +2337,10 @@ input MessageWhereInput {
   updatedAtLT: Time
   updatedAtLTE: Time
   """
-  user edge predicates
+  voice edge predicates
   """
-  hasUser: Boolean
-  hasUserWith: [UserWhereInput!]
-  """
-  room edge predicates
-  """
-  hasRoom: Boolean
-  hasRoomWith: [RoomWhereInput!]
+  hasVoice: Boolean
+  hasVoiceWith: [MessageVoiceWhereInput!]
   """
   reply_to edge predicates
   """
@@ -1998,6 +2356,16 @@ input MessageWhereInput {
   """
   hasLinks: Boolean
   hasLinksWith: [MessageLinkWhereInput!]
+  """
+  user edge predicates
+  """
+  hasUser: Boolean
+  hasUserWith: [UserWhereInput!]
+  """
+  room edge predicates
+  """
+  hasRoom: Boolean
+  hasRoomWith: [RoomWhereInput!]
 }
 """
 An object with an ID.
@@ -2063,63 +2431,6 @@ type Query {
     """
     ids: [ID!]!
   ): [Node]!
-  friendships(
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: Cursor
-
-    """
-    Returns the first _n_ elements from the list.
-    """
-    first: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: Cursor
-
-    """
-    Returns the last _n_ elements from the list.
-    """
-    last: Int
-
-    """
-    Filtering options for Friendships returned from the connection.
-    """
-    where: FriendshipWhereInput
-  ): FriendshipConnection!
-  messages(
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: Cursor
-
-    """
-    Returns the first _n_ elements from the list.
-    """
-    first: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: Cursor
-
-    """
-    Returns the last _n_ elements from the list.
-    """
-    last: Int
-
-    """
-    Ordering options for Messages returned from the connection.
-    """
-    orderBy: [MessageOrder!]
-
-    """
-    Filtering options for Messages returned from the connection.
-    """
-    where: MessageWhereInput
-  ): MessageConnection!
   rooms(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -2151,7 +2462,7 @@ type Query {
     """
     where: RoomWhereInput
   ): RoomConnection!
-  roomMembers(
+  userContacts(
     """
     Returns the elements in the list that come after the specified cursor.
     """
@@ -2173,46 +2484,15 @@ type Query {
     last: Int
 
     """
-    Ordering options for RoomMembers returned from the connection.
+    Ordering options for UserContacts returned from the connection.
     """
-    orderBy: [RoomMemberOrder!]
+    orderBy: [UserContactOrder!]
 
     """
-    Filtering options for RoomMembers returned from the connection.
+    Filtering options for UserContacts returned from the connection.
     """
-    where: RoomMemberWhereInput
-  ): RoomMemberConnection!
-  users(
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: Cursor
-
-    """
-    Returns the first _n_ elements from the list.
-    """
-    first: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: Cursor
-
-    """
-    Returns the last _n_ elements from the list.
-    """
-    last: Int
-
-    """
-    Ordering options for Users returned from the connection.
-    """
-    orderBy: [UserOrder!]
-
-    """
-    Filtering options for Users returned from the connection.
-    """
-    where: UserWhereInput
-  ): UserConnection!
+    where: UserContactWhereInput
+  ): UserContactConnection!
 }
 type Room implements Node {
   id: ID!
@@ -2245,7 +2525,7 @@ type Room implements Node {
     """
     Ordering options for Users returned from the connection.
     """
-    orderBy: [UserOrder!]
+    orderBy: UserOrder
 
     """
     Filtering options for Users returned from the connection.
@@ -2283,6 +2563,99 @@ type Room implements Node {
     """
     where: MessageWhereInput
   ): MessageConnection!
+  messageVoices(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for MessageVoices returned from the connection.
+    """
+    orderBy: MessageVoiceOrder
+
+    """
+    Filtering options for MessageVoices returned from the connection.
+    """
+    where: MessageVoiceWhereInput
+  ): MessageVoiceConnection!
+  messageAttachments(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for MessageAttachments returned from the connection.
+    """
+    orderBy: MessageAttachmentOrder
+
+    """
+    Filtering options for MessageAttachments returned from the connection.
+    """
+    where: MessageAttachmentWhereInput
+  ): MessageAttachmentConnection!
+  messageLinks(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for MessageLinks returned from the connection.
+    """
+    orderBy: MessageLinkOrder
+
+    """
+    Filtering options for MessageLinks returned from the connection.
+    """
+    where: MessageLinkWhereInput
+  ): MessageLinkConnection!
   roomMembers(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -2549,6 +2922,21 @@ input RoomWhereInput {
   hasMessages: Boolean
   hasMessagesWith: [MessageWhereInput!]
   """
+  message_voices edge predicates
+  """
+  hasMessageVoices: Boolean
+  hasMessageVoicesWith: [MessageVoiceWhereInput!]
+  """
+  message_attachments edge predicates
+  """
+  hasMessageAttachments: Boolean
+  hasMessageAttachmentsWith: [MessageAttachmentWhereInput!]
+  """
+  message_links edge predicates
+  """
+  hasMessageLinks: Boolean
+  hasMessageLinksWith: [MessageLinkWhereInput!]
+  """
   room_members edge predicates
   """
   hasRoomMembers: Boolean
@@ -2571,10 +2959,11 @@ type User implements Node {
   firstName: String!
   lastName: String!
   nickname: String!
-  email: String!
+  email: String
+  contactPin: String!
   createdAt: Time!
   updatedAt: Time!
-  friends(
+  contacts(
     """
     Returns the elements in the list that come after the specified cursor.
     """
@@ -2598,7 +2987,7 @@ type User implements Node {
     """
     Ordering options for Users returned from the connection.
     """
-    orderBy: [UserOrder!]
+    orderBy: UserOrder
 
     """
     Filtering options for Users returned from the connection.
@@ -2667,7 +3056,7 @@ type User implements Node {
     """
     where: MessageWhereInput
   ): MessageConnection!
-  friendships(
+  userContacts(
     """
     Returns the elements in the list that come after the specified cursor.
     """
@@ -2689,10 +3078,15 @@ type User implements Node {
     last: Int
 
     """
-    Filtering options for Friendships returned from the connection.
+    Ordering options for UserContacts returned from the connection.
     """
-    where: FriendshipWhereInput
-  ): FriendshipConnection!
+    orderBy: [UserContactOrder!]
+
+    """
+    Filtering options for UserContacts returned from the connection.
+    """
+    where: UserContactWhereInput
+  ): UserContactConnection!
   memberships(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -2742,6 +3136,96 @@ type UserConnection {
   """
   totalCount: Int!
 }
+type UserContact implements Node {
+  id: ID!
+  userID: ID!
+  contactID: ID!
+  roomID: ID
+  createdAt: Time!
+  user: User!
+  contact: User!
+  room: Room
+}
+"""
+A connection to a list of items.
+"""
+type UserContactConnection {
+  """
+  A list of edges.
+  """
+  edges: [UserContactEdge]
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+  """
+  Identifies the total count of items in the connection.
+  """
+  totalCount: Int!
+}
+"""
+An edge in a connection.
+"""
+type UserContactEdge {
+  """
+  The item at the end of the edge.
+  """
+  node: UserContact
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+"""
+Ordering options for UserContact connections
+"""
+input UserContactOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection! = ASC
+  """
+  The field by which to order UserContacts.
+  """
+  field: UserContactOrderField!
+}
+"""
+Properties by which UserContact connections can be ordered.
+"""
+enum UserContactOrderField {
+  CREATED_AT
+}
+"""
+UserContactWhereInput is used for filtering UserContact objects.
+Input was generated by ent.
+"""
+input UserContactWhereInput {
+  not: UserContactWhereInput
+  and: [UserContactWhereInput!]
+  or: [UserContactWhereInput!]
+  """
+  id field predicates
+  """
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """
+  created_at field predicates
+  """
+  createdAt: Time
+  createdAtNEQ: Time
+  createdAtIn: [Time!]
+  createdAtNotIn: [Time!]
+  createdAtGT: Time
+  createdAtGTE: Time
+  createdAtLT: Time
+  createdAtLTE: Time
+}
 """
 An edge in a connection.
 """
@@ -2778,6 +3262,131 @@ enum UserOrderField {
   EMAIL
   CREATED_AT
   UPDATED_AT
+}
+type UserPinCode implements Node {
+  id: ID!
+  userID: ID!
+  contactID: ID!
+  roomID: ID
+  createdAt: Time!
+  user: User!
+  contact: User!
+  room: Room
+}
+"""
+Ordering options for UserPinCode connections
+"""
+input UserPinCodeOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection! = ASC
+  """
+  The field by which to order UserPinCodes.
+  """
+  field: UserPinCodeOrderField!
+}
+"""
+Properties by which UserPinCode connections can be ordered.
+"""
+enum UserPinCodeOrderField {
+  CREATED_AT
+}
+"""
+UserPinCodeWhereInput is used for filtering UserPinCode objects.
+Input was generated by ent.
+"""
+input UserPinCodeWhereInput {
+  not: UserPinCodeWhereInput
+  and: [UserPinCodeWhereInput!]
+  or: [UserPinCodeWhereInput!]
+  """
+  id field predicates
+  """
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """
+  user_id field predicates
+  """
+  userID: ID
+  userIDNEQ: ID
+  userIDIn: [ID!]
+  userIDNotIn: [ID!]
+  userIDGT: ID
+  userIDGTE: ID
+  userIDLT: ID
+  userIDLTE: ID
+  userIDContains: ID
+  userIDHasPrefix: ID
+  userIDHasSuffix: ID
+  userIDEqualFold: ID
+  userIDContainsFold: ID
+  """
+  contact_id field predicates
+  """
+  contactID: ID
+  contactIDNEQ: ID
+  contactIDIn: [ID!]
+  contactIDNotIn: [ID!]
+  contactIDGT: ID
+  contactIDGTE: ID
+  contactIDLT: ID
+  contactIDLTE: ID
+  contactIDContains: ID
+  contactIDHasPrefix: ID
+  contactIDHasSuffix: ID
+  contactIDEqualFold: ID
+  contactIDContainsFold: ID
+  """
+  room_id field predicates
+  """
+  roomID: ID
+  roomIDNEQ: ID
+  roomIDIn: [ID!]
+  roomIDNotIn: [ID!]
+  roomIDGT: ID
+  roomIDGTE: ID
+  roomIDLT: ID
+  roomIDLTE: ID
+  roomIDContains: ID
+  roomIDHasPrefix: ID
+  roomIDHasSuffix: ID
+  roomIDIsNil: Boolean
+  roomIDNotNil: Boolean
+  roomIDEqualFold: ID
+  roomIDContainsFold: ID
+  """
+  created_at field predicates
+  """
+  createdAt: Time
+  createdAtNEQ: Time
+  createdAtIn: [Time!]
+  createdAtNotIn: [Time!]
+  createdAtGT: Time
+  createdAtGTE: Time
+  createdAtLT: Time
+  createdAtLTE: Time
+  """
+  user edge predicates
+  """
+  hasUser: Boolean
+  hasUserWith: [UserWhereInput!]
+  """
+  contact edge predicates
+  """
+  hasContact: Boolean
+  hasContactWith: [UserWhereInput!]
+  """
+  room edge predicates
+  """
+  hasRoom: Boolean
+  hasRoomWith: [RoomWhereInput!]
 }
 """
 UserWhereInput is used for filtering User objects.
@@ -2860,8 +3469,26 @@ input UserWhereInput {
   emailContains: String
   emailHasPrefix: String
   emailHasSuffix: String
+  emailIsNil: Boolean
+  emailNotNil: Boolean
   emailEqualFold: String
   emailContainsFold: String
+  """
+  contact_pin field predicates
+  """
+  contactPin: String
+  contactPinNEQ: String
+  contactPinIn: [String!]
+  contactPinNotIn: [String!]
+  contactPinGT: String
+  contactPinGTE: String
+  contactPinLT: String
+  contactPinLTE: String
+  contactPinContains: String
+  contactPinHasPrefix: String
+  contactPinHasSuffix: String
+  contactPinEqualFold: String
+  contactPinContainsFold: String
   """
   created_at field predicates
   """
@@ -2885,10 +3512,10 @@ input UserWhereInput {
   updatedAtLT: Time
   updatedAtLTE: Time
   """
-  friends edge predicates
+  contacts edge predicates
   """
-  hasFriends: Boolean
-  hasFriendsWith: [UserWhereInput!]
+  hasContacts: Boolean
+  hasContactsWith: [UserWhereInput!]
   """
   rooms edge predicates
   """
@@ -2900,10 +3527,10 @@ input UserWhereInput {
   hasMessages: Boolean
   hasMessagesWith: [MessageWhereInput!]
   """
-  friendships edge predicates
+  user_contacts edge predicates
   """
-  hasFriendships: Boolean
-  hasFriendshipsWith: [FriendshipWhereInput!]
+  hasUserContacts: Boolean
+  hasUserContactsWith: [UserContactWhereInput!]
   """
   memberships edge predicates
   """
@@ -2932,6 +3559,45 @@ input UpdateMessageInput {
   content: String!
 }
 
+extend type Query {
+  messagesByRoom(
+    """
+    Returns the elements in the list that come with the specified roomID.
+    """
+    roomID: ID!
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for Messages returned from the connection.
+    """
+    orderBy: [MessageOrder!]
+
+    """
+    Filtering options for Messages returned from the connection.
+    """
+    where: MessageWhereInput
+  ): MessageConnection!
+}
+
 extend type Mutation {
   sendMessage(input: SendMessageInput!): Message
   updateMessage(messageID: ID!, input: UpdateMessageInput!): Message
@@ -2942,6 +3608,123 @@ extend type Subscription {
   messageAdded(roomID: ID!): Message!
   messageUpdated(roomID: ID!): Message!
   messageDeleted(roomID: ID!): Message!
+}
+`, BuiltIn: false},
+	{Name: "../schema/message_attachment.graphql", Input: `extend type Query {
+  messageAttachmentsByRoom(
+    """
+    Returns the elements in the list that come with the specified roomID.
+    """
+    roomID: ID!
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for MessageAttachments returned from the connection.
+    """
+    orderBy: MessageAttachmentOrder
+
+    """
+    Filtering options for MessageAttachments returned from the connection.
+    """
+    where: MessageAttachmentWhereInput
+  ): MessageAttachmentConnection!
+}
+`, BuiltIn: false},
+	{Name: "../schema/message_link.graphql", Input: `extend type Query {
+  messageLinksByRoom(
+    """
+    Returns the elements in the list that come with the specified roomID.
+    """
+    roomID: ID!
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for MessageLinks returned from the connection.
+    """
+    orderBy: MessageLinkOrder
+
+    """
+    Filtering options for MessageLinks returned from the connection.
+    """
+    where: MessageLinkWhereInput
+  ): MessageLinkConnection!
+}
+`, BuiltIn: false},
+	{Name: "../schema/message_voice.graphql", Input: `extend type Query {
+  messageVoicesByRoom(
+    """
+    Returns the elements in the list that come with the specified roomID.
+    """
+    roomID: ID!
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for MessageVoices returned from the connection.
+    """
+    orderBy: MessageVoiceOrder
+
+    """
+    Filtering options for MessageVoices returned from the connection.
+    """
+    where: MessageVoiceWhereInput
+  ): MessageVoiceConnection!
 }
 `, BuiltIn: false},
 	{Name: "../schema/room.graphql", Input: `"""
@@ -2972,13 +3755,51 @@ extend type Subscription {
   roomChanged: Message!
 }
 `, BuiltIn: false},
+	{Name: "../schema/room_member.graphql", Input: `extend type Query {
+  roomMembersByRoom(
+    """
+    Returns the elements in the list that come with the specified roomID.
+    """
+    roomID: ID!
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for RoomMembers returned from the connection.
+    """
+    orderBy: [RoomMemberOrder!]
+
+    """
+    Filtering options for RoomMembers returned from the connection.
+    """
+    where: RoomMemberWhereInput
+  ): RoomMemberConnection!
+}
+`, BuiltIn: false},
 	{Name: "../schema/user.graphql", Input: `"""
 UserRegisterInput is used for user register.
 """
 input UserRegisterInput {
   firstName: String! @goTag(key: "validate", value: "min=1,max=255")
   lastName: String! @goTag(key: "validate", value: "min=1,max=255")
-  email: String! @goTag(key: "validate", value: "min=1,max=255,email")
   nickname: String! @goTag(key: "validate", value: "min=8,max=255")
   password: String! @goTag(key: "validate", value: "min=8,max=64")
   passwordConfirmation: String! @goTag(key: "validate", value: "min=8,max=64")
@@ -2988,7 +3809,7 @@ input UserRegisterInput {
 UserLoginInput is used for user login.
 """
 input UserLoginInput {
-  nicknameOrEmail: String!
+  nickname: String!
   password: String!
 }
 

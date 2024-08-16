@@ -6,7 +6,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
-	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -31,7 +31,7 @@ func (MessageAttachment) Fields() []ent.Field {
 			Annotations(
 				entgql.OrderField("TYPE"),
 			),
-		field.Uint64("order").
+		field.Uint("order").
 			Annotations(
 				entgql.Type("Uint"),
 				entgql.OrderField("ORDER"),
@@ -48,15 +48,24 @@ func (MessageAttachment) Fields() []ent.Field {
 // Edges of the MessageAttachment.
 func (MessageAttachment) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.From("room", Room.Type).
+			Ref("message_attachments").
+			Unique().
+			Required(),
 		edge.From("message", Message.Type).
 			Ref("attachments").
-			Required().
-			Unique(),
-		edge.To("file", File.Type).
-			Required().
 			Unique().
-			Annotations(
-				entsql.OnDelete(entsql.Cascade),
-			),
+			Required(),
+		edge.From("file", File.Type).
+			Ref("message_attachment").
+			Unique().
+			Required(),
+	}
+}
+
+// Annotations of the MessageAttachment.
+func (MessageAttachment) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.RelayConnection(),
 	}
 }

@@ -19,17 +19,35 @@ const (
 	FieldLength = "length"
 	// FieldAttachedAt holds the string denoting the attached_at field in the database.
 	FieldAttachedAt = "attached_at"
+	// EdgeRoom holds the string denoting the room edge name in mutations.
+	EdgeRoom = "room"
+	// EdgeMessage holds the string denoting the message edge name in mutations.
+	EdgeMessage = "message"
 	// EdgeFile holds the string denoting the file edge name in mutations.
 	EdgeFile = "file"
 	// Table holds the table name of the messagevoice in the database.
 	Table = "message_voices"
+	// RoomTable is the table that holds the room relation/edge.
+	RoomTable = "message_voices"
+	// RoomInverseTable is the table name for the Room entity.
+	// It exists in this package in order to avoid circular dependency with the "room" package.
+	RoomInverseTable = "rooms"
+	// RoomColumn is the table column denoting the room relation/edge.
+	RoomColumn = "room_message_voices"
+	// MessageTable is the table that holds the message relation/edge.
+	MessageTable = "message_voices"
+	// MessageInverseTable is the table name for the Message entity.
+	// It exists in this package in order to avoid circular dependency with the "message" package.
+	MessageInverseTable = "messages"
+	// MessageColumn is the table column denoting the message relation/edge.
+	MessageColumn = "message_voice"
 	// FileTable is the table that holds the file relation/edge.
-	FileTable = "files"
+	FileTable = "message_voices"
 	// FileInverseTable is the table name for the File entity.
 	// It exists in this package in order to avoid circular dependency with the "file" package.
 	FileInverseTable = "files"
 	// FileColumn is the table column denoting the file relation/edge.
-	FileColumn = "message_voice_file"
+	FileColumn = "file_message_voice"
 )
 
 // Columns holds all SQL columns for messagevoice fields.
@@ -39,10 +57,23 @@ var Columns = []string{
 	FieldAttachedAt,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "message_voices"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"file_message_voice",
+	"message_voice",
+	"room_message_voices",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -74,16 +105,44 @@ func ByAttachedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAttachedAt, opts...).ToFunc()
 }
 
+// ByRoomField orders the results by room field.
+func ByRoomField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRoomStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByMessageField orders the results by message field.
+func ByMessageField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMessageStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByFileField orders the results by file field.
 func ByFileField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newFileStep(), sql.OrderByField(field, opts...))
 	}
 }
+func newRoomStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RoomInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
+	)
+}
+func newMessageStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MessageInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, MessageTable, MessageColumn),
+	)
+}
 func newFileStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FileInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, false, FileTable, FileColumn),
+		sqlgraph.Edge(sqlgraph.O2O, true, FileTable, FileColumn),
 	)
 }

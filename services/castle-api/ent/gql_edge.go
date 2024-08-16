@@ -24,42 +24,10 @@ func (f *File) MessageVoice(ctx context.Context) (*MessageVoice, error) {
 	return result, MaskNotFound(err)
 }
 
-func (f *Friendship) User(ctx context.Context) (*User, error) {
-	result, err := f.Edges.UserOrErr()
+func (m *Message) Voice(ctx context.Context) (*MessageVoice, error) {
+	result, err := m.Edges.VoiceOrErr()
 	if IsNotLoaded(err) {
-		result, err = f.QueryUser().Only(ctx)
-	}
-	return result, err
-}
-
-func (f *Friendship) Friend(ctx context.Context) (*User, error) {
-	result, err := f.Edges.FriendOrErr()
-	if IsNotLoaded(err) {
-		result, err = f.QueryFriend().Only(ctx)
-	}
-	return result, err
-}
-
-func (f *Friendship) Room(ctx context.Context) (*Room, error) {
-	result, err := f.Edges.RoomOrErr()
-	if IsNotLoaded(err) {
-		result, err = f.QueryRoom().Only(ctx)
-	}
-	return result, MaskNotFound(err)
-}
-
-func (m *Message) User(ctx context.Context) (*User, error) {
-	result, err := m.Edges.UserOrErr()
-	if IsNotLoaded(err) {
-		result, err = m.QueryUser().Only(ctx)
-	}
-	return result, MaskNotFound(err)
-}
-
-func (m *Message) Room(ctx context.Context) (*Room, error) {
-	result, err := m.Edges.RoomOrErr()
-	if IsNotLoaded(err) {
-		result, err = m.QueryRoom().Only(ctx)
+		result, err = m.QueryVoice().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }
@@ -96,6 +64,30 @@ func (m *Message) Links(ctx context.Context) (result []*MessageLink, err error) 
 	return result, err
 }
 
+func (m *Message) User(ctx context.Context) (*User, error) {
+	result, err := m.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = m.QueryUser().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (m *Message) Room(ctx context.Context) (*Room, error) {
+	result, err := m.Edges.RoomOrErr()
+	if IsNotLoaded(err) {
+		result, err = m.QueryRoom().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (ma *MessageAttachment) Room(ctx context.Context) (*Room, error) {
+	result, err := ma.Edges.RoomOrErr()
+	if IsNotLoaded(err) {
+		result, err = ma.QueryRoom().Only(ctx)
+	}
+	return result, err
+}
+
 func (ma *MessageAttachment) Message(ctx context.Context) (*Message, error) {
 	result, err := ma.Edges.MessageOrErr()
 	if IsNotLoaded(err) {
@@ -112,10 +104,34 @@ func (ma *MessageAttachment) File(ctx context.Context) (*File, error) {
 	return result, err
 }
 
+func (ml *MessageLink) Room(ctx context.Context) (*Room, error) {
+	result, err := ml.Edges.RoomOrErr()
+	if IsNotLoaded(err) {
+		result, err = ml.QueryRoom().Only(ctx)
+	}
+	return result, err
+}
+
 func (ml *MessageLink) Message(ctx context.Context) (*Message, error) {
 	result, err := ml.Edges.MessageOrErr()
 	if IsNotLoaded(err) {
 		result, err = ml.QueryMessage().Only(ctx)
+	}
+	return result, err
+}
+
+func (mv *MessageVoice) Room(ctx context.Context) (*Room, error) {
+	result, err := mv.Edges.RoomOrErr()
+	if IsNotLoaded(err) {
+		result, err = mv.QueryRoom().Only(ctx)
+	}
+	return result, err
+}
+
+func (mv *MessageVoice) Message(ctx context.Context) (*Message, error) {
+	result, err := mv.Edges.MessageOrErr()
+	if IsNotLoaded(err) {
+		result, err = mv.QueryMessage().Only(ctx)
 	}
 	return result, err
 }
@@ -129,7 +145,7 @@ func (mv *MessageVoice) File(ctx context.Context) (*File, error) {
 }
 
 func (r *Room) Users(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*UserOrder, where *UserWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *UserOrder, where *UserWhereInput,
 ) (*UserConnection, error) {
 	opts := []UserPaginateOption{
 		WithUserOrder(orderBy),
@@ -170,6 +186,69 @@ func (r *Room) Messages(
 	return r.QueryMessages().Paginate(ctx, after, first, before, last, opts...)
 }
 
+func (r *Room) MessageVoices(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *MessageVoiceOrder, where *MessageVoiceWhereInput,
+) (*MessageVoiceConnection, error) {
+	opts := []MessageVoicePaginateOption{
+		WithMessageVoiceOrder(orderBy),
+		WithMessageVoiceFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := r.Edges.totalCount[2][alias]
+	if nodes, err := r.NamedMessageVoices(alias); err == nil || hasTotalCount {
+		pager, err := newMessageVoicePager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &MessageVoiceConnection{Edges: []*MessageVoiceEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return r.QueryMessageVoices().Paginate(ctx, after, first, before, last, opts...)
+}
+
+func (r *Room) MessageAttachments(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *MessageAttachmentOrder, where *MessageAttachmentWhereInput,
+) (*MessageAttachmentConnection, error) {
+	opts := []MessageAttachmentPaginateOption{
+		WithMessageAttachmentOrder(orderBy),
+		WithMessageAttachmentFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := r.Edges.totalCount[3][alias]
+	if nodes, err := r.NamedMessageAttachments(alias); err == nil || hasTotalCount {
+		pager, err := newMessageAttachmentPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &MessageAttachmentConnection{Edges: []*MessageAttachmentEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return r.QueryMessageAttachments().Paginate(ctx, after, first, before, last, opts...)
+}
+
+func (r *Room) MessageLinks(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *MessageLinkOrder, where *MessageLinkWhereInput,
+) (*MessageLinkConnection, error) {
+	opts := []MessageLinkPaginateOption{
+		WithMessageLinkOrder(orderBy),
+		WithMessageLinkFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := r.Edges.totalCount[4][alias]
+	if nodes, err := r.NamedMessageLinks(alias); err == nil || hasTotalCount {
+		pager, err := newMessageLinkPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &MessageLinkConnection{Edges: []*MessageLinkEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return r.QueryMessageLinks().Paginate(ctx, after, first, before, last, opts...)
+}
+
 func (r *Room) RoomMembers(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*RoomMemberOrder, where *RoomMemberWhereInput,
 ) (*RoomMemberConnection, error) {
@@ -178,7 +257,7 @@ func (r *Room) RoomMembers(
 		WithRoomMemberFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := r.Edges.totalCount[2][alias]
+	totalCount, hasTotalCount := r.Edges.totalCount[5][alias]
 	if nodes, err := r.NamedRoomMembers(alias); err == nil || hasTotalCount {
 		pager, err := newRoomMemberPager(opts, last != nil)
 		if err != nil {
@@ -207,8 +286,8 @@ func (rm *RoomMember) Room(ctx context.Context) (*Room, error) {
 	return result, err
 }
 
-func (u *User) Friends(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*UserOrder, where *UserWhereInput,
+func (u *User) Contacts(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *UserOrder, where *UserWhereInput,
 ) (*UserConnection, error) {
 	opts := []UserPaginateOption{
 		WithUserOrder(orderBy),
@@ -216,7 +295,7 @@ func (u *User) Friends(
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
 	totalCount, hasTotalCount := u.Edges.totalCount[0][alias]
-	if nodes, err := u.NamedFriends(alias); err == nil || hasTotalCount {
+	if nodes, err := u.NamedContacts(alias); err == nil || hasTotalCount {
 		pager, err := newUserPager(opts, last != nil)
 		if err != nil {
 			return nil, err
@@ -225,7 +304,7 @@ func (u *User) Friends(
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
-	return u.QueryFriends().Paginate(ctx, after, first, before, last, opts...)
+	return u.QueryContacts().Paginate(ctx, after, first, before, last, opts...)
 }
 
 func (u *User) Rooms(
@@ -270,24 +349,25 @@ func (u *User) Messages(
 	return u.QueryMessages().Paginate(ctx, after, first, before, last, opts...)
 }
 
-func (u *User) Friendships(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *FriendshipWhereInput,
-) (*FriendshipConnection, error) {
-	opts := []FriendshipPaginateOption{
-		WithFriendshipFilter(where.Filter),
+func (u *User) UserContacts(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*UserContactOrder, where *UserContactWhereInput,
+) (*UserContactConnection, error) {
+	opts := []UserContactPaginateOption{
+		WithUserContactOrder(orderBy),
+		WithUserContactFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
 	totalCount, hasTotalCount := u.Edges.totalCount[3][alias]
-	if nodes, err := u.NamedFriendships(alias); err == nil || hasTotalCount {
-		pager, err := newFriendshipPager(opts, last != nil)
+	if nodes, err := u.NamedUserContacts(alias); err == nil || hasTotalCount {
+		pager, err := newUserContactPager(opts, last != nil)
 		if err != nil {
 			return nil, err
 		}
-		conn := &FriendshipConnection{Edges: []*FriendshipEdge{}, TotalCount: totalCount}
+		conn := &UserContactConnection{Edges: []*UserContactEdge{}, TotalCount: totalCount}
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
-	return u.QueryFriendships().Paginate(ctx, after, first, before, last, opts...)
+	return u.QueryUserContacts().Paginate(ctx, after, first, before, last, opts...)
 }
 
 func (u *User) Memberships(
@@ -309,4 +389,52 @@ func (u *User) Memberships(
 		return conn, nil
 	}
 	return u.QueryMemberships().Paginate(ctx, after, first, before, last, opts...)
+}
+
+func (uc *UserContact) User(ctx context.Context) (*User, error) {
+	result, err := uc.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = uc.QueryUser().Only(ctx)
+	}
+	return result, err
+}
+
+func (uc *UserContact) Contact(ctx context.Context) (*User, error) {
+	result, err := uc.Edges.ContactOrErr()
+	if IsNotLoaded(err) {
+		result, err = uc.QueryContact().Only(ctx)
+	}
+	return result, err
+}
+
+func (uc *UserContact) Room(ctx context.Context) (*Room, error) {
+	result, err := uc.Edges.RoomOrErr()
+	if IsNotLoaded(err) {
+		result, err = uc.QueryRoom().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (upc *UserPinCode) User(ctx context.Context) (*User, error) {
+	result, err := upc.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = upc.QueryUser().Only(ctx)
+	}
+	return result, err
+}
+
+func (upc *UserPinCode) Contact(ctx context.Context) (*User, error) {
+	result, err := upc.Edges.ContactOrErr()
+	if IsNotLoaded(err) {
+		result, err = upc.QueryContact().Only(ctx)
+	}
+	return result, err
+}
+
+func (upc *UserPinCode) Room(ctx context.Context) (*Room, error) {
+	result, err := upc.Edges.RoomOrErr()
+	if IsNotLoaded(err) {
+		result, err = upc.QueryRoom().Only(ctx)
+	}
+	return result, MaskNotFound(err)
 }

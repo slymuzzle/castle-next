@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"journeyhub/ent/message"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
@@ -37,24 +38,66 @@ type Message struct {
 
 // MessageEdges holds the relations/edges for other nodes in the graph.
 type MessageEdges struct {
-	// User holds the value of the user edge.
-	User *User `json:"user,omitempty"`
-	// Room holds the value of the room edge.
-	Room *Room `json:"room,omitempty"`
+	// Voice holds the value of the voice edge.
+	Voice *MessageVoice `json:"voice,omitempty"`
 	// ReplyTo holds the value of the reply_to edge.
 	ReplyTo *Message `json:"reply_to,omitempty"`
 	// Attachments holds the value of the attachments edge.
 	Attachments []*MessageAttachment `json:"attachments,omitempty"`
 	// Links holds the value of the links edge.
 	Links []*MessageLink `json:"links,omitempty"`
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
+	// Room holds the value of the room edge.
+	Room *Room `json:"room,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 	// totalCount holds the count of the edges above.
-	totalCount [5]map[string]int
+	totalCount [6]map[string]int
 
 	namedAttachments map[string][]*MessageAttachment
 	namedLinks       map[string][]*MessageLink
+}
+
+// VoiceOrErr returns the Voice value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e MessageEdges) VoiceOrErr() (*MessageVoice, error) {
+	if e.Voice != nil {
+		return e.Voice, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: messagevoice.Label}
+	}
+	return nil, &NotLoadedError{edge: "voice"}
+}
+
+// ReplyToOrErr returns the ReplyTo value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e MessageEdges) ReplyToOrErr() (*Message, error) {
+	if e.ReplyTo != nil {
+		return e.ReplyTo, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: message.Label}
+	}
+	return nil, &NotLoadedError{edge: "reply_to"}
+}
+
+// AttachmentsOrErr returns the Attachments value or an error if the edge
+// was not loaded in eager-loading.
+func (e MessageEdges) AttachmentsOrErr() ([]*MessageAttachment, error) {
+	if e.loadedTypes[2] {
+		return e.Attachments, nil
+	}
+	return nil, &NotLoadedError{edge: "attachments"}
+}
+
+// LinksOrErr returns the Links value or an error if the edge
+// was not loaded in eager-loading.
+func (e MessageEdges) LinksOrErr() ([]*MessageLink, error) {
+	if e.loadedTypes[3] {
+		return e.Links, nil
+	}
+	return nil, &NotLoadedError{edge: "links"}
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -62,7 +105,7 @@ type MessageEdges struct {
 func (e MessageEdges) UserOrErr() (*User, error) {
 	if e.User != nil {
 		return e.User, nil
-	} else if e.loadedTypes[0] {
+	} else if e.loadedTypes[4] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "user"}
@@ -73,39 +116,10 @@ func (e MessageEdges) UserOrErr() (*User, error) {
 func (e MessageEdges) RoomOrErr() (*Room, error) {
 	if e.Room != nil {
 		return e.Room, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[5] {
 		return nil, &NotFoundError{label: room.Label}
 	}
 	return nil, &NotLoadedError{edge: "room"}
-}
-
-// ReplyToOrErr returns the ReplyTo value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e MessageEdges) ReplyToOrErr() (*Message, error) {
-	if e.ReplyTo != nil {
-		return e.ReplyTo, nil
-	} else if e.loadedTypes[2] {
-		return nil, &NotFoundError{label: message.Label}
-	}
-	return nil, &NotLoadedError{edge: "reply_to"}
-}
-
-// AttachmentsOrErr returns the Attachments value or an error if the edge
-// was not loaded in eager-loading.
-func (e MessageEdges) AttachmentsOrErr() ([]*MessageAttachment, error) {
-	if e.loadedTypes[3] {
-		return e.Attachments, nil
-	}
-	return nil, &NotLoadedError{edge: "attachments"}
-}
-
-// LinksOrErr returns the Links value or an error if the edge
-// was not loaded in eager-loading.
-func (e MessageEdges) LinksOrErr() ([]*MessageLink, error) {
-	if e.loadedTypes[4] {
-		return e.Links, nil
-	}
-	return nil, &NotLoadedError{edge: "links"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -198,14 +212,9 @@ func (m *Message) Value(name string) (ent.Value, error) {
 	return m.selectValues.Get(name)
 }
 
-// QueryUser queries the "user" edge of the Message entity.
-func (m *Message) QueryUser() *UserQuery {
-	return NewMessageClient(m.config).QueryUser(m)
-}
-
-// QueryRoom queries the "room" edge of the Message entity.
-func (m *Message) QueryRoom() *RoomQuery {
-	return NewMessageClient(m.config).QueryRoom(m)
+// QueryVoice queries the "voice" edge of the Message entity.
+func (m *Message) QueryVoice() *MessageVoiceQuery {
+	return NewMessageClient(m.config).QueryVoice(m)
 }
 
 // QueryReplyTo queries the "reply_to" edge of the Message entity.
@@ -221,6 +230,16 @@ func (m *Message) QueryAttachments() *MessageAttachmentQuery {
 // QueryLinks queries the "links" edge of the Message entity.
 func (m *Message) QueryLinks() *MessageLinkQuery {
 	return NewMessageClient(m.config).QueryLinks(m)
+}
+
+// QueryUser queries the "user" edge of the Message entity.
+func (m *Message) QueryUser() *UserQuery {
+	return NewMessageClient(m.config).QueryUser(m)
+}
+
+// QueryRoom queries the "room" edge of the Message entity.
+func (m *Message) QueryRoom() *RoomQuery {
+	return NewMessageClient(m.config).QueryRoom(m)
 }
 
 // Update returns a builder for updating this Message.

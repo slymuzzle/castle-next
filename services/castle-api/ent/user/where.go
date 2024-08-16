@@ -76,6 +76,11 @@ func Email(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldEmail, v))
 }
 
+// ContactPin applies equality check predicate on the "contact_pin" field. It's identical to ContactPinEQ.
+func ContactPin(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldContactPin, v))
+}
+
 // Password applies equality check predicate on the "password" field. It's identical to PasswordEQ.
 func Password(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldPassword, v))
@@ -341,6 +346,16 @@ func EmailHasSuffix(v string) predicate.User {
 	return predicate.User(sql.FieldHasSuffix(FieldEmail, v))
 }
 
+// EmailIsNil applies the IsNil predicate on the "email" field.
+func EmailIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldEmail))
+}
+
+// EmailNotNil applies the NotNil predicate on the "email" field.
+func EmailNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldEmail))
+}
+
 // EmailEqualFold applies the EqualFold predicate on the "email" field.
 func EmailEqualFold(v string) predicate.User {
 	return predicate.User(sql.FieldEqualFold(FieldEmail, v))
@@ -349,6 +364,71 @@ func EmailEqualFold(v string) predicate.User {
 // EmailContainsFold applies the ContainsFold predicate on the "email" field.
 func EmailContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldEmail, v))
+}
+
+// ContactPinEQ applies the EQ predicate on the "contact_pin" field.
+func ContactPinEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldContactPin, v))
+}
+
+// ContactPinNEQ applies the NEQ predicate on the "contact_pin" field.
+func ContactPinNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldContactPin, v))
+}
+
+// ContactPinIn applies the In predicate on the "contact_pin" field.
+func ContactPinIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldContactPin, vs...))
+}
+
+// ContactPinNotIn applies the NotIn predicate on the "contact_pin" field.
+func ContactPinNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldContactPin, vs...))
+}
+
+// ContactPinGT applies the GT predicate on the "contact_pin" field.
+func ContactPinGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldContactPin, v))
+}
+
+// ContactPinGTE applies the GTE predicate on the "contact_pin" field.
+func ContactPinGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldContactPin, v))
+}
+
+// ContactPinLT applies the LT predicate on the "contact_pin" field.
+func ContactPinLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldContactPin, v))
+}
+
+// ContactPinLTE applies the LTE predicate on the "contact_pin" field.
+func ContactPinLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldContactPin, v))
+}
+
+// ContactPinContains applies the Contains predicate on the "contact_pin" field.
+func ContactPinContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldContactPin, v))
+}
+
+// ContactPinHasPrefix applies the HasPrefix predicate on the "contact_pin" field.
+func ContactPinHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldContactPin, v))
+}
+
+// ContactPinHasSuffix applies the HasSuffix predicate on the "contact_pin" field.
+func ContactPinHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldContactPin, v))
+}
+
+// ContactPinEqualFold applies the EqualFold predicate on the "contact_pin" field.
+func ContactPinEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldContactPin, v))
+}
+
+// ContactPinContainsFold applies the ContainsFold predicate on the "contact_pin" field.
+func ContactPinContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldContactPin, v))
 }
 
 // PasswordEQ applies the EQ predicate on the "password" field.
@@ -496,21 +576,21 @@ func UpdatedAtLTE(v time.Time) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
-// HasFriends applies the HasEdge predicate on the "friends" edge.
-func HasFriends() predicate.User {
+// HasContacts applies the HasEdge predicate on the "contacts" edge.
+func HasContacts() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, FriendsTable, FriendsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, false, ContactsTable, ContactsPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasFriendsWith applies the HasEdge predicate on the "friends" edge with a given conditions (other predicates).
-func HasFriendsWith(preds ...predicate.User) predicate.User {
+// HasContactsWith applies the HasEdge predicate on the "contacts" edge with a given conditions (other predicates).
+func HasContactsWith(preds ...predicate.User) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newFriendsStep()
+		step := newContactsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -565,21 +645,21 @@ func HasMessagesWith(preds ...predicate.Message) predicate.User {
 	})
 }
 
-// HasFriendships applies the HasEdge predicate on the "friendships" edge.
-func HasFriendships() predicate.User {
+// HasUserContacts applies the HasEdge predicate on the "user_contacts" edge.
+func HasUserContacts() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, FriendshipsTable, FriendshipsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, UserContactsTable, UserContactsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasFriendshipsWith applies the HasEdge predicate on the "friendships" edge with a given conditions (other predicates).
-func HasFriendshipsWith(preds ...predicate.Friendship) predicate.User {
+// HasUserContactsWith applies the HasEdge predicate on the "user_contacts" edge with a given conditions (other predicates).
+func HasUserContactsWith(preds ...predicate.UserContact) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newFriendshipsStep()
+		step := newUserContactsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

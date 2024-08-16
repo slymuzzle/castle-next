@@ -34,10 +34,8 @@ type File struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FileQuery when eager-loading is set.
-	Edges                   FileEdges `json:"edges"`
-	message_attachment_file *pulid.ID
-	message_voice_file      *pulid.ID
-	selectValues            sql.SelectValues
+	Edges        FileEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // FileEdges holds the relations/edges for other nodes in the graph.
@@ -88,10 +86,6 @@ func (*File) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case file.FieldCreatedAt, file.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case file.ForeignKeys[0]: // message_attachment_file
-			values[i] = &sql.NullScanner{S: new(pulid.ID)}
-		case file.ForeignKeys[1]: // message_voice_file
-			values[i] = &sql.NullScanner{S: new(pulid.ID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -148,20 +142,6 @@ func (f *File) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				f.UpdatedAt = value.Time
-			}
-		case file.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field message_attachment_file", values[i])
-			} else if value.Valid {
-				f.message_attachment_file = new(pulid.ID)
-				*f.message_attachment_file = *value.S.(*pulid.ID)
-			}
-		case file.ForeignKeys[1]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field message_voice_file", values[i])
-			} else if value.Valid {
-				f.message_voice_file = new(pulid.ID)
-				*f.message_voice_file = *value.S.(*pulid.ID)
 			}
 		default:
 			f.selectValues.Set(columns[i], values[i])

@@ -9,6 +9,7 @@ import (
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
 	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
@@ -76,42 +77,23 @@ func (mc *MessageCreate) SetNillableID(pu *pulid.ID) *MessageCreate {
 	return mc
 }
 
-// SetUserID sets the "user" edge to the User entity by ID.
-func (mc *MessageCreate) SetUserID(id pulid.ID) *MessageCreate {
-	mc.mutation.SetUserID(id)
+// SetVoiceID sets the "voice" edge to the MessageVoice entity by ID.
+func (mc *MessageCreate) SetVoiceID(id pulid.ID) *MessageCreate {
+	mc.mutation.SetVoiceID(id)
 	return mc
 }
 
-// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (mc *MessageCreate) SetNillableUserID(id *pulid.ID) *MessageCreate {
+// SetNillableVoiceID sets the "voice" edge to the MessageVoice entity by ID if the given value is not nil.
+func (mc *MessageCreate) SetNillableVoiceID(id *pulid.ID) *MessageCreate {
 	if id != nil {
-		mc = mc.SetUserID(*id)
+		mc = mc.SetVoiceID(*id)
 	}
 	return mc
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (mc *MessageCreate) SetUser(u *User) *MessageCreate {
-	return mc.SetUserID(u.ID)
-}
-
-// SetRoomID sets the "room" edge to the Room entity by ID.
-func (mc *MessageCreate) SetRoomID(id pulid.ID) *MessageCreate {
-	mc.mutation.SetRoomID(id)
-	return mc
-}
-
-// SetNillableRoomID sets the "room" edge to the Room entity by ID if the given value is not nil.
-func (mc *MessageCreate) SetNillableRoomID(id *pulid.ID) *MessageCreate {
-	if id != nil {
-		mc = mc.SetRoomID(*id)
-	}
-	return mc
-}
-
-// SetRoom sets the "room" edge to the Room entity.
-func (mc *MessageCreate) SetRoom(r *Room) *MessageCreate {
-	return mc.SetRoomID(r.ID)
+// SetVoice sets the "voice" edge to the MessageVoice entity.
+func (mc *MessageCreate) SetVoice(m *MessageVoice) *MessageCreate {
+	return mc.SetVoiceID(m.ID)
 }
 
 // SetReplyToID sets the "reply_to" edge to the Message entity by ID.
@@ -161,6 +143,44 @@ func (mc *MessageCreate) AddLinks(m ...*MessageLink) *MessageCreate {
 		ids[i] = m[i].ID
 	}
 	return mc.AddLinkIDs(ids...)
+}
+
+// SetUserID sets the "user" edge to the User entity by ID.
+func (mc *MessageCreate) SetUserID(id pulid.ID) *MessageCreate {
+	mc.mutation.SetUserID(id)
+	return mc
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (mc *MessageCreate) SetNillableUserID(id *pulid.ID) *MessageCreate {
+	if id != nil {
+		mc = mc.SetUserID(*id)
+	}
+	return mc
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (mc *MessageCreate) SetUser(u *User) *MessageCreate {
+	return mc.SetUserID(u.ID)
+}
+
+// SetRoomID sets the "room" edge to the Room entity by ID.
+func (mc *MessageCreate) SetRoomID(id pulid.ID) *MessageCreate {
+	mc.mutation.SetRoomID(id)
+	return mc
+}
+
+// SetNillableRoomID sets the "room" edge to the Room entity by ID if the given value is not nil.
+func (mc *MessageCreate) SetNillableRoomID(id *pulid.ID) *MessageCreate {
+	if id != nil {
+		mc = mc.SetRoomID(*id)
+	}
+	return mc
+}
+
+// SetRoom sets the "room" edge to the Room entity.
+func (mc *MessageCreate) SetRoom(r *Room) *MessageCreate {
+	return mc.SetRoomID(r.ID)
 }
 
 // Mutation returns the MessageMutation object of the builder.
@@ -271,38 +291,20 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 		_spec.SetField(message.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := mc.mutation.UserIDs(); len(nodes) > 0 {
+	if nodes := mc.mutation.VoiceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   message.UserTable,
-			Columns: []string{message.UserColumn},
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   message.VoiceTable,
+			Columns: []string{message.VoiceColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(messagevoice.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_messages = &nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := mc.mutation.RoomIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   message.RoomTable,
-			Columns: []string{message.RoomColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.room_messages = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := mc.mutation.ReplyToIDs(); len(nodes) > 0 {
@@ -352,6 +354,40 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := mc.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.UserTable,
+			Columns: []string{message.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_messages = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := mc.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.RoomTable,
+			Columns: []string{message.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.room_messages = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -6,7 +6,6 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
-	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -46,29 +45,24 @@ func (Message) Fields() []ent.Field {
 // Edges of the Message.
 func (Message) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("user", User.Type).
-			Ref("messages").
-			Unique().
-			Annotations(
-				entsql.OnDelete(entsql.SetNull),
-			),
-		edge.From("room", Room.Type).
-			Ref("messages").
-			Unique().
-			Annotations(
-				entsql.OnDelete(entsql.Cascade),
-			),
+		edge.To("voice", MessageVoice.Type).
+			Unique(),
 		edge.To("reply_to", Message.Type).
 			Unique(),
 		edge.To("attachments", MessageAttachment.Type),
 		edge.To("links", MessageLink.Type),
+		edge.From("user", User.Type).
+			Ref("messages").
+			Unique(),
+		edge.From("room", Room.Type).
+			Ref("messages").
+			Unique(),
 	}
 }
 
 // Annotations of the Message.
 func (Message) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entgql.QueryField(),
 		entgql.MultiOrder(),
 		entgql.RelayConnection(),
 	}

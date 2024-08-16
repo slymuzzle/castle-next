@@ -146,12 +146,58 @@ func AttachedAtLTE(v time.Time) predicate.MessageVoice {
 	return predicate.MessageVoice(sql.FieldLTE(FieldAttachedAt, v))
 }
 
+// HasRoom applies the HasEdge predicate on the "room" edge.
+func HasRoom() predicate.MessageVoice {
+	return predicate.MessageVoice(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRoomWith applies the HasEdge predicate on the "room" edge with a given conditions (other predicates).
+func HasRoomWith(preds ...predicate.Room) predicate.MessageVoice {
+	return predicate.MessageVoice(func(s *sql.Selector) {
+		step := newRoomStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasMessage applies the HasEdge predicate on the "message" edge.
+func HasMessage() predicate.MessageVoice {
+	return predicate.MessageVoice(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, MessageTable, MessageColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMessageWith applies the HasEdge predicate on the "message" edge with a given conditions (other predicates).
+func HasMessageWith(preds ...predicate.Message) predicate.MessageVoice {
+	return predicate.MessageVoice(func(s *sql.Selector) {
+		step := newMessageStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasFile applies the HasEdge predicate on the "file" edge.
 func HasFile() predicate.MessageVoice {
 	return predicate.MessageVoice(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, FileTable, FileColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, FileTable, FileColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

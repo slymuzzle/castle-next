@@ -4,12 +4,12 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"journeyhub/ent/file"
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/predicate"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"math"
 
@@ -26,6 +26,7 @@ type MessageAttachmentQuery struct {
 	order       []messageattachment.OrderOption
 	inters      []Interceptor
 	predicates  []predicate.MessageAttachment
+	withRoom    *RoomQuery
 	withMessage *MessageQuery
 	withFile    *FileQuery
 	withFKs     bool
@@ -67,6 +68,28 @@ func (maq *MessageAttachmentQuery) Order(o ...messageattachment.OrderOption) *Me
 	return maq
 }
 
+// QueryRoom chains the current query on the "room" edge.
+func (maq *MessageAttachmentQuery) QueryRoom() *RoomQuery {
+	query := (&RoomClient{config: maq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := maq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := maq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(messageattachment.Table, messageattachment.FieldID, selector),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, messageattachment.RoomTable, messageattachment.RoomColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(maq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryMessage chains the current query on the "message" edge.
 func (maq *MessageAttachmentQuery) QueryMessage() *MessageQuery {
 	query := (&MessageClient{config: maq.config}).Query()
@@ -103,7 +126,7 @@ func (maq *MessageAttachmentQuery) QueryFile() *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(messageattachment.Table, messageattachment.FieldID, selector),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, messageattachment.FileTable, messageattachment.FileColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, messageattachment.FileTable, messageattachment.FileColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(maq.driver.Dialect(), step)
 		return fromU, nil
@@ -303,12 +326,24 @@ func (maq *MessageAttachmentQuery) Clone() *MessageAttachmentQuery {
 		order:       append([]messageattachment.OrderOption{}, maq.order...),
 		inters:      append([]Interceptor{}, maq.inters...),
 		predicates:  append([]predicate.MessageAttachment{}, maq.predicates...),
+		withRoom:    maq.withRoom.Clone(),
 		withMessage: maq.withMessage.Clone(),
 		withFile:    maq.withFile.Clone(),
 		// clone intermediate query.
 		sql:  maq.sql.Clone(),
 		path: maq.path,
 	}
+}
+
+// WithRoom tells the query-builder to eager-load the nodes that are connected to
+// the "room" edge. The optional arguments are used to configure the query builder of the edge.
+func (maq *MessageAttachmentQuery) WithRoom(opts ...func(*RoomQuery)) *MessageAttachmentQuery {
+	query := (&RoomClient{config: maq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	maq.withRoom = query
+	return maq
 }
 
 // WithMessage tells the query-builder to eager-load the nodes that are connected to
@@ -412,12 +447,13 @@ func (maq *MessageAttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 		nodes       = []*MessageAttachment{}
 		withFKs     = maq.withFKs
 		_spec       = maq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
+			maq.withRoom != nil,
 			maq.withMessage != nil,
 			maq.withFile != nil,
 		}
 	)
-	if maq.withMessage != nil {
+	if maq.withRoom != nil || maq.withMessage != nil || maq.withFile != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -444,6 +480,12 @@ func (maq *MessageAttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := maq.withRoom; query != nil {
+		if err := maq.loadRoom(ctx, query, nodes, nil,
+			func(n *MessageAttachment, e *Room) { n.Edges.Room = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := maq.withMessage; query != nil {
 		if err := maq.loadMessage(ctx, query, nodes, nil,
 			func(n *MessageAttachment, e *Message) { n.Edges.Message = e }); err != nil {
@@ -464,6 +506,38 @@ func (maq *MessageAttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 	return nodes, nil
 }
 
+func (maq *MessageAttachmentQuery) loadRoom(ctx context.Context, query *RoomQuery, nodes []*MessageAttachment, init func(*MessageAttachment), assign func(*MessageAttachment, *Room)) error {
+	ids := make([]pulid.ID, 0, len(nodes))
+	nodeids := make(map[pulid.ID][]*MessageAttachment)
+	for i := range nodes {
+		if nodes[i].room_message_attachments == nil {
+			continue
+		}
+		fk := *nodes[i].room_message_attachments
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(room.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "room_message_attachments" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (maq *MessageAttachmentQuery) loadMessage(ctx context.Context, query *MessageQuery, nodes []*MessageAttachment, init func(*MessageAttachment), assign func(*MessageAttachment, *Message)) error {
 	ids := make([]pulid.ID, 0, len(nodes))
 	nodeids := make(map[pulid.ID][]*MessageAttachment)
@@ -497,30 +571,34 @@ func (maq *MessageAttachmentQuery) loadMessage(ctx context.Context, query *Messa
 	return nil
 }
 func (maq *MessageAttachmentQuery) loadFile(ctx context.Context, query *FileQuery, nodes []*MessageAttachment, init func(*MessageAttachment), assign func(*MessageAttachment, *File)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[pulid.ID]*MessageAttachment)
+	ids := make([]pulid.ID, 0, len(nodes))
+	nodeids := make(map[pulid.ID][]*MessageAttachment)
 	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
+		if nodes[i].file_message_attachment == nil {
+			continue
+		}
+		fk := *nodes[i].file_message_attachment
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.withFKs = true
-	query.Where(predicate.File(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(messageattachment.FileColumn), fks...))
-	}))
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(file.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.message_attachment_file
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "message_attachment_file" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "message_attachment_file" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "file_message_attachment" returned %v`, n.ID)
 		}
-		assign(node, n)
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

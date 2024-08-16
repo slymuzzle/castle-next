@@ -34,19 +34,19 @@ const (
 	// Table holds the table name of the file in the database.
 	Table = "files"
 	// MessageAttachmentTable is the table that holds the message_attachment relation/edge.
-	MessageAttachmentTable = "files"
+	MessageAttachmentTable = "message_attachments"
 	// MessageAttachmentInverseTable is the table name for the MessageAttachment entity.
 	// It exists in this package in order to avoid circular dependency with the "messageattachment" package.
 	MessageAttachmentInverseTable = "message_attachments"
 	// MessageAttachmentColumn is the table column denoting the message_attachment relation/edge.
-	MessageAttachmentColumn = "message_attachment_file"
+	MessageAttachmentColumn = "file_message_attachment"
 	// MessageVoiceTable is the table that holds the message_voice relation/edge.
-	MessageVoiceTable = "files"
+	MessageVoiceTable = "message_voices"
 	// MessageVoiceInverseTable is the table name for the MessageVoice entity.
 	// It exists in this package in order to avoid circular dependency with the "messagevoice" package.
 	MessageVoiceInverseTable = "message_voices"
 	// MessageVoiceColumn is the table column denoting the message_voice relation/edge.
-	MessageVoiceColumn = "message_voice_file"
+	MessageVoiceColumn = "file_message_voice"
 )
 
 // Columns holds all SQL columns for file fields.
@@ -60,22 +60,10 @@ var Columns = []string{
 	FieldUpdatedAt,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the "files"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"message_attachment_file",
-	"message_voice_file",
-}
-
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
-			return true
-		}
-	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -148,13 +136,13 @@ func newMessageAttachmentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MessageAttachmentInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, true, MessageAttachmentTable, MessageAttachmentColumn),
+		sqlgraph.Edge(sqlgraph.O2O, false, MessageAttachmentTable, MessageAttachmentColumn),
 	)
 }
 func newMessageVoiceStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MessageVoiceInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, true, MessageVoiceTable, MessageVoiceColumn),
+		sqlgraph.Edge(sqlgraph.O2O, false, MessageVoiceTable, MessageVoiceColumn),
 	)
 }

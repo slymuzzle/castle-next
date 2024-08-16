@@ -406,7 +406,7 @@ func HasMessageAttachment() predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, MessageAttachmentTable, MessageAttachmentColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, MessageAttachmentTable, MessageAttachmentColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -429,7 +429,7 @@ func HasMessageVoice() predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, MessageVoiceTable, MessageVoiceColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, MessageVoiceTable, MessageVoiceColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

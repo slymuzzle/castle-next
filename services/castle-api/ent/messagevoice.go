@@ -5,7 +5,9 @@ package ent
 import (
 	"fmt"
 	"journeyhub/ent/file"
+	"journeyhub/ent/message"
 	"journeyhub/ent/messagevoice"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"strings"
 	"time"
@@ -25,19 +27,48 @@ type MessageVoice struct {
 	AttachedAt time.Time `json:"attached_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MessageVoiceQuery when eager-loading is set.
-	Edges        MessageVoiceEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges               MessageVoiceEdges `json:"edges"`
+	file_message_voice  *pulid.ID
+	message_voice       *pulid.ID
+	room_message_voices *pulid.ID
+	selectValues        sql.SelectValues
 }
 
 // MessageVoiceEdges holds the relations/edges for other nodes in the graph.
 type MessageVoiceEdges struct {
+	// Room holds the value of the room edge.
+	Room *Room `json:"room,omitempty"`
+	// Message holds the value of the message edge.
+	Message *Message `json:"message,omitempty"`
 	// File holds the value of the file edge.
 	File *File `json:"file,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [3]map[string]int
+}
+
+// RoomOrErr returns the Room value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e MessageVoiceEdges) RoomOrErr() (*Room, error) {
+	if e.Room != nil {
+		return e.Room, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: room.Label}
+	}
+	return nil, &NotLoadedError{edge: "room"}
+}
+
+// MessageOrErr returns the Message value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e MessageVoiceEdges) MessageOrErr() (*Message, error) {
+	if e.Message != nil {
+		return e.Message, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: message.Label}
+	}
+	return nil, &NotLoadedError{edge: "message"}
 }
 
 // FileOrErr returns the File value or an error if the edge
@@ -45,7 +76,7 @@ type MessageVoiceEdges struct {
 func (e MessageVoiceEdges) FileOrErr() (*File, error) {
 	if e.File != nil {
 		return e.File, nil
-	} else if e.loadedTypes[0] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: file.Label}
 	}
 	return nil, &NotLoadedError{edge: "file"}
@@ -62,6 +93,12 @@ func (*MessageVoice) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case messagevoice.FieldAttachedAt:
 			values[i] = new(sql.NullTime)
+		case messagevoice.ForeignKeys[0]: // file_message_voice
+			values[i] = &sql.NullScanner{S: new(pulid.ID)}
+		case messagevoice.ForeignKeys[1]: // message_voice
+			values[i] = &sql.NullScanner{S: new(pulid.ID)}
+		case messagevoice.ForeignKeys[2]: // room_message_voices
+			values[i] = &sql.NullScanner{S: new(pulid.ID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -95,6 +132,27 @@ func (mv *MessageVoice) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				mv.AttachedAt = value.Time
 			}
+		case messagevoice.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field file_message_voice", values[i])
+			} else if value.Valid {
+				mv.file_message_voice = new(pulid.ID)
+				*mv.file_message_voice = *value.S.(*pulid.ID)
+			}
+		case messagevoice.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field message_voice", values[i])
+			} else if value.Valid {
+				mv.message_voice = new(pulid.ID)
+				*mv.message_voice = *value.S.(*pulid.ID)
+			}
+		case messagevoice.ForeignKeys[2]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field room_message_voices", values[i])
+			} else if value.Valid {
+				mv.room_message_voices = new(pulid.ID)
+				*mv.room_message_voices = *value.S.(*pulid.ID)
+			}
 		default:
 			mv.selectValues.Set(columns[i], values[i])
 		}
@@ -106,6 +164,16 @@ func (mv *MessageVoice) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (mv *MessageVoice) Value(name string) (ent.Value, error) {
 	return mv.selectValues.Get(name)
+}
+
+// QueryRoom queries the "room" edge of the MessageVoice entity.
+func (mv *MessageVoice) QueryRoom() *RoomQuery {
+	return NewMessageVoiceClient(mv.config).QueryRoom(mv)
+}
+
+// QueryMessage queries the "message" edge of the MessageVoice entity.
+func (mv *MessageVoice) QueryMessage() *MessageQuery {
+	return NewMessageVoiceClient(mv.config).QueryMessage(mv)
 }
 
 // QueryFile queries the "file" edge of the MessageVoice entity.
