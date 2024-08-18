@@ -9,6 +9,7 @@ import (
 	"journeyhub/internal/chat"
 	"journeyhub/internal/config"
 	"journeyhub/internal/db"
+	"journeyhub/internal/media"
 	"journeyhub/internal/nats"
 	"journeyhub/internal/validation"
 	"net/http"
@@ -39,9 +40,9 @@ func main() {
 		configService,
 	)
 
-	config, err := configService.LoadConfig()
-	if err != nil {
-		level.Error(logger).Log("exit", err)
+	config, cErr := configService.LoadConfig()
+	if cErr != nil {
+		level.Error(logger).Log("exit", cErr)
 		os.Exit(1)
 	}
 
@@ -52,11 +53,22 @@ func main() {
 		dbService,
 	)
 
-	if err = dbService.Connect(); err != nil {
-		level.Error(logger).Log("exit", err)
+	if dbErr := dbService.Connect(); dbErr != nil {
+		level.Error(logger).Log("exit", dbErr)
 		os.Exit(1)
 	}
 	defer dbService.Close()
+
+	var mediaService media.Service
+	mediaService, mErr := media.NewService(config.S3)
+	if mErr != nil {
+		level.Error(logger).Log("exit", mErr)
+		os.Exit(1)
+	}
+	mediaService = media.NewLoggingService(
+		log.With(logger, "component", "media"),
+		mediaService,
+	)
 
 	var natsService nats.Service
 	natsService = nats.NewService(config.Nats)
@@ -65,8 +77,8 @@ func main() {
 		natsService,
 	)
 
-	if err = natsService.Connect(); err != nil {
-		level.Error(logger).Log("exit", err)
+	if nErr := natsService.Connect(); nErr != nil {
+		level.Error(logger).Log("exit", nErr)
 		os.Exit(1)
 	}
 	defer natsService.Close()
@@ -88,7 +100,7 @@ func main() {
 
 	var chatService chat.Service
 	chatRepository := chat.NewRepository(dbService.Client())
-	chatService = chat.NewService(chatRepository, natsService)
+	chatService = chat.NewService(chatRepository, natsService, mediaService)
 	chatService = chat.NewLoggingService(
 		log.With(logger, "component", "chat"),
 		chatService,
@@ -99,6 +111,9 @@ func main() {
 	// Initialize chi router
 	router := chi.NewRouter()
 
+	// Initialize auth client
+	jwtAuth := authService.JWTAuthClient()
+
 	// A good base middleware stack
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
@@ -106,11 +121,7 @@ func main() {
 	router.Use(middleware.Recoverer)
 
 	// Auth middleware stack
-	jwtAuth := authService.JWTAuthClient()
 	router.Use(jwtauth.Verifier(jwtAuth))
-
-	// GraphQL middleware stack
-	// router.Use(graphmiddleware.JwtMiddleware(authService))
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further

@@ -6,6 +6,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -29,18 +30,27 @@ func (File) Fields() []ent.Field {
 			Annotations(
 				entgql.OrderField("NAME"),
 			),
-		field.String("mime_type").
+		field.String("content_type").
 			Annotations(
-				entgql.OrderField("MIME_TYPE"),
-			),
-		field.String("disk").
-			Annotations(
-				entgql.OrderField("DISK"),
+				entgql.OrderField("CONTENT_TYPE"),
 			),
 		field.Uint64("size").
 			Annotations(
 				entgql.Type("Uint64"),
 				entgql.OrderField("SIZE"),
+			),
+		field.String("location").
+			Optional().
+			Annotations(
+				entgql.OrderField("LOCATION"),
+			),
+		field.String("bucket").
+			Annotations(
+				entgql.OrderField("BUCKET"),
+			),
+		field.String("path").
+			Annotations(
+				entgql.OrderField("PATH"),
 			),
 		field.Time("created_at").
 			Immutable().
@@ -61,8 +71,14 @@ func (File) Fields() []ent.Field {
 func (File) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("message_attachment", MessageAttachment.Type).
-			Unique(),
+			Unique().
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+			),
 		edge.To("message_voice", MessageVoice.Type).
-			Unique(),
+			Unique().
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+			),
 	}
 }

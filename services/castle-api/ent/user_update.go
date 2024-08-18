@@ -95,20 +95,6 @@ func (uu *UserUpdate) ClearEmail() *UserUpdate {
 	return uu
 }
 
-// SetContactPin sets the "contact_pin" field.
-func (uu *UserUpdate) SetContactPin(s string) *UserUpdate {
-	uu.mutation.SetContactPin(s)
-	return uu
-}
-
-// SetNillableContactPin sets the "contact_pin" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableContactPin(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetContactPin(*s)
-	}
-	return uu
-}
-
 // SetPassword sets the "password" field.
 func (uu *UserUpdate) SetPassword(s string) *UserUpdate {
 	uu.mutation.SetPassword(s)
@@ -373,9 +359,6 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.EmailCleared() {
 		_spec.ClearField(user.FieldEmail, field.TypeString)
-	}
-	if value, ok := uu.mutation.ContactPin(); ok {
-		_spec.SetField(user.FieldContactPin, field.TypeString, value)
 	}
 	if value, ok := uu.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
@@ -732,20 +715,6 @@ func (uuo *UserUpdateOne) ClearEmail() *UserUpdateOne {
 	return uuo
 }
 
-// SetContactPin sets the "contact_pin" field.
-func (uuo *UserUpdateOne) SetContactPin(s string) *UserUpdateOne {
-	uuo.mutation.SetContactPin(s)
-	return uuo
-}
-
-// SetNillableContactPin sets the "contact_pin" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableContactPin(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetContactPin(*s)
-	}
-	return uuo
-}
-
 // SetPassword sets the "password" field.
 func (uuo *UserUpdateOne) SetPassword(s string) *UserUpdateOne {
 	uuo.mutation.SetPassword(s)
@@ -1040,9 +1009,6 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.EmailCleared() {
 		_spec.ClearField(user.FieldEmail, field.TypeString)
-	}
-	if value, ok := uuo.mutation.ContactPin(); ok {
-		_spec.SetField(user.FieldContactPin, field.TypeString, value)
 	}
 	if value, ok := uuo.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)

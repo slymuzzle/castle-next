@@ -5,6 +5,8 @@ package model
 import (
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
+
+	"github.com/99designs/gqlgen/graphql"
 )
 
 // CreateRoomInput is used for create Room object.
@@ -20,9 +22,11 @@ type LoginUser struct {
 
 // CreateMessageInput is used for create Message object.
 type SendMessageInput struct {
-	TargetUserID pulid.ID  `json:"targetUserID"`
-	ReplyTo      *pulid.ID `json:"replyTo,omitempty"`
-	Content      string    `json:"content"`
+	TargetUserID pulid.ID          `json:"targetUserID"`
+	ReplyTo      *pulid.ID         `json:"replyTo,omitempty"`
+	Content      string            `json:"content"`
+	Files        []*graphql.Upload `json:"files,omitempty"`
+	Voice        *graphql.Upload   `json:"voice,omitempty"`
 }
 
 type Subscription struct {

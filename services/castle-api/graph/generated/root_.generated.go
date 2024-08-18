@@ -46,13 +46,15 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	File struct {
+		Bucket            func(childComplexity int) int
+		ContentType       func(childComplexity int) int
 		CreatedAt         func(childComplexity int) int
-		Disk              func(childComplexity int) int
 		ID                func(childComplexity int) int
+		Location          func(childComplexity int) int
 		MessageAttachment func(childComplexity int) int
 		MessageVoice      func(childComplexity int) int
-		MimeType          func(childComplexity int) int
 		Name              func(childComplexity int) int
+		Path              func(childComplexity int) int
 		Size              func(childComplexity int) int
 		UpdatedAt         func(childComplexity int) int
 	}
@@ -82,7 +84,6 @@ type ComplexityRoot struct {
 		Message    func(childComplexity int) int
 		Order      func(childComplexity int) int
 		Room       func(childComplexity int) int
-		Type       func(childComplexity int) int
 	}
 
 	MessageAttachmentConnection struct {
@@ -131,7 +132,6 @@ type ComplexityRoot struct {
 		AttachedAt func(childComplexity int) int
 		File       func(childComplexity int) int
 		ID         func(childComplexity int) int
-		Length     func(childComplexity int) int
 		Message    func(childComplexity int) int
 		Room       func(childComplexity int) int
 	}
@@ -232,7 +232,6 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		ContactPin   func(childComplexity int) int
 		Contacts     func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) int
 		CreatedAt    func(childComplexity int) int
 		Email        func(childComplexity int) int
@@ -279,17 +278,6 @@ type ComplexityRoot struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
 	}
-
-	UserPinCode struct {
-		Contact   func(childComplexity int) int
-		ContactID func(childComplexity int) int
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Room      func(childComplexity int) int
-		RoomID    func(childComplexity int) int
-		User      func(childComplexity int) int
-		UserID    func(childComplexity int) int
-	}
 }
 
 type executableSchema struct {
@@ -311,6 +299,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "File.bucket":
+		if e.complexity.File.Bucket == nil {
+			break
+		}
+
+		return e.complexity.File.Bucket(childComplexity), true
+
+	case "File.contentType":
+		if e.complexity.File.ContentType == nil {
+			break
+		}
+
+		return e.complexity.File.ContentType(childComplexity), true
+
 	case "File.createdAt":
 		if e.complexity.File.CreatedAt == nil {
 			break
@@ -318,19 +320,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.File.CreatedAt(childComplexity), true
 
-	case "File.disk":
-		if e.complexity.File.Disk == nil {
-			break
-		}
-
-		return e.complexity.File.Disk(childComplexity), true
-
 	case "File.id":
 		if e.complexity.File.ID == nil {
 			break
 		}
 
 		return e.complexity.File.ID(childComplexity), true
+
+	case "File.location":
+		if e.complexity.File.Location == nil {
+			break
+		}
+
+		return e.complexity.File.Location(childComplexity), true
 
 	case "File.messageAttachment":
 		if e.complexity.File.MessageAttachment == nil {
@@ -346,19 +348,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.File.MessageVoice(childComplexity), true
 
-	case "File.mimeType":
-		if e.complexity.File.MimeType == nil {
-			break
-		}
-
-		return e.complexity.File.MimeType(childComplexity), true
-
 	case "File.name":
 		if e.complexity.File.Name == nil {
 			break
 		}
 
 		return e.complexity.File.Name(childComplexity), true
+
+	case "File.path":
+		if e.complexity.File.Path == nil {
+			break
+		}
+
+		return e.complexity.File.Path(childComplexity), true
 
 	case "File.size":
 		if e.complexity.File.Size == nil {
@@ -499,13 +501,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MessageAttachment.Room(childComplexity), true
-
-	case "MessageAttachment.type":
-		if e.complexity.MessageAttachment.Type == nil {
-			break
-		}
-
-		return e.complexity.MessageAttachment.Type(childComplexity), true
 
 	case "MessageAttachmentConnection.edges":
 		if e.complexity.MessageAttachmentConnection.Edges == nil {
@@ -674,13 +669,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MessageVoice.ID(childComplexity), true
-
-	case "MessageVoice.length":
-		if e.complexity.MessageVoice.Length == nil {
-			break
-		}
-
-		return e.complexity.MessageVoice.Length(childComplexity), true
 
 	case "MessageVoice.message":
 		if e.complexity.MessageVoice.Message == nil {
@@ -1239,13 +1227,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Subscription.RoomChanged(childComplexity), true
 
-	case "User.contactPin":
-		if e.complexity.User.ContactPin == nil {
-			break
-		}
-
-		return e.complexity.User.ContactPin(childComplexity), true
-
 	case "User.contacts":
 		if e.complexity.User.Contacts == nil {
 			break
@@ -1481,62 +1462,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserEdge.Node(childComplexity), true
 
-	case "UserPinCode.contact":
-		if e.complexity.UserPinCode.Contact == nil {
-			break
-		}
-
-		return e.complexity.UserPinCode.Contact(childComplexity), true
-
-	case "UserPinCode.contactID":
-		if e.complexity.UserPinCode.ContactID == nil {
-			break
-		}
-
-		return e.complexity.UserPinCode.ContactID(childComplexity), true
-
-	case "UserPinCode.createdAt":
-		if e.complexity.UserPinCode.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.UserPinCode.CreatedAt(childComplexity), true
-
-	case "UserPinCode.id":
-		if e.complexity.UserPinCode.ID == nil {
-			break
-		}
-
-		return e.complexity.UserPinCode.ID(childComplexity), true
-
-	case "UserPinCode.room":
-		if e.complexity.UserPinCode.Room == nil {
-			break
-		}
-
-		return e.complexity.UserPinCode.Room(childComplexity), true
-
-	case "UserPinCode.roomID":
-		if e.complexity.UserPinCode.RoomID == nil {
-			break
-		}
-
-		return e.complexity.UserPinCode.RoomID(childComplexity), true
-
-	case "UserPinCode.user":
-		if e.complexity.UserPinCode.User == nil {
-			break
-		}
-
-		return e.complexity.UserPinCode.User(childComplexity), true
-
-	case "UserPinCode.userID":
-		if e.complexity.UserPinCode.UserID == nil {
-			break
-		}
-
-		return e.complexity.UserPinCode.UserID(childComplexity), true
-
 	}
 	return 0, false
 }
@@ -1567,8 +1492,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUserContactWhereInput,
 		ec.unmarshalInputUserLoginInput,
 		ec.unmarshalInputUserOrder,
-		ec.unmarshalInputUserPinCodeOrder,
-		ec.unmarshalInputUserPinCodeWhereInput,
 		ec.unmarshalInputUserRegisterInput,
 		ec.unmarshalInputUserWhereInput,
 	)
@@ -1700,9 +1623,11 @@ scalar Cursor
 type File implements Node {
   id: ID!
   name: String!
-  mimeType: String!
-  disk: String!
+  contentType: String!
   size: Uint64!
+  location: String
+  bucket: String!
+  path: String!
   createdAt: Time!
   updatedAt: Time!
   messageAttachment: MessageAttachment
@@ -1726,9 +1651,11 @@ Properties by which File connections can be ordered.
 """
 enum FileOrderField {
   NAME
-  MIME_TYPE
-  DISK
+  CONTENT_TYPE
   SIZE
+  LOCATION
+  BUCKET
+  PATH
   CREATED_AT
   UPDATED_AT
 }
@@ -1768,37 +1695,21 @@ input FileWhereInput {
   nameEqualFold: String
   nameContainsFold: String
   """
-  mime_type field predicates
+  content_type field predicates
   """
-  mimeType: String
-  mimeTypeNEQ: String
-  mimeTypeIn: [String!]
-  mimeTypeNotIn: [String!]
-  mimeTypeGT: String
-  mimeTypeGTE: String
-  mimeTypeLT: String
-  mimeTypeLTE: String
-  mimeTypeContains: String
-  mimeTypeHasPrefix: String
-  mimeTypeHasSuffix: String
-  mimeTypeEqualFold: String
-  mimeTypeContainsFold: String
-  """
-  disk field predicates
-  """
-  disk: String
-  diskNEQ: String
-  diskIn: [String!]
-  diskNotIn: [String!]
-  diskGT: String
-  diskGTE: String
-  diskLT: String
-  diskLTE: String
-  diskContains: String
-  diskHasPrefix: String
-  diskHasSuffix: String
-  diskEqualFold: String
-  diskContainsFold: String
+  contentType: String
+  contentTypeNEQ: String
+  contentTypeIn: [String!]
+  contentTypeNotIn: [String!]
+  contentTypeGT: String
+  contentTypeGTE: String
+  contentTypeLT: String
+  contentTypeLTE: String
+  contentTypeContains: String
+  contentTypeHasPrefix: String
+  contentTypeHasSuffix: String
+  contentTypeEqualFold: String
+  contentTypeContainsFold: String
   """
   size field predicates
   """
@@ -1810,6 +1721,56 @@ input FileWhereInput {
   sizeGTE: Uint64
   sizeLT: Uint64
   sizeLTE: Uint64
+  """
+  location field predicates
+  """
+  location: String
+  locationNEQ: String
+  locationIn: [String!]
+  locationNotIn: [String!]
+  locationGT: String
+  locationGTE: String
+  locationLT: String
+  locationLTE: String
+  locationContains: String
+  locationHasPrefix: String
+  locationHasSuffix: String
+  locationIsNil: Boolean
+  locationNotNil: Boolean
+  locationEqualFold: String
+  locationContainsFold: String
+  """
+  bucket field predicates
+  """
+  bucket: String
+  bucketNEQ: String
+  bucketIn: [String!]
+  bucketNotIn: [String!]
+  bucketGT: String
+  bucketGTE: String
+  bucketLT: String
+  bucketLTE: String
+  bucketContains: String
+  bucketHasPrefix: String
+  bucketHasSuffix: String
+  bucketEqualFold: String
+  bucketContainsFold: String
+  """
+  path field predicates
+  """
+  path: String
+  pathNEQ: String
+  pathIn: [String!]
+  pathNotIn: [String!]
+  pathGT: String
+  pathGTE: String
+  pathLT: String
+  pathLTE: String
+  pathContains: String
+  pathHasPrefix: String
+  pathHasSuffix: String
+  pathEqualFold: String
+  pathContainsFold: String
   """
   created_at field predicates
   """
@@ -1857,7 +1818,6 @@ type Message implements Node {
 }
 type MessageAttachment implements Node {
   id: ID!
-  type: MessageAttachmentType!
   order: Uint!
   attachedAt: Time!
   room: Room!
@@ -1911,17 +1871,8 @@ input MessageAttachmentOrder {
 Properties by which MessageAttachment connections can be ordered.
 """
 enum MessageAttachmentOrderField {
-  TYPE
   ORDER
   ATTACHED_AT
-}
-"""
-MessageAttachmentType is enum for the field type
-"""
-enum MessageAttachmentType @goModel(model: "journeyhub/ent/messageattachment.Type") {
-  Image
-  Video
-  Document
 }
 """
 MessageAttachmentWhereInput is used for filtering MessageAttachment objects.
@@ -1942,13 +1893,6 @@ input MessageAttachmentWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """
-  type field predicates
-  """
-  type: MessageAttachmentType
-  typeNEQ: MessageAttachmentType
-  typeIn: [MessageAttachmentType!]
-  typeNotIn: [MessageAttachmentType!]
   """
   order field predicates
   """
@@ -2166,7 +2110,6 @@ enum MessageOrderField {
 }
 type MessageVoice implements Node {
   id: ID!
-  length: Int!
   attachedAt: Time!
   room: Room!
   message: Message!
@@ -2219,7 +2162,6 @@ input MessageVoiceOrder {
 Properties by which MessageVoice connections can be ordered.
 """
 enum MessageVoiceOrderField {
-  LENGTH
   ATTACHED_AT
 }
 """
@@ -2241,17 +2183,6 @@ input MessageVoiceWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """
-  length field predicates
-  """
-  length: Int
-  lengthNEQ: Int
-  lengthIn: [Int!]
-  lengthNotIn: [Int!]
-  lengthGT: Int
-  lengthGTE: Int
-  lengthLT: Int
-  lengthLTE: Int
   """
   attached_at field predicates
   """
@@ -2960,7 +2891,6 @@ type User implements Node {
   lastName: String!
   nickname: String!
   email: String
-  contactPin: String!
   createdAt: Time!
   updatedAt: Time!
   contacts(
@@ -3263,131 +3193,6 @@ enum UserOrderField {
   CREATED_AT
   UPDATED_AT
 }
-type UserPinCode implements Node {
-  id: ID!
-  userID: ID!
-  contactID: ID!
-  roomID: ID
-  createdAt: Time!
-  user: User!
-  contact: User!
-  room: Room
-}
-"""
-Ordering options for UserPinCode connections
-"""
-input UserPinCodeOrder {
-  """
-  The ordering direction.
-  """
-  direction: OrderDirection! = ASC
-  """
-  The field by which to order UserPinCodes.
-  """
-  field: UserPinCodeOrderField!
-}
-"""
-Properties by which UserPinCode connections can be ordered.
-"""
-enum UserPinCodeOrderField {
-  CREATED_AT
-}
-"""
-UserPinCodeWhereInput is used for filtering UserPinCode objects.
-Input was generated by ent.
-"""
-input UserPinCodeWhereInput {
-  not: UserPinCodeWhereInput
-  and: [UserPinCodeWhereInput!]
-  or: [UserPinCodeWhereInput!]
-  """
-  id field predicates
-  """
-  id: ID
-  idNEQ: ID
-  idIn: [ID!]
-  idNotIn: [ID!]
-  idGT: ID
-  idGTE: ID
-  idLT: ID
-  idLTE: ID
-  """
-  user_id field predicates
-  """
-  userID: ID
-  userIDNEQ: ID
-  userIDIn: [ID!]
-  userIDNotIn: [ID!]
-  userIDGT: ID
-  userIDGTE: ID
-  userIDLT: ID
-  userIDLTE: ID
-  userIDContains: ID
-  userIDHasPrefix: ID
-  userIDHasSuffix: ID
-  userIDEqualFold: ID
-  userIDContainsFold: ID
-  """
-  contact_id field predicates
-  """
-  contactID: ID
-  contactIDNEQ: ID
-  contactIDIn: [ID!]
-  contactIDNotIn: [ID!]
-  contactIDGT: ID
-  contactIDGTE: ID
-  contactIDLT: ID
-  contactIDLTE: ID
-  contactIDContains: ID
-  contactIDHasPrefix: ID
-  contactIDHasSuffix: ID
-  contactIDEqualFold: ID
-  contactIDContainsFold: ID
-  """
-  room_id field predicates
-  """
-  roomID: ID
-  roomIDNEQ: ID
-  roomIDIn: [ID!]
-  roomIDNotIn: [ID!]
-  roomIDGT: ID
-  roomIDGTE: ID
-  roomIDLT: ID
-  roomIDLTE: ID
-  roomIDContains: ID
-  roomIDHasPrefix: ID
-  roomIDHasSuffix: ID
-  roomIDIsNil: Boolean
-  roomIDNotNil: Boolean
-  roomIDEqualFold: ID
-  roomIDContainsFold: ID
-  """
-  created_at field predicates
-  """
-  createdAt: Time
-  createdAtNEQ: Time
-  createdAtIn: [Time!]
-  createdAtNotIn: [Time!]
-  createdAtGT: Time
-  createdAtGTE: Time
-  createdAtLT: Time
-  createdAtLTE: Time
-  """
-  user edge predicates
-  """
-  hasUser: Boolean
-  hasUserWith: [UserWhereInput!]
-  """
-  contact edge predicates
-  """
-  hasContact: Boolean
-  hasContactWith: [UserWhereInput!]
-  """
-  room edge predicates
-  """
-  hasRoom: Boolean
-  hasRoomWith: [RoomWhereInput!]
-}
 """
 UserWhereInput is used for filtering User objects.
 Input was generated by ent.
@@ -3474,22 +3279,6 @@ input UserWhereInput {
   emailEqualFold: String
   emailContainsFold: String
   """
-  contact_pin field predicates
-  """
-  contactPin: String
-  contactPinNEQ: String
-  contactPinIn: [String!]
-  contactPinNotIn: [String!]
-  contactPinGT: String
-  contactPinGTE: String
-  contactPinLT: String
-  contactPinLTE: String
-  contactPinContains: String
-  contactPinHasPrefix: String
-  contactPinHasSuffix: String
-  contactPinEqualFold: String
-  contactPinContainsFold: String
-  """
   created_at field predicates
   """
   createdAt: Time
@@ -3539,17 +3328,14 @@ input UserWhereInput {
 }
 `, BuiltIn: false},
 	{Name: "../schema/message.graphql", Input: `"""
-The Upload scalar type represents a multipart file upload.
-"""
-scalar Upload
-
-"""
 CreateMessageInput is used for create Message object.
 """
 input SendMessageInput {
   targetUserID: ID!
   replyTo: ID
   content: String!
+  files: [Upload!]
+  voice: Upload
 }
 
 """
@@ -3793,6 +3579,11 @@ extend type Subscription {
     where: RoomMemberWhereInput
   ): RoomMemberConnection!
 }
+`, BuiltIn: false},
+	{Name: "../schema/scalars.graphql", Input: `"""
+The Upload scalar type represents a multipart file upload.
+"""
+scalar Upload
 `, BuiltIn: false},
 	{Name: "../schema/user.graphql", Input: `"""
 UserRegisterInput is used for user register.

@@ -21,8 +21,6 @@ type MessageVoice struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID pulid.ID `json:"id,omitempty"`
-	// Length holds the value of the "length" field.
-	Length int `json:"length,omitempty"`
 	// AttachedAt holds the value of the "attached_at" field.
 	AttachedAt time.Time `json:"attached_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -89,8 +87,6 @@ func (*MessageVoice) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case messagevoice.FieldID:
 			values[i] = new(pulid.ID)
-		case messagevoice.FieldLength:
-			values[i] = new(sql.NullInt64)
 		case messagevoice.FieldAttachedAt:
 			values[i] = new(sql.NullTime)
 		case messagevoice.ForeignKeys[0]: // file_message_voice
@@ -119,12 +115,6 @@ func (mv *MessageVoice) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				mv.ID = *value
-			}
-		case messagevoice.FieldLength:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field length", values[i])
-			} else if value.Valid {
-				mv.Length = int(value.Int64)
 			}
 		case messagevoice.FieldAttachedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -204,9 +194,6 @@ func (mv *MessageVoice) String() string {
 	var builder strings.Builder
 	builder.WriteString("MessageVoice(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", mv.ID))
-	builder.WriteString("length=")
-	builder.WriteString(fmt.Sprintf("%v", mv.Length))
-	builder.WriteString(", ")
 	builder.WriteString("attached_at=")
 	builder.WriteString(mv.AttachedAt.Format(time.ANSIC))
 	builder.WriteByte(')')

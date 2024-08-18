@@ -17,7 +17,6 @@ import (
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"journeyhub/ent/usercontact"
-	"journeyhub/ent/userpincode"
 	"strconv"
 
 	"entgo.io/contrib/entgql"
@@ -331,31 +330,17 @@ var (
 			}
 		},
 	}
-	// FileOrderFieldMimeType orders File by mime_type.
-	FileOrderFieldMimeType = &FileOrderField{
+	// FileOrderFieldContentType orders File by content_type.
+	FileOrderFieldContentType = &FileOrderField{
 		Value: func(f *File) (ent.Value, error) {
-			return f.MimeType, nil
+			return f.ContentType, nil
 		},
-		column: file.FieldMimeType,
-		toTerm: file.ByMimeType,
+		column: file.FieldContentType,
+		toTerm: file.ByContentType,
 		toCursor: func(f *File) Cursor {
 			return Cursor{
 				ID:    f.ID,
-				Value: f.MimeType,
-			}
-		},
-	}
-	// FileOrderFieldDisk orders File by disk.
-	FileOrderFieldDisk = &FileOrderField{
-		Value: func(f *File) (ent.Value, error) {
-			return f.Disk, nil
-		},
-		column: file.FieldDisk,
-		toTerm: file.ByDisk,
-		toCursor: func(f *File) Cursor {
-			return Cursor{
-				ID:    f.ID,
-				Value: f.Disk,
+				Value: f.ContentType,
 			}
 		},
 	}
@@ -370,6 +355,48 @@ var (
 			return Cursor{
 				ID:    f.ID,
 				Value: f.Size,
+			}
+		},
+	}
+	// FileOrderFieldLocation orders File by location.
+	FileOrderFieldLocation = &FileOrderField{
+		Value: func(f *File) (ent.Value, error) {
+			return f.Location, nil
+		},
+		column: file.FieldLocation,
+		toTerm: file.ByLocation,
+		toCursor: func(f *File) Cursor {
+			return Cursor{
+				ID:    f.ID,
+				Value: f.Location,
+			}
+		},
+	}
+	// FileOrderFieldBucket orders File by bucket.
+	FileOrderFieldBucket = &FileOrderField{
+		Value: func(f *File) (ent.Value, error) {
+			return f.Bucket, nil
+		},
+		column: file.FieldBucket,
+		toTerm: file.ByBucket,
+		toCursor: func(f *File) Cursor {
+			return Cursor{
+				ID:    f.ID,
+				Value: f.Bucket,
+			}
+		},
+	}
+	// FileOrderFieldPath orders File by path.
+	FileOrderFieldPath = &FileOrderField{
+		Value: func(f *File) (ent.Value, error) {
+			return f.Path, nil
+		},
+		column: file.FieldPath,
+		toTerm: file.ByPath,
+		toCursor: func(f *File) Cursor {
+			return Cursor{
+				ID:    f.ID,
+				Value: f.Path,
 			}
 		},
 	}
@@ -409,12 +436,16 @@ func (f FileOrderField) String() string {
 	switch f.column {
 	case FileOrderFieldName.column:
 		str = "NAME"
-	case FileOrderFieldMimeType.column:
-		str = "MIME_TYPE"
-	case FileOrderFieldDisk.column:
-		str = "DISK"
+	case FileOrderFieldContentType.column:
+		str = "CONTENT_TYPE"
 	case FileOrderFieldSize.column:
 		str = "SIZE"
+	case FileOrderFieldLocation.column:
+		str = "LOCATION"
+	case FileOrderFieldBucket.column:
+		str = "BUCKET"
+	case FileOrderFieldPath.column:
+		str = "PATH"
 	case FileOrderFieldCreatedAt.column:
 		str = "CREATED_AT"
 	case FileOrderFieldUpdatedAt.column:
@@ -437,12 +468,16 @@ func (f *FileOrderField) UnmarshalGQL(v interface{}) error {
 	switch str {
 	case "NAME":
 		*f = *FileOrderFieldName
-	case "MIME_TYPE":
-		*f = *FileOrderFieldMimeType
-	case "DISK":
-		*f = *FileOrderFieldDisk
+	case "CONTENT_TYPE":
+		*f = *FileOrderFieldContentType
 	case "SIZE":
 		*f = *FileOrderFieldSize
+	case "LOCATION":
+		*f = *FileOrderFieldLocation
+	case "BUCKET":
+		*f = *FileOrderFieldBucket
+	case "PATH":
+		*f = *FileOrderFieldPath
 	case "CREATED_AT":
 		*f = *FileOrderFieldCreatedAt
 	case "UPDATED_AT":
@@ -1053,20 +1088,6 @@ func (ma *MessageAttachmentQuery) Paginate(
 }
 
 var (
-	// MessageAttachmentOrderFieldType orders MessageAttachment by type.
-	MessageAttachmentOrderFieldType = &MessageAttachmentOrderField{
-		Value: func(ma *MessageAttachment) (ent.Value, error) {
-			return ma.Type, nil
-		},
-		column: messageattachment.FieldType,
-		toTerm: messageattachment.ByType,
-		toCursor: func(ma *MessageAttachment) Cursor {
-			return Cursor{
-				ID:    ma.ID,
-				Value: ma.Type,
-			}
-		},
-	}
 	// MessageAttachmentOrderFieldOrder orders MessageAttachment by order.
 	MessageAttachmentOrderFieldOrder = &MessageAttachmentOrderField{
 		Value: func(ma *MessageAttachment) (ent.Value, error) {
@@ -1101,8 +1122,6 @@ var (
 func (f MessageAttachmentOrderField) String() string {
 	var str string
 	switch f.column {
-	case MessageAttachmentOrderFieldType.column:
-		str = "TYPE"
 	case MessageAttachmentOrderFieldOrder.column:
 		str = "ORDER"
 	case MessageAttachmentOrderFieldAttachedAt.column:
@@ -1123,8 +1142,6 @@ func (f *MessageAttachmentOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("MessageAttachmentOrderField %T must be a string", v)
 	}
 	switch str {
-	case "TYPE":
-		*f = *MessageAttachmentOrderFieldType
 	case "ORDER":
 		*f = *MessageAttachmentOrderFieldOrder
 	case "ATTACHED_AT":
@@ -1717,20 +1734,6 @@ func (mv *MessageVoiceQuery) Paginate(
 }
 
 var (
-	// MessageVoiceOrderFieldLength orders MessageVoice by length.
-	MessageVoiceOrderFieldLength = &MessageVoiceOrderField{
-		Value: func(mv *MessageVoice) (ent.Value, error) {
-			return mv.Length, nil
-		},
-		column: messagevoice.FieldLength,
-		toTerm: messagevoice.ByLength,
-		toCursor: func(mv *MessageVoice) Cursor {
-			return Cursor{
-				ID:    mv.ID,
-				Value: mv.Length,
-			}
-		},
-	}
 	// MessageVoiceOrderFieldAttachedAt orders MessageVoice by attached_at.
 	MessageVoiceOrderFieldAttachedAt = &MessageVoiceOrderField{
 		Value: func(mv *MessageVoice) (ent.Value, error) {
@@ -1751,8 +1754,6 @@ var (
 func (f MessageVoiceOrderField) String() string {
 	var str string
 	switch f.column {
-	case MessageVoiceOrderFieldLength.column:
-		str = "LENGTH"
 	case MessageVoiceOrderFieldAttachedAt.column:
 		str = "ATTACHED_AT"
 	}
@@ -1771,8 +1772,6 @@ func (f *MessageVoiceOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("MessageVoiceOrderField %T must be a string", v)
 	}
 	switch str {
-	case "LENGTH":
-		*f = *MessageVoiceOrderFieldLength
 	case "ATTACHED_AT":
 		*f = *MessageVoiceOrderFieldAttachedAt
 	default:
@@ -3273,301 +3272,5 @@ func (uc *UserContact) ToEdge(order *UserContactOrder) *UserContactEdge {
 	return &UserContactEdge{
 		Node:   uc,
 		Cursor: order.Field.toCursor(uc),
-	}
-}
-
-// UserPinCodeEdge is the edge representation of UserPinCode.
-type UserPinCodeEdge struct {
-	Node   *UserPinCode `json:"node"`
-	Cursor Cursor       `json:"cursor"`
-}
-
-// UserPinCodeConnection is the connection containing edges to UserPinCode.
-type UserPinCodeConnection struct {
-	Edges      []*UserPinCodeEdge `json:"edges"`
-	PageInfo   PageInfo           `json:"pageInfo"`
-	TotalCount int                `json:"totalCount"`
-}
-
-func (c *UserPinCodeConnection) build(nodes []*UserPinCode, pager *userpincodePager, after *Cursor, first *int, before *Cursor, last *int) {
-	c.PageInfo.HasNextPage = before != nil
-	c.PageInfo.HasPreviousPage = after != nil
-	if first != nil && *first+1 == len(nodes) {
-		c.PageInfo.HasNextPage = true
-		nodes = nodes[:len(nodes)-1]
-	} else if last != nil && *last+1 == len(nodes) {
-		c.PageInfo.HasPreviousPage = true
-		nodes = nodes[:len(nodes)-1]
-	}
-	var nodeAt func(int) *UserPinCode
-	if last != nil {
-		n := len(nodes) - 1
-		nodeAt = func(i int) *UserPinCode {
-			return nodes[n-i]
-		}
-	} else {
-		nodeAt = func(i int) *UserPinCode {
-			return nodes[i]
-		}
-	}
-	c.Edges = make([]*UserPinCodeEdge, len(nodes))
-	for i := range nodes {
-		node := nodeAt(i)
-		c.Edges[i] = &UserPinCodeEdge{
-			Node:   node,
-			Cursor: pager.toCursor(node),
-		}
-	}
-	if l := len(c.Edges); l > 0 {
-		c.PageInfo.StartCursor = &c.Edges[0].Cursor
-		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
-	}
-	if c.TotalCount == 0 {
-		c.TotalCount = len(nodes)
-	}
-}
-
-// UserPinCodePaginateOption enables pagination customization.
-type UserPinCodePaginateOption func(*userpincodePager) error
-
-// WithUserPinCodeOrder configures pagination ordering.
-func WithUserPinCodeOrder(order *UserPinCodeOrder) UserPinCodePaginateOption {
-	if order == nil {
-		order = DefaultUserPinCodeOrder
-	}
-	o := *order
-	return func(pager *userpincodePager) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
-		}
-		if o.Field == nil {
-			o.Field = DefaultUserPinCodeOrder.Field
-		}
-		pager.order = &o
-		return nil
-	}
-}
-
-// WithUserPinCodeFilter configures pagination filter.
-func WithUserPinCodeFilter(filter func(*UserPinCodeQuery) (*UserPinCodeQuery, error)) UserPinCodePaginateOption {
-	return func(pager *userpincodePager) error {
-		if filter == nil {
-			return errors.New("UserPinCodeQuery filter cannot be nil")
-		}
-		pager.filter = filter
-		return nil
-	}
-}
-
-type userpincodePager struct {
-	reverse bool
-	order   *UserPinCodeOrder
-	filter  func(*UserPinCodeQuery) (*UserPinCodeQuery, error)
-}
-
-func newUserPinCodePager(opts []UserPinCodePaginateOption, reverse bool) (*userpincodePager, error) {
-	pager := &userpincodePager{reverse: reverse}
-	for _, opt := range opts {
-		if err := opt(pager); err != nil {
-			return nil, err
-		}
-	}
-	if pager.order == nil {
-		pager.order = DefaultUserPinCodeOrder
-	}
-	return pager, nil
-}
-
-func (p *userpincodePager) applyFilter(query *UserPinCodeQuery) (*UserPinCodeQuery, error) {
-	if p.filter != nil {
-		return p.filter(query)
-	}
-	return query, nil
-}
-
-func (p *userpincodePager) toCursor(upc *UserPinCode) Cursor {
-	return p.order.Field.toCursor(upc)
-}
-
-func (p *userpincodePager) applyCursors(query *UserPinCodeQuery, after, before *Cursor) (*UserPinCodeQuery, error) {
-	direction := p.order.Direction
-	if p.reverse {
-		direction = direction.Reverse()
-	}
-	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultUserPinCodeOrder.Field.column, p.order.Field.column, direction) {
-		query = query.Where(predicate)
-	}
-	return query, nil
-}
-
-func (p *userpincodePager) applyOrder(query *UserPinCodeQuery) *UserPinCodeQuery {
-	direction := p.order.Direction
-	if p.reverse {
-		direction = direction.Reverse()
-	}
-	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
-	if p.order.Field != DefaultUserPinCodeOrder.Field {
-		query = query.Order(DefaultUserPinCodeOrder.Field.toTerm(direction.OrderTermOption()))
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(p.order.Field.column)
-	}
-	return query
-}
-
-func (p *userpincodePager) orderExpr(query *UserPinCodeQuery) sql.Querier {
-	direction := p.order.Direction
-	if p.reverse {
-		direction = direction.Reverse()
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(p.order.Field.column)
-	}
-	return sql.ExprFunc(func(b *sql.Builder) {
-		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultUserPinCodeOrder.Field {
-			b.Comma().Ident(DefaultUserPinCodeOrder.Field.column).Pad().WriteString(string(direction))
-		}
-	})
-}
-
-// Paginate executes the query and returns a relay based cursor connection to UserPinCode.
-func (upc *UserPinCodeQuery) Paginate(
-	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, opts ...UserPinCodePaginateOption,
-) (*UserPinCodeConnection, error) {
-	if err := validateFirstLast(first, last); err != nil {
-		return nil, err
-	}
-	pager, err := newUserPinCodePager(opts, last != nil)
-	if err != nil {
-		return nil, err
-	}
-	if upc, err = pager.applyFilter(upc); err != nil {
-		return nil, err
-	}
-	conn := &UserPinCodeConnection{Edges: []*UserPinCodeEdge{}}
-	ignoredEdges := !hasCollectedField(ctx, edgesField)
-	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-		hasPagination := after != nil || first != nil || before != nil || last != nil
-		if hasPagination || ignoredEdges {
-			c := upc.Clone()
-			c.ctx.Fields = nil
-			if conn.TotalCount, err = c.Count(ctx); err != nil {
-				return nil, err
-			}
-			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
-			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
-		}
-	}
-	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
-		return conn, nil
-	}
-	if upc, err = pager.applyCursors(upc, after, before); err != nil {
-		return nil, err
-	}
-	limit := paginateLimit(first, last)
-	if limit != 0 {
-		upc.Limit(limit)
-	}
-	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := upc.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
-			return nil, err
-		}
-	}
-	upc = pager.applyOrder(upc)
-	nodes, err := upc.All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	conn.build(nodes, pager, after, first, before, last)
-	return conn, nil
-}
-
-var (
-	// UserPinCodeOrderFieldCreatedAt orders UserPinCode by created_at.
-	UserPinCodeOrderFieldCreatedAt = &UserPinCodeOrderField{
-		Value: func(upc *UserPinCode) (ent.Value, error) {
-			return upc.CreatedAt, nil
-		},
-		column: userpincode.FieldCreatedAt,
-		toTerm: userpincode.ByCreatedAt,
-		toCursor: func(upc *UserPinCode) Cursor {
-			return Cursor{
-				ID:    upc.ID,
-				Value: upc.CreatedAt,
-			}
-		},
-	}
-)
-
-// String implement fmt.Stringer interface.
-func (f UserPinCodeOrderField) String() string {
-	var str string
-	switch f.column {
-	case UserPinCodeOrderFieldCreatedAt.column:
-		str = "CREATED_AT"
-	}
-	return str
-}
-
-// MarshalGQL implements graphql.Marshaler interface.
-func (f UserPinCodeOrderField) MarshalGQL(w io.Writer) {
-	io.WriteString(w, strconv.Quote(f.String()))
-}
-
-// UnmarshalGQL implements graphql.Unmarshaler interface.
-func (f *UserPinCodeOrderField) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("UserPinCodeOrderField %T must be a string", v)
-	}
-	switch str {
-	case "CREATED_AT":
-		*f = *UserPinCodeOrderFieldCreatedAt
-	default:
-		return fmt.Errorf("%s is not a valid UserPinCodeOrderField", str)
-	}
-	return nil
-}
-
-// UserPinCodeOrderField defines the ordering field of UserPinCode.
-type UserPinCodeOrderField struct {
-	// Value extracts the ordering value from the given UserPinCode.
-	Value    func(*UserPinCode) (ent.Value, error)
-	column   string // field or computed.
-	toTerm   func(...sql.OrderTermOption) userpincode.OrderOption
-	toCursor func(*UserPinCode) Cursor
-}
-
-// UserPinCodeOrder defines the ordering of UserPinCode.
-type UserPinCodeOrder struct {
-	Direction OrderDirection         `json:"direction"`
-	Field     *UserPinCodeOrderField `json:"field"`
-}
-
-// DefaultUserPinCodeOrder is the default ordering of UserPinCode.
-var DefaultUserPinCodeOrder = &UserPinCodeOrder{
-	Direction: entgql.OrderDirectionAsc,
-	Field: &UserPinCodeOrderField{
-		Value: func(upc *UserPinCode) (ent.Value, error) {
-			return upc.ID, nil
-		},
-		column: userpincode.FieldID,
-		toTerm: userpincode.ByID,
-		toCursor: func(upc *UserPinCode) Cursor {
-			return Cursor{ID: upc.ID}
-		},
-	},
-}
-
-// ToEdge converts UserPinCode into UserPinCodeEdge.
-func (upc *UserPinCode) ToEdge(order *UserPinCodeOrder) *UserPinCodeEdge {
-	if order == nil {
-		order = DefaultUserPinCodeOrder
-	}
-	return &UserPinCodeEdge{
-		Node:   upc,
-		Cursor: order.Field.toCursor(upc),
 	}
 }

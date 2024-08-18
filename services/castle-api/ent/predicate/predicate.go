@@ -32,6 +32,3 @@ type User func(*sql.Selector)
 
 // UserContact is the predicate function for usercontact builders.
 type UserContact func(*sql.Selector)
-
-// UserPinCode is the predicate function for userpincode builders.
-type UserPinCode func(*sql.Selector)

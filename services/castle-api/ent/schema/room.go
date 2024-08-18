@@ -6,6 +6,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -67,18 +68,22 @@ func (Room) Edges() []ent.Edge {
 			),
 		edge.To("messages", Message.Type).
 			Annotations(
+				entsql.OnDelete(entsql.Cascade),
 				entgql.RelayConnection(),
 			),
 		edge.To("message_voices", MessageVoice.Type).
 			Annotations(
+				entsql.OnDelete(entsql.Cascade),
 				entgql.RelayConnection(),
 			),
 		edge.To("message_attachments", MessageAttachment.Type).
 			Annotations(
+				entsql.OnDelete(entsql.Cascade),
 				entgql.RelayConnection(),
 			),
 		edge.To("message_links", MessageLink.Type).
 			Annotations(
+				entsql.OnDelete(entsql.Cascade),
 				entgql.RelayConnection(),
 			),
 	}

@@ -34,7 +34,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.UserLoginInput
 
 	return r.authService.Login(
 		ctx,
-		input.NicknameOrEmail,
+		input.Nickname,
 		input.Password,
 	)
 }

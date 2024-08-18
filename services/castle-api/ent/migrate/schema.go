@@ -12,9 +12,11 @@ var (
 	FilesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
-		{Name: "mime_type", Type: field.TypeString},
-		{Name: "disk", Type: field.TypeString},
+		{Name: "content_type", Type: field.TypeString},
 		{Name: "size", Type: field.TypeUint64},
+		{Name: "location", Type: field.TypeString, Nullable: true},
+		{Name: "bucket", Type: field.TypeString},
+		{Name: "path", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -50,20 +52,19 @@ var (
 				Symbol:     "messages_rooms_messages",
 				Columns:    []*schema.Column{MessagesColumns[5]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "messages_users_messages",
 				Columns:    []*schema.Column{MessagesColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
 	// MessageAttachmentsColumns holds the columns for the "message_attachments" table.
 	MessageAttachmentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"Image", "Video", "Document"}},
 		{Name: "order", Type: field.TypeUint},
 		{Name: "attached_at", Type: field.TypeTime},
 		{Name: "file_message_attachment", Type: field.TypeString, Unique: true},
@@ -78,21 +79,21 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "message_attachments_files_message_attachment",
-				Columns:    []*schema.Column{MessageAttachmentsColumns[4]},
+				Columns:    []*schema.Column{MessageAttachmentsColumns[3]},
 				RefColumns: []*schema.Column{FilesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "message_attachments_messages_attachments",
-				Columns:    []*schema.Column{MessageAttachmentsColumns[5]},
+				Columns:    []*schema.Column{MessageAttachmentsColumns[4]},
 				RefColumns: []*schema.Column{MessagesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "message_attachments_rooms_message_attachments",
-				Columns:    []*schema.Column{MessageAttachmentsColumns[6]},
+				Columns:    []*schema.Column{MessageAttachmentsColumns[5]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -115,20 +116,19 @@ var (
 				Symbol:     "message_links_messages_links",
 				Columns:    []*schema.Column{MessageLinksColumns[4]},
 				RefColumns: []*schema.Column{MessagesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "message_links_rooms_message_links",
 				Columns:    []*schema.Column{MessageLinksColumns[5]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
 	// MessageVoicesColumns holds the columns for the "message_voices" table.
 	MessageVoicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
-		{Name: "length", Type: field.TypeInt},
 		{Name: "attached_at", Type: field.TypeTime},
 		{Name: "file_message_voice", Type: field.TypeString, Unique: true},
 		{Name: "message_voice", Type: field.TypeString, Unique: true},
@@ -142,21 +142,21 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "message_voices_files_message_voice",
-				Columns:    []*schema.Column{MessageVoicesColumns[3]},
+				Columns:    []*schema.Column{MessageVoicesColumns[2]},
 				RefColumns: []*schema.Column{FilesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "message_voices_messages_voice",
-				Columns:    []*schema.Column{MessageVoicesColumns[4]},
+				Columns:    []*schema.Column{MessageVoicesColumns[3]},
 				RefColumns: []*schema.Column{MessagesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "message_voices_rooms_message_voices",
-				Columns:    []*schema.Column{MessageVoicesColumns[5]},
+				Columns:    []*schema.Column{MessageVoicesColumns[4]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -216,7 +216,6 @@ var (
 		{Name: "last_name", Type: field.TypeString},
 		{Name: "nickname", Type: field.TypeString, Unique: true},
 		{Name: "email", Type: field.TypeString, Unique: true, Nullable: true},
-		{Name: "contact_pin", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -245,13 +244,13 @@ var (
 				Symbol:     "user_contacts_users_user",
 				Columns:    []*schema.Column{UserContactsColumns[2]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "user_contacts_users_contact",
 				Columns:    []*schema.Column{UserContactsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "user_contacts_rooms_room",
@@ -268,40 +267,6 @@ var (
 			},
 		},
 	}
-	// UserPinCodesColumns holds the columns for the "user_pin_codes" table.
-	UserPinCodesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "user_id", Type: field.TypeString},
-		{Name: "contact_id", Type: field.TypeString},
-		{Name: "room_id", Type: field.TypeString, Nullable: true},
-	}
-	// UserPinCodesTable holds the schema information for the "user_pin_codes" table.
-	UserPinCodesTable = &schema.Table{
-		Name:       "user_pin_codes",
-		Columns:    UserPinCodesColumns,
-		PrimaryKey: []*schema.Column{UserPinCodesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "user_pin_codes_users_user",
-				Columns:    []*schema.Column{UserPinCodesColumns[2]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "user_pin_codes_users_contact",
-				Columns:    []*schema.Column{UserPinCodesColumns[3]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "user_pin_codes_rooms_room",
-				Columns:    []*schema.Column{UserPinCodesColumns[4]},
-				RefColumns: []*schema.Column{RoomsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		FilesTable,
@@ -313,7 +278,6 @@ var (
 		RoomMembersTable,
 		UsersTable,
 		UserContactsTable,
-		UserPinCodesTable,
 	}
 )
 
@@ -334,7 +298,4 @@ func init() {
 	UserContactsTable.ForeignKeys[0].RefTable = UsersTable
 	UserContactsTable.ForeignKeys[1].RefTable = UsersTable
 	UserContactsTable.ForeignKeys[2].RefTable = RoomsTable
-	UserPinCodesTable.ForeignKeys[0].RefTable = UsersTable
-	UserPinCodesTable.ForeignKeys[1].RefTable = UsersTable
-	UserPinCodesTable.ForeignKeys[2].RefTable = RoomsTable
 }

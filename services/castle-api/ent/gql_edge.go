@@ -414,27 +414,3 @@ func (uc *UserContact) Room(ctx context.Context) (*Room, error) {
 	}
 	return result, MaskNotFound(err)
 }
-
-func (upc *UserPinCode) User(ctx context.Context) (*User, error) {
-	result, err := upc.Edges.UserOrErr()
-	if IsNotLoaded(err) {
-		result, err = upc.QueryUser().Only(ctx)
-	}
-	return result, err
-}
-
-func (upc *UserPinCode) Contact(ctx context.Context) (*User, error) {
-	result, err := upc.Edges.ContactOrErr()
-	if IsNotLoaded(err) {
-		result, err = upc.QueryContact().Only(ctx)
-	}
-	return result, err
-}
-
-func (upc *UserPinCode) Room(ctx context.Context) (*Room, error) {
-	result, err := upc.Edges.RoomOrErr()
-	if IsNotLoaded(err) {
-		result, err = upc.QueryRoom().Only(ctx)
-	}
-	return result, MaskNotFound(err)
-}

@@ -12,7 +12,7 @@ nats:
   host: nats
   port: 4222
 
-# Database credentials
+# Database configuration
 database:
   host: postgres
   port: 5432
@@ -20,3 +20,11 @@ database:
   user: admin
   password: "123456"
   driver: postgres
+
+# S3 configuration
+s3:
+  host: minio:9000
+  access_key: admin
+  secret_key: "12345678"
+  bucket: media
+  ssl: false

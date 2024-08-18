@@ -45,30 +45,16 @@ func (fu *FileUpdate) SetNillableName(s *string) *FileUpdate {
 	return fu
 }
 
-// SetMimeType sets the "mime_type" field.
-func (fu *FileUpdate) SetMimeType(s string) *FileUpdate {
-	fu.mutation.SetMimeType(s)
+// SetContentType sets the "content_type" field.
+func (fu *FileUpdate) SetContentType(s string) *FileUpdate {
+	fu.mutation.SetContentType(s)
 	return fu
 }
 
-// SetNillableMimeType sets the "mime_type" field if the given value is not nil.
-func (fu *FileUpdate) SetNillableMimeType(s *string) *FileUpdate {
+// SetNillableContentType sets the "content_type" field if the given value is not nil.
+func (fu *FileUpdate) SetNillableContentType(s *string) *FileUpdate {
 	if s != nil {
-		fu.SetMimeType(*s)
-	}
-	return fu
-}
-
-// SetDisk sets the "disk" field.
-func (fu *FileUpdate) SetDisk(s string) *FileUpdate {
-	fu.mutation.SetDisk(s)
-	return fu
-}
-
-// SetNillableDisk sets the "disk" field if the given value is not nil.
-func (fu *FileUpdate) SetNillableDisk(s *string) *FileUpdate {
-	if s != nil {
-		fu.SetDisk(*s)
+		fu.SetContentType(*s)
 	}
 	return fu
 }
@@ -91,6 +77,54 @@ func (fu *FileUpdate) SetNillableSize(u *uint64) *FileUpdate {
 // AddSize adds u to the "size" field.
 func (fu *FileUpdate) AddSize(u int64) *FileUpdate {
 	fu.mutation.AddSize(u)
+	return fu
+}
+
+// SetLocation sets the "location" field.
+func (fu *FileUpdate) SetLocation(s string) *FileUpdate {
+	fu.mutation.SetLocation(s)
+	return fu
+}
+
+// SetNillableLocation sets the "location" field if the given value is not nil.
+func (fu *FileUpdate) SetNillableLocation(s *string) *FileUpdate {
+	if s != nil {
+		fu.SetLocation(*s)
+	}
+	return fu
+}
+
+// ClearLocation clears the value of the "location" field.
+func (fu *FileUpdate) ClearLocation() *FileUpdate {
+	fu.mutation.ClearLocation()
+	return fu
+}
+
+// SetBucket sets the "bucket" field.
+func (fu *FileUpdate) SetBucket(s string) *FileUpdate {
+	fu.mutation.SetBucket(s)
+	return fu
+}
+
+// SetNillableBucket sets the "bucket" field if the given value is not nil.
+func (fu *FileUpdate) SetNillableBucket(s *string) *FileUpdate {
+	if s != nil {
+		fu.SetBucket(*s)
+	}
+	return fu
+}
+
+// SetPath sets the "path" field.
+func (fu *FileUpdate) SetPath(s string) *FileUpdate {
+	fu.mutation.SetPath(s)
+	return fu
+}
+
+// SetNillablePath sets the "path" field if the given value is not nil.
+func (fu *FileUpdate) SetNillablePath(s *string) *FileUpdate {
+	if s != nil {
+		fu.SetPath(*s)
+	}
 	return fu
 }
 
@@ -203,17 +237,26 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := fu.mutation.Name(); ok {
 		_spec.SetField(file.FieldName, field.TypeString, value)
 	}
-	if value, ok := fu.mutation.MimeType(); ok {
-		_spec.SetField(file.FieldMimeType, field.TypeString, value)
-	}
-	if value, ok := fu.mutation.Disk(); ok {
-		_spec.SetField(file.FieldDisk, field.TypeString, value)
+	if value, ok := fu.mutation.ContentType(); ok {
+		_spec.SetField(file.FieldContentType, field.TypeString, value)
 	}
 	if value, ok := fu.mutation.Size(); ok {
 		_spec.SetField(file.FieldSize, field.TypeUint64, value)
 	}
 	if value, ok := fu.mutation.AddedSize(); ok {
 		_spec.AddField(file.FieldSize, field.TypeUint64, value)
+	}
+	if value, ok := fu.mutation.Location(); ok {
+		_spec.SetField(file.FieldLocation, field.TypeString, value)
+	}
+	if fu.mutation.LocationCleared() {
+		_spec.ClearField(file.FieldLocation, field.TypeString)
+	}
+	if value, ok := fu.mutation.Bucket(); ok {
+		_spec.SetField(file.FieldBucket, field.TypeString, value)
+	}
+	if value, ok := fu.mutation.Path(); ok {
+		_spec.SetField(file.FieldPath, field.TypeString, value)
 	}
 	if value, ok := fu.mutation.UpdatedAt(); ok {
 		_spec.SetField(file.FieldUpdatedAt, field.TypeTime, value)
@@ -310,30 +353,16 @@ func (fuo *FileUpdateOne) SetNillableName(s *string) *FileUpdateOne {
 	return fuo
 }
 
-// SetMimeType sets the "mime_type" field.
-func (fuo *FileUpdateOne) SetMimeType(s string) *FileUpdateOne {
-	fuo.mutation.SetMimeType(s)
+// SetContentType sets the "content_type" field.
+func (fuo *FileUpdateOne) SetContentType(s string) *FileUpdateOne {
+	fuo.mutation.SetContentType(s)
 	return fuo
 }
 
-// SetNillableMimeType sets the "mime_type" field if the given value is not nil.
-func (fuo *FileUpdateOne) SetNillableMimeType(s *string) *FileUpdateOne {
+// SetNillableContentType sets the "content_type" field if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableContentType(s *string) *FileUpdateOne {
 	if s != nil {
-		fuo.SetMimeType(*s)
-	}
-	return fuo
-}
-
-// SetDisk sets the "disk" field.
-func (fuo *FileUpdateOne) SetDisk(s string) *FileUpdateOne {
-	fuo.mutation.SetDisk(s)
-	return fuo
-}
-
-// SetNillableDisk sets the "disk" field if the given value is not nil.
-func (fuo *FileUpdateOne) SetNillableDisk(s *string) *FileUpdateOne {
-	if s != nil {
-		fuo.SetDisk(*s)
+		fuo.SetContentType(*s)
 	}
 	return fuo
 }
@@ -356,6 +385,54 @@ func (fuo *FileUpdateOne) SetNillableSize(u *uint64) *FileUpdateOne {
 // AddSize adds u to the "size" field.
 func (fuo *FileUpdateOne) AddSize(u int64) *FileUpdateOne {
 	fuo.mutation.AddSize(u)
+	return fuo
+}
+
+// SetLocation sets the "location" field.
+func (fuo *FileUpdateOne) SetLocation(s string) *FileUpdateOne {
+	fuo.mutation.SetLocation(s)
+	return fuo
+}
+
+// SetNillableLocation sets the "location" field if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableLocation(s *string) *FileUpdateOne {
+	if s != nil {
+		fuo.SetLocation(*s)
+	}
+	return fuo
+}
+
+// ClearLocation clears the value of the "location" field.
+func (fuo *FileUpdateOne) ClearLocation() *FileUpdateOne {
+	fuo.mutation.ClearLocation()
+	return fuo
+}
+
+// SetBucket sets the "bucket" field.
+func (fuo *FileUpdateOne) SetBucket(s string) *FileUpdateOne {
+	fuo.mutation.SetBucket(s)
+	return fuo
+}
+
+// SetNillableBucket sets the "bucket" field if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableBucket(s *string) *FileUpdateOne {
+	if s != nil {
+		fuo.SetBucket(*s)
+	}
+	return fuo
+}
+
+// SetPath sets the "path" field.
+func (fuo *FileUpdateOne) SetPath(s string) *FileUpdateOne {
+	fuo.mutation.SetPath(s)
+	return fuo
+}
+
+// SetNillablePath sets the "path" field if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillablePath(s *string) *FileUpdateOne {
+	if s != nil {
+		fuo.SetPath(*s)
+	}
 	return fuo
 }
 
@@ -498,17 +575,26 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 	if value, ok := fuo.mutation.Name(); ok {
 		_spec.SetField(file.FieldName, field.TypeString, value)
 	}
-	if value, ok := fuo.mutation.MimeType(); ok {
-		_spec.SetField(file.FieldMimeType, field.TypeString, value)
-	}
-	if value, ok := fuo.mutation.Disk(); ok {
-		_spec.SetField(file.FieldDisk, field.TypeString, value)
+	if value, ok := fuo.mutation.ContentType(); ok {
+		_spec.SetField(file.FieldContentType, field.TypeString, value)
 	}
 	if value, ok := fuo.mutation.Size(); ok {
 		_spec.SetField(file.FieldSize, field.TypeUint64, value)
 	}
 	if value, ok := fuo.mutation.AddedSize(); ok {
 		_spec.AddField(file.FieldSize, field.TypeUint64, value)
+	}
+	if value, ok := fuo.mutation.Location(); ok {
+		_spec.SetField(file.FieldLocation, field.TypeString, value)
+	}
+	if fuo.mutation.LocationCleared() {
+		_spec.ClearField(file.FieldLocation, field.TypeString)
+	}
+	if value, ok := fuo.mutation.Bucket(); ok {
+		_spec.SetField(file.FieldBucket, field.TypeString, value)
+	}
+	if value, ok := fuo.mutation.Path(); ok {
+		_spec.SetField(file.FieldPath, field.TypeString, value)
 	}
 	if value, ok := fuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(file.FieldUpdatedAt, field.TypeTime, value)

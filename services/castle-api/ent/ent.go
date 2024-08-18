@@ -15,7 +15,6 @@ import (
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/user"
 	"journeyhub/ent/usercontact"
-	"journeyhub/ent/userpincode"
 	"reflect"
 	"sync"
 
@@ -91,7 +90,6 @@ func checkColumn(table, column string) error {
 			roommember.Table:        roommember.ValidColumn,
 			user.Table:              user.ValidColumn,
 			usercontact.Table:       usercontact.ValidColumn,
-			userpincode.Table:       userpincode.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

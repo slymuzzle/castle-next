@@ -4,11 +4,11 @@ env "local" {
 
   // Define the URL of the database which is managed
   // in this environment.
-  url = "postgres://admin:123456@localhost:20082/castle?search_path=public&sslmode=disable"
+  url = "postgres://postgres:pass@localhost:5432/database?search_path=public&sslmode=disable"
 
   // Define the URL of the Dev Database for this environment
   // See: https://atlasgo.io/concepts/dev-database
-  dev = "postgres://admin:123456@localhost:20082/atlas?search_path=public&sslmode=disable"
+  dev = "docker://postgres/15/dev?search_path=public"
 
   migration {
     // URL where the migration directory resides.

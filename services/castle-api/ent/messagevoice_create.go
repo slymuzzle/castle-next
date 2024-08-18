@@ -27,12 +27,6 @@ type MessageVoiceCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetLength sets the "length" field.
-func (mvc *MessageVoiceCreate) SetLength(i int) *MessageVoiceCreate {
-	mvc.mutation.SetLength(i)
-	return mvc
-}
-
 // SetAttachedAt sets the "attached_at" field.
 func (mvc *MessageVoiceCreate) SetAttachedAt(t time.Time) *MessageVoiceCreate {
 	mvc.mutation.SetAttachedAt(t)
@@ -141,9 +135,6 @@ func (mvc *MessageVoiceCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (mvc *MessageVoiceCreate) check() error {
-	if _, ok := mvc.mutation.Length(); !ok {
-		return &ValidationError{Name: "length", err: errors.New(`ent: missing required field "MessageVoice.length"`)}
-	}
 	if _, ok := mvc.mutation.AttachedAt(); !ok {
 		return &ValidationError{Name: "attached_at", err: errors.New(`ent: missing required field "MessageVoice.attached_at"`)}
 	}
@@ -191,10 +182,6 @@ func (mvc *MessageVoiceCreate) createSpec() (*MessageVoice, *sqlgraph.CreateSpec
 	if id, ok := mvc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
-	}
-	if value, ok := mvc.mutation.Length(); ok {
-		_spec.SetField(messagevoice.FieldLength, field.TypeInt, value)
-		_node.Length = value
 	}
 	if value, ok := mvc.mutation.AttachedAt(); ok {
 		_spec.SetField(messagevoice.FieldAttachedAt, field.TypeTime, value)
@@ -258,7 +245,7 @@ func (mvc *MessageVoiceCreate) createSpec() (*MessageVoice, *sqlgraph.CreateSpec
 // of the `INSERT` statement. For example:
 //
 //	client.MessageVoice.Create().
-//		SetLength(v).
+//		SetAttachedAt(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -267,7 +254,7 @@ func (mvc *MessageVoiceCreate) createSpec() (*MessageVoice, *sqlgraph.CreateSpec
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.MessageVoiceUpsert) {
-//			SetLength(v+v).
+//			SetAttachedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (mvc *MessageVoiceCreate) OnConflict(opts ...sql.ConflictOption) *MessageVoiceUpsertOne {
@@ -302,24 +289,6 @@ type (
 		*sql.UpdateSet
 	}
 )
-
-// SetLength sets the "length" field.
-func (u *MessageVoiceUpsert) SetLength(v int) *MessageVoiceUpsert {
-	u.Set(messagevoice.FieldLength, v)
-	return u
-}
-
-// UpdateLength sets the "length" field to the value that was provided on create.
-func (u *MessageVoiceUpsert) UpdateLength() *MessageVoiceUpsert {
-	u.SetExcluded(messagevoice.FieldLength)
-	return u
-}
-
-// AddLength adds v to the "length" field.
-func (u *MessageVoiceUpsert) AddLength(v int) *MessageVoiceUpsert {
-	u.Add(messagevoice.FieldLength, v)
-	return u
-}
 
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
@@ -370,27 +339,6 @@ func (u *MessageVoiceUpsertOne) Update(set func(*MessageVoiceUpsert)) *MessageVo
 		set(&MessageVoiceUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetLength sets the "length" field.
-func (u *MessageVoiceUpsertOne) SetLength(v int) *MessageVoiceUpsertOne {
-	return u.Update(func(s *MessageVoiceUpsert) {
-		s.SetLength(v)
-	})
-}
-
-// AddLength adds v to the "length" field.
-func (u *MessageVoiceUpsertOne) AddLength(v int) *MessageVoiceUpsertOne {
-	return u.Update(func(s *MessageVoiceUpsert) {
-		s.AddLength(v)
-	})
-}
-
-// UpdateLength sets the "length" field to the value that was provided on create.
-func (u *MessageVoiceUpsertOne) UpdateLength() *MessageVoiceUpsertOne {
-	return u.Update(func(s *MessageVoiceUpsert) {
-		s.UpdateLength()
-	})
 }
 
 // Exec executes the query.
@@ -529,7 +477,7 @@ func (mvcb *MessageVoiceCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.MessageVoiceUpsert) {
-//			SetLength(v+v).
+//			SetAttachedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (mvcb *MessageVoiceCreateBulk) OnConflict(opts ...sql.ConflictOption) *MessageVoiceUpsertBulk {
@@ -609,27 +557,6 @@ func (u *MessageVoiceUpsertBulk) Update(set func(*MessageVoiceUpsert)) *MessageV
 		set(&MessageVoiceUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetLength sets the "length" field.
-func (u *MessageVoiceUpsertBulk) SetLength(v int) *MessageVoiceUpsertBulk {
-	return u.Update(func(s *MessageVoiceUpsert) {
-		s.SetLength(v)
-	})
-}
-
-// AddLength adds v to the "length" field.
-func (u *MessageVoiceUpsertBulk) AddLength(v int) *MessageVoiceUpsertBulk {
-	return u.Update(func(s *MessageVoiceUpsert) {
-		s.AddLength(v)
-	})
-}
-
-// UpdateLength sets the "length" field to the value that was provided on create.
-func (u *MessageVoiceUpsertBulk) UpdateLength() *MessageVoiceUpsertBulk {
-	return u.Update(func(s *MessageVoiceUpsert) {
-		s.UpdateLength()
-	})
 }
 
 // Exec executes the query.

@@ -732,8 +732,6 @@ func (ec *executionContext) fieldContext_Mutation_register(ctx context.Context, 
 				return ec.fieldContext_User_nickname(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
-			case "contactPin":
-				return ec.fieldContext_User_contactPin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -1188,7 +1186,7 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"targetUserID", "replyTo", "content"}
+	fieldsInOrder := [...]string{"targetUserID", "replyTo", "content", "files", "voice"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -1216,6 +1214,20 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 				return it, err
 			}
 			it.Content = data
+		case "files":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("files"))
+			data, err := ec.unmarshalOUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Files = data
+		case "voice":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("voice"))
+			data, err := ec.unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Voice = data
 		}
 	}
 

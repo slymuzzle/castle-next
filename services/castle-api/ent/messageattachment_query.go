@@ -374,12 +374,12 @@ func (maq *MessageAttachmentQuery) WithFile(opts ...func(*FileQuery)) *MessageAt
 // Example:
 //
 //	var v []struct {
-//		Type messageattachment.Type `json:"type,omitempty"`
+//		Order uint `json:"order,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.MessageAttachment.Query().
-//		GroupBy(messageattachment.FieldType).
+//		GroupBy(messageattachment.FieldOrder).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (maq *MessageAttachmentQuery) GroupBy(field string, fields ...string) *MessageAttachmentGroupBy {
@@ -397,11 +397,11 @@ func (maq *MessageAttachmentQuery) GroupBy(field string, fields ...string) *Mess
 // Example:
 //
 //	var v []struct {
-//		Type messageattachment.Type `json:"type,omitempty"`
+//		Order uint `json:"order,omitempty"`
 //	}
 //
 //	client.MessageAttachment.Query().
-//		Select(messageattachment.FieldType).
+//		Select(messageattachment.FieldOrder).
 //		Scan(ctx, &v)
 func (maq *MessageAttachmentQuery) Select(fields ...string) *MessageAttachmentSelect {
 	maq.ctx.Fields = append(maq.ctx.Fields, fields...)

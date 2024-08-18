@@ -21,8 +21,6 @@ type MessageAttachment struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID pulid.ID `json:"id,omitempty"`
-	// Type holds the value of the "type" field.
-	Type messageattachment.Type `json:"type,omitempty"`
 	// Order holds the value of the "order" field.
 	Order uint `json:"order,omitempty"`
 	// AttachedAt holds the value of the "attached_at" field.
@@ -93,8 +91,6 @@ func (*MessageAttachment) scanValues(columns []string) ([]any, error) {
 			values[i] = new(pulid.ID)
 		case messageattachment.FieldOrder:
 			values[i] = new(sql.NullInt64)
-		case messageattachment.FieldType:
-			values[i] = new(sql.NullString)
 		case messageattachment.FieldAttachedAt:
 			values[i] = new(sql.NullTime)
 		case messageattachment.ForeignKeys[0]: // file_message_attachment
@@ -123,12 +119,6 @@ func (ma *MessageAttachment) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				ma.ID = *value
-			}
-		case messageattachment.FieldType:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field type", values[i])
-			} else if value.Valid {
-				ma.Type = messageattachment.Type(value.String)
 			}
 		case messageattachment.FieldOrder:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -214,9 +204,6 @@ func (ma *MessageAttachment) String() string {
 	var builder strings.Builder
 	builder.WriteString("MessageAttachment(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ma.ID))
-	builder.WriteString("type=")
-	builder.WriteString(fmt.Sprintf("%v", ma.Type))
-	builder.WriteString(", ")
 	builder.WriteString("order=")
 	builder.WriteString(fmt.Sprintf("%v", ma.Order))
 	builder.WriteString(", ")

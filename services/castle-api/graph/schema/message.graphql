@@ -1,15 +1,12 @@
 """
-The Upload scalar type represents a multipart file upload.
-"""
-scalar Upload
-
-"""
 CreateMessageInput is used for create Message object.
 """
 input SendMessageInput {
   targetUserID: ID!
   replyTo: ID
   content: String!
+  files: [Upload!]
+  voice: Upload
 }
 
 """

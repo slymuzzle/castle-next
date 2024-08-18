@@ -22,12 +22,16 @@ type File struct {
 	ID pulid.ID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// MimeType holds the value of the "mime_type" field.
-	MimeType string `json:"mime_type,omitempty"`
-	// Disk holds the value of the "disk" field.
-	Disk string `json:"disk,omitempty"`
+	// ContentType holds the value of the "content_type" field.
+	ContentType string `json:"content_type,omitempty"`
 	// Size holds the value of the "size" field.
 	Size uint64 `json:"size,omitempty"`
+	// Location holds the value of the "location" field.
+	Location string `json:"location,omitempty"`
+	// Bucket holds the value of the "bucket" field.
+	Bucket string `json:"bucket,omitempty"`
+	// Path holds the value of the "path" field.
+	Path string `json:"path,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -82,7 +86,7 @@ func (*File) scanValues(columns []string) ([]any, error) {
 			values[i] = new(pulid.ID)
 		case file.FieldSize:
 			values[i] = new(sql.NullInt64)
-		case file.FieldName, file.FieldMimeType, file.FieldDisk:
+		case file.FieldName, file.FieldContentType, file.FieldLocation, file.FieldBucket, file.FieldPath:
 			values[i] = new(sql.NullString)
 		case file.FieldCreatedAt, file.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -113,23 +117,35 @@ func (f *File) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				f.Name = value.String
 			}
-		case file.FieldMimeType:
+		case file.FieldContentType:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field mime_type", values[i])
+				return fmt.Errorf("unexpected type %T for field content_type", values[i])
 			} else if value.Valid {
-				f.MimeType = value.String
-			}
-		case file.FieldDisk:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field disk", values[i])
-			} else if value.Valid {
-				f.Disk = value.String
+				f.ContentType = value.String
 			}
 		case file.FieldSize:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field size", values[i])
 			} else if value.Valid {
 				f.Size = uint64(value.Int64)
+			}
+		case file.FieldLocation:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field location", values[i])
+			} else if value.Valid {
+				f.Location = value.String
+			}
+		case file.FieldBucket:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field bucket", values[i])
+			} else if value.Valid {
+				f.Bucket = value.String
+			}
+		case file.FieldPath:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field path", values[i])
+			} else if value.Valid {
+				f.Path = value.String
 			}
 		case file.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -192,14 +208,20 @@ func (f *File) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(f.Name)
 	builder.WriteString(", ")
-	builder.WriteString("mime_type=")
-	builder.WriteString(f.MimeType)
-	builder.WriteString(", ")
-	builder.WriteString("disk=")
-	builder.WriteString(f.Disk)
+	builder.WriteString("content_type=")
+	builder.WriteString(f.ContentType)
 	builder.WriteString(", ")
 	builder.WriteString("size=")
 	builder.WriteString(fmt.Sprintf("%v", f.Size))
+	builder.WriteString(", ")
+	builder.WriteString("location=")
+	builder.WriteString(f.Location)
+	builder.WriteString(", ")
+	builder.WriteString("bucket=")
+	builder.WriteString(f.Bucket)
+	builder.WriteString(", ")
+	builder.WriteString("path=")
+	builder.WriteString(f.Path)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(f.CreatedAt.Format(time.ANSIC))

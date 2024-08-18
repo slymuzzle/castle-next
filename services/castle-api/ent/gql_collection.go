@@ -16,7 +16,6 @@ import (
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"journeyhub/ent/usercontact"
-	"journeyhub/ent/userpincode"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent/dialect/sql"
@@ -71,20 +70,30 @@ func (f *FileQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 				selectedFields = append(selectedFields, file.FieldName)
 				fieldSeen[file.FieldName] = struct{}{}
 			}
-		case "mimeType":
-			if _, ok := fieldSeen[file.FieldMimeType]; !ok {
-				selectedFields = append(selectedFields, file.FieldMimeType)
-				fieldSeen[file.FieldMimeType] = struct{}{}
-			}
-		case "disk":
-			if _, ok := fieldSeen[file.FieldDisk]; !ok {
-				selectedFields = append(selectedFields, file.FieldDisk)
-				fieldSeen[file.FieldDisk] = struct{}{}
+		case "contentType":
+			if _, ok := fieldSeen[file.FieldContentType]; !ok {
+				selectedFields = append(selectedFields, file.FieldContentType)
+				fieldSeen[file.FieldContentType] = struct{}{}
 			}
 		case "size":
 			if _, ok := fieldSeen[file.FieldSize]; !ok {
 				selectedFields = append(selectedFields, file.FieldSize)
 				fieldSeen[file.FieldSize] = struct{}{}
+			}
+		case "location":
+			if _, ok := fieldSeen[file.FieldLocation]; !ok {
+				selectedFields = append(selectedFields, file.FieldLocation)
+				fieldSeen[file.FieldLocation] = struct{}{}
+			}
+		case "bucket":
+			if _, ok := fieldSeen[file.FieldBucket]; !ok {
+				selectedFields = append(selectedFields, file.FieldBucket)
+				fieldSeen[file.FieldBucket] = struct{}{}
+			}
+		case "path":
+			if _, ok := fieldSeen[file.FieldPath]; !ok {
+				selectedFields = append(selectedFields, file.FieldPath)
+				fieldSeen[file.FieldPath] = struct{}{}
 			}
 		case "createdAt":
 			if _, ok := fieldSeen[file.FieldCreatedAt]; !ok {
@@ -388,11 +397,6 @@ func (ma *MessageAttachmentQuery) collectField(ctx context.Context, oneNode bool
 				return err
 			}
 			ma.withFile = query
-		case "type":
-			if _, ok := fieldSeen[messageattachment.FieldType]; !ok {
-				selectedFields = append(selectedFields, messageattachment.FieldType)
-				fieldSeen[messageattachment.FieldType] = struct{}{}
-			}
 		case "order":
 			if _, ok := fieldSeen[messageattachment.FieldOrder]; !ok {
 				selectedFields = append(selectedFields, messageattachment.FieldOrder)
@@ -641,11 +645,6 @@ func (mv *MessageVoiceQuery) collectField(ctx context.Context, oneNode bool, opC
 				return err
 			}
 			mv.withFile = query
-		case "length":
-			if _, ok := fieldSeen[messagevoice.FieldLength]; !ok {
-				selectedFields = append(selectedFields, messagevoice.FieldLength)
-				fieldSeen[messagevoice.FieldLength] = struct{}{}
-			}
 		case "attachedAt":
 			if _, ok := fieldSeen[messagevoice.FieldAttachedAt]; !ok {
 				selectedFields = append(selectedFields, messagevoice.FieldAttachedAt)
@@ -1996,11 +1995,6 @@ func (u *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 				selectedFields = append(selectedFields, user.FieldEmail)
 				fieldSeen[user.FieldEmail] = struct{}{}
 			}
-		case "contactPin":
-			if _, ok := fieldSeen[user.FieldContactPin]; !ok {
-				selectedFields = append(selectedFields, user.FieldContactPin)
-				fieldSeen[user.FieldContactPin] = struct{}{}
-			}
 		case "createdAt":
 			if _, ok := fieldSeen[user.FieldCreatedAt]; !ok {
 				selectedFields = append(selectedFields, user.FieldCreatedAt)
@@ -2225,155 +2219,6 @@ func newUserContactPaginateArgs(rv map[string]any) *usercontactPaginateArgs {
 	}
 	if v, ok := rv[whereField].(*UserContactWhereInput); ok {
 		args.opts = append(args.opts, WithUserContactFilter(v.Filter))
-	}
-	return args
-}
-
-// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (upc *UserPinCodeQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserPinCodeQuery, error) {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
-		return upc, nil
-	}
-	if err := upc.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
-		return nil, err
-	}
-	return upc, nil
-}
-
-func (upc *UserPinCodeQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
-	path = append([]string(nil), path...)
-	var (
-		unknownSeen    bool
-		fieldSeen      = make(map[string]struct{}, len(userpincode.Columns))
-		selectedFields = []string{userpincode.FieldID}
-	)
-	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
-		switch field.Name {
-
-		case "user":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = (&UserClient{config: upc.config}).Query()
-			)
-			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
-				return err
-			}
-			upc.withUser = query
-			if _, ok := fieldSeen[userpincode.FieldUserID]; !ok {
-				selectedFields = append(selectedFields, userpincode.FieldUserID)
-				fieldSeen[userpincode.FieldUserID] = struct{}{}
-			}
-
-		case "contact":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = (&UserClient{config: upc.config}).Query()
-			)
-			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
-				return err
-			}
-			upc.withContact = query
-			if _, ok := fieldSeen[userpincode.FieldContactID]; !ok {
-				selectedFields = append(selectedFields, userpincode.FieldContactID)
-				fieldSeen[userpincode.FieldContactID] = struct{}{}
-			}
-
-		case "room":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = (&RoomClient{config: upc.config}).Query()
-			)
-			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, roomImplementors)...); err != nil {
-				return err
-			}
-			upc.withRoom = query
-			if _, ok := fieldSeen[userpincode.FieldRoomID]; !ok {
-				selectedFields = append(selectedFields, userpincode.FieldRoomID)
-				fieldSeen[userpincode.FieldRoomID] = struct{}{}
-			}
-		case "userID":
-			if _, ok := fieldSeen[userpincode.FieldUserID]; !ok {
-				selectedFields = append(selectedFields, userpincode.FieldUserID)
-				fieldSeen[userpincode.FieldUserID] = struct{}{}
-			}
-		case "contactID":
-			if _, ok := fieldSeen[userpincode.FieldContactID]; !ok {
-				selectedFields = append(selectedFields, userpincode.FieldContactID)
-				fieldSeen[userpincode.FieldContactID] = struct{}{}
-			}
-		case "roomID":
-			if _, ok := fieldSeen[userpincode.FieldRoomID]; !ok {
-				selectedFields = append(selectedFields, userpincode.FieldRoomID)
-				fieldSeen[userpincode.FieldRoomID] = struct{}{}
-			}
-		case "createdAt":
-			if _, ok := fieldSeen[userpincode.FieldCreatedAt]; !ok {
-				selectedFields = append(selectedFields, userpincode.FieldCreatedAt)
-				fieldSeen[userpincode.FieldCreatedAt] = struct{}{}
-			}
-		case "id":
-		case "__typename":
-		default:
-			unknownSeen = true
-		}
-	}
-	if !unknownSeen {
-		upc.Select(selectedFields...)
-	}
-	return nil
-}
-
-type userpincodePaginateArgs struct {
-	first, last   *int
-	after, before *Cursor
-	opts          []UserPinCodePaginateOption
-}
-
-func newUserPinCodePaginateArgs(rv map[string]any) *userpincodePaginateArgs {
-	args := &userpincodePaginateArgs{}
-	if rv == nil {
-		return args
-	}
-	if v := rv[firstField]; v != nil {
-		args.first = v.(*int)
-	}
-	if v := rv[lastField]; v != nil {
-		args.last = v.(*int)
-	}
-	if v := rv[afterField]; v != nil {
-		args.after = v.(*Cursor)
-	}
-	if v := rv[beforeField]; v != nil {
-		args.before = v.(*Cursor)
-	}
-	if v, ok := rv[orderByField]; ok {
-		switch v := v.(type) {
-		case map[string]any:
-			var (
-				err1, err2 error
-				order      = &UserPinCodeOrder{Field: &UserPinCodeOrderField{}, Direction: entgql.OrderDirectionAsc}
-			)
-			if d, ok := v[directionField]; ok {
-				err1 = order.Direction.UnmarshalGQL(d)
-			}
-			if f, ok := v[fieldField]; ok {
-				err2 = order.Field.UnmarshalGQL(f)
-			}
-			if err1 == nil && err2 == nil {
-				args.opts = append(args.opts, WithUserPinCodeOrder(order))
-			}
-		case *UserPinCodeOrder:
-			if v != nil {
-				args.opts = append(args.opts, WithUserPinCodeOrder(v))
-			}
-		}
-	}
-	if v, ok := rv[whereField].(*UserPinCodeWhereInput); ok {
-		args.opts = append(args.opts, WithUserPinCodeFilter(v.Filter))
 	}
 	return args
 }

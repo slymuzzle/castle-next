@@ -2,8 +2,6 @@ package chat
 
 import (
 	"context"
-	"journeyhub/ent"
-	"journeyhub/ent/schema/pulid"
 	"time"
 
 	"github.com/go-kit/log"
@@ -21,27 +19,28 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 
 func (s *loggingService) SendMessage(
 	ctx context.Context,
-	currentUserID pulid.ID,
-	targetUserID pulid.ID,
-	replyTo pulid.ID,
-	content string,
-) (msg *ent.Message, err error) {
+	currentUserID ID,
+	input SendMessageInput,
+) (msg *Message, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "SendMessage",
 			"currentUserID", currentUserID,
-			"targetUserID", targetUserID,
-			"replyTo", replyTo,
-			"content", content,
+			"targetUserID", input.TargetUserID,
+			"replyTo", input.ReplyTo,
+			"content", input.Content,
+			"filesCount", len(input.Files),
 			"message", msg,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.SendMessage(ctx, currentUserID, targetUserID, replyTo, content)
+	return s.Service.SendMessage(ctx, currentUserID, input)
 }
 
-func (s *loggingService) SubscribeToMessageAddedEvent(roomID pulid.ID) (ch <-chan *ent.Message, err error) {
+func (s *loggingService) SubscribeToMessageAddedEvent(
+	roomID ID,
+) (ch <-chan *Message, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "SubscribeToMessageAddedEvent",
@@ -55,23 +54,25 @@ func (s *loggingService) SubscribeToMessageAddedEvent(roomID pulid.ID) (ch <-cha
 
 func (s *loggingService) UpdateMessage(
 	ctx context.Context,
-	messageID pulid.ID,
-	content string,
-) (msg *ent.Message, err error) {
+	messageID ID,
+	input UpdateMessageInput,
+) (msg *Message, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "UpdateMessage",
 			"messageID", messageID,
-			"content", content,
+			"content", input.Content,
 			"message", msg,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.UpdateMessage(ctx, messageID, content)
+	return s.Service.UpdateMessage(ctx, messageID, input)
 }
 
-func (s *loggingService) SubscribeToMessageUpdatedEvent(roomID pulid.ID) (ch <-chan *ent.Message, err error) {
+func (s *loggingService) SubscribeToMessageUpdatedEvent(
+	roomID ID,
+) (ch <-chan *Message, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "SubscribeToMessageUpdatedEvent",
@@ -85,8 +86,8 @@ func (s *loggingService) SubscribeToMessageUpdatedEvent(roomID pulid.ID) (ch <-c
 
 func (s *loggingService) DeleteMessage(
 	ctx context.Context,
-	messageID pulid.ID,
-) (msg *ent.Message, err error) {
+	messageID ID,
+) (msg *Message, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "DeleteMessage",
@@ -99,7 +100,9 @@ func (s *loggingService) DeleteMessage(
 	return s.Service.DeleteMessage(ctx, messageID)
 }
 
-func (s *loggingService) SubscribeToMessageDeletedEvent(roomID pulid.ID) (ch <-chan *ent.Message, err error) {
+func (s *loggingService) SubscribeToMessageDeletedEvent(
+	roomID ID,
+) (ch <-chan *Message, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "SubscribeToMessageDeletedEvent",

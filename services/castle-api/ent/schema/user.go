@@ -6,6 +6,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -45,9 +46,10 @@ func (User) Fields() []ent.Field {
 			Annotations(
 				entgql.OrderField("EMAIL"),
 			),
-		field.String("contact_pin").
-			Unique(),
+		// field.String("contact_pin").
+		// 	Unique(),
 		field.String("password").
+			Sensitive().
 			Annotations(
 				entgql.Skip(entgql.SkipAll),
 			),
@@ -82,6 +84,7 @@ func (User) Edges() []ent.Edge {
 			),
 		edge.To("messages", Message.Type).
 			Annotations(
+				entsql.OnDelete(entsql.Cascade),
 				entgql.RelayConnection(),
 			),
 	}

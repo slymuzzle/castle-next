@@ -60,12 +60,6 @@ func (uc *UserCreate) SetNillableEmail(s *string) *UserCreate {
 	return uc
 }
 
-// SetContactPin sets the "contact_pin" field.
-func (uc *UserCreate) SetContactPin(s string) *UserCreate {
-	uc.mutation.SetContactPin(s)
-	return uc
-}
-
 // SetPassword sets the "password" field.
 func (uc *UserCreate) SetPassword(s string) *UserCreate {
 	uc.mutation.SetPassword(s)
@@ -249,9 +243,6 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Nickname(); !ok {
 		return &ValidationError{Name: "nickname", err: errors.New(`ent: missing required field "User.nickname"`)}
 	}
-	if _, ok := uc.mutation.ContactPin(); !ok {
-		return &ValidationError{Name: "contact_pin", err: errors.New(`ent: missing required field "User.contact_pin"`)}
-	}
 	if _, ok := uc.mutation.Password(); !ok {
 		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "User.password"`)}
 	}
@@ -312,10 +303,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 		_node.Email = value
-	}
-	if value, ok := uc.mutation.ContactPin(); ok {
-		_spec.SetField(user.FieldContactPin, field.TypeString, value)
-		_node.ContactPin = value
 	}
 	if value, ok := uc.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
@@ -529,18 +516,6 @@ func (u *UserUpsert) ClearEmail() *UserUpsert {
 	return u
 }
 
-// SetContactPin sets the "contact_pin" field.
-func (u *UserUpsert) SetContactPin(v string) *UserUpsert {
-	u.Set(user.FieldContactPin, v)
-	return u
-}
-
-// UpdateContactPin sets the "contact_pin" field to the value that was provided on create.
-func (u *UserUpsert) UpdateContactPin() *UserUpsert {
-	u.SetExcluded(user.FieldContactPin)
-	return u
-}
-
 // SetPassword sets the "password" field.
 func (u *UserUpsert) SetPassword(v string) *UserUpsert {
 	u.Set(user.FieldPassword, v)
@@ -676,20 +651,6 @@ func (u *UserUpsertOne) UpdateEmail() *UserUpsertOne {
 func (u *UserUpsertOne) ClearEmail() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearEmail()
-	})
-}
-
-// SetContactPin sets the "contact_pin" field.
-func (u *UserUpsertOne) SetContactPin(v string) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetContactPin(v)
-	})
-}
-
-// UpdateContactPin sets the "contact_pin" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateContactPin() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateContactPin()
 	})
 }
 
@@ -999,20 +960,6 @@ func (u *UserUpsertBulk) UpdateEmail() *UserUpsertBulk {
 func (u *UserUpsertBulk) ClearEmail() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearEmail()
-	})
-}
-
-// SetContactPin sets the "contact_pin" field.
-func (u *UserUpsertBulk) SetContactPin(v string) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetContactPin(v)
-	})
-}
-
-// UpdateContactPin sets the "contact_pin" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateContactPin() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateContactPin()
 	})
 }
 

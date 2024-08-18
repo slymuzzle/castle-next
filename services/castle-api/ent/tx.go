@@ -30,8 +30,6 @@ type Tx struct {
 	User *UserClient
 	// UserContact is the client for interacting with the UserContact builders.
 	UserContact *UserContactClient
-	// UserPinCode is the client for interacting with the UserPinCode builders.
-	UserPinCode *UserPinCodeClient
 
 	// lazily loaded.
 	client     *Client
@@ -172,7 +170,6 @@ func (tx *Tx) init() {
 	tx.RoomMember = NewRoomMemberClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserContact = NewUserContactClient(tx.config)
-	tx.UserPinCode = NewUserPinCodeClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

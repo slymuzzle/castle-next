@@ -17,7 +17,6 @@ import (
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"journeyhub/ent/usercontact"
-	"journeyhub/ent/userpincode"
 	"sync"
 	"time"
 
@@ -43,7 +42,6 @@ const (
 	TypeRoomMember        = "RoomMember"
 	TypeUser              = "User"
 	TypeUserContact       = "UserContact"
-	TypeUserPinCode       = "UserPinCode"
 )
 
 // FileMutation represents an operation that mutates the File nodes in the graph.
@@ -53,10 +51,12 @@ type FileMutation struct {
 	typ                       string
 	id                        *pulid.ID
 	name                      *string
-	mime_type                 *string
-	disk                      *string
+	content_type              *string
 	size                      *uint64
 	addsize                   *int64
+	location                  *string
+	bucket                    *string
+	_path                     *string
 	created_at                *time.Time
 	updated_at                *time.Time
 	clearedFields             map[string]struct{}
@@ -209,76 +209,40 @@ func (m *FileMutation) ResetName() {
 	m.name = nil
 }
 
-// SetMimeType sets the "mime_type" field.
-func (m *FileMutation) SetMimeType(s string) {
-	m.mime_type = &s
+// SetContentType sets the "content_type" field.
+func (m *FileMutation) SetContentType(s string) {
+	m.content_type = &s
 }
 
-// MimeType returns the value of the "mime_type" field in the mutation.
-func (m *FileMutation) MimeType() (r string, exists bool) {
-	v := m.mime_type
+// ContentType returns the value of the "content_type" field in the mutation.
+func (m *FileMutation) ContentType() (r string, exists bool) {
+	v := m.content_type
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldMimeType returns the old "mime_type" field's value of the File entity.
+// OldContentType returns the old "content_type" field's value of the File entity.
 // If the File object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileMutation) OldMimeType(ctx context.Context) (v string, err error) {
+func (m *FileMutation) OldContentType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMimeType is only allowed on UpdateOne operations")
+		return v, errors.New("OldContentType is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMimeType requires an ID field in the mutation")
+		return v, errors.New("OldContentType requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMimeType: %w", err)
+		return v, fmt.Errorf("querying old value for OldContentType: %w", err)
 	}
-	return oldValue.MimeType, nil
+	return oldValue.ContentType, nil
 }
 
-// ResetMimeType resets all changes to the "mime_type" field.
-func (m *FileMutation) ResetMimeType() {
-	m.mime_type = nil
-}
-
-// SetDisk sets the "disk" field.
-func (m *FileMutation) SetDisk(s string) {
-	m.disk = &s
-}
-
-// Disk returns the value of the "disk" field in the mutation.
-func (m *FileMutation) Disk() (r string, exists bool) {
-	v := m.disk
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDisk returns the old "disk" field's value of the File entity.
-// If the File object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileMutation) OldDisk(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDisk is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDisk requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDisk: %w", err)
-	}
-	return oldValue.Disk, nil
-}
-
-// ResetDisk resets all changes to the "disk" field.
-func (m *FileMutation) ResetDisk() {
-	m.disk = nil
+// ResetContentType resets all changes to the "content_type" field.
+func (m *FileMutation) ResetContentType() {
+	m.content_type = nil
 }
 
 // SetSize sets the "size" field.
@@ -335,6 +299,127 @@ func (m *FileMutation) AddedSize() (r int64, exists bool) {
 func (m *FileMutation) ResetSize() {
 	m.size = nil
 	m.addsize = nil
+}
+
+// SetLocation sets the "location" field.
+func (m *FileMutation) SetLocation(s string) {
+	m.location = &s
+}
+
+// Location returns the value of the "location" field in the mutation.
+func (m *FileMutation) Location() (r string, exists bool) {
+	v := m.location
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocation returns the old "location" field's value of the File entity.
+// If the File object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileMutation) OldLocation(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocation: %w", err)
+	}
+	return oldValue.Location, nil
+}
+
+// ClearLocation clears the value of the "location" field.
+func (m *FileMutation) ClearLocation() {
+	m.location = nil
+	m.clearedFields[file.FieldLocation] = struct{}{}
+}
+
+// LocationCleared returns if the "location" field was cleared in this mutation.
+func (m *FileMutation) LocationCleared() bool {
+	_, ok := m.clearedFields[file.FieldLocation]
+	return ok
+}
+
+// ResetLocation resets all changes to the "location" field.
+func (m *FileMutation) ResetLocation() {
+	m.location = nil
+	delete(m.clearedFields, file.FieldLocation)
+}
+
+// SetBucket sets the "bucket" field.
+func (m *FileMutation) SetBucket(s string) {
+	m.bucket = &s
+}
+
+// Bucket returns the value of the "bucket" field in the mutation.
+func (m *FileMutation) Bucket() (r string, exists bool) {
+	v := m.bucket
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBucket returns the old "bucket" field's value of the File entity.
+// If the File object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileMutation) OldBucket(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBucket is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBucket requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBucket: %w", err)
+	}
+	return oldValue.Bucket, nil
+}
+
+// ResetBucket resets all changes to the "bucket" field.
+func (m *FileMutation) ResetBucket() {
+	m.bucket = nil
+}
+
+// SetPath sets the "path" field.
+func (m *FileMutation) SetPath(s string) {
+	m._path = &s
+}
+
+// Path returns the value of the "path" field in the mutation.
+func (m *FileMutation) Path() (r string, exists bool) {
+	v := m._path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPath returns the old "path" field's value of the File entity.
+// If the File object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileMutation) OldPath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPath: %w", err)
+	}
+	return oldValue.Path, nil
+}
+
+// ResetPath resets all changes to the "path" field.
+func (m *FileMutation) ResetPath() {
+	m._path = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -521,18 +606,24 @@ func (m *FileMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FileMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, file.FieldName)
 	}
-	if m.mime_type != nil {
-		fields = append(fields, file.FieldMimeType)
-	}
-	if m.disk != nil {
-		fields = append(fields, file.FieldDisk)
+	if m.content_type != nil {
+		fields = append(fields, file.FieldContentType)
 	}
 	if m.size != nil {
 		fields = append(fields, file.FieldSize)
+	}
+	if m.location != nil {
+		fields = append(fields, file.FieldLocation)
+	}
+	if m.bucket != nil {
+		fields = append(fields, file.FieldBucket)
+	}
+	if m._path != nil {
+		fields = append(fields, file.FieldPath)
 	}
 	if m.created_at != nil {
 		fields = append(fields, file.FieldCreatedAt)
@@ -550,12 +641,16 @@ func (m *FileMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case file.FieldName:
 		return m.Name()
-	case file.FieldMimeType:
-		return m.MimeType()
-	case file.FieldDisk:
-		return m.Disk()
+	case file.FieldContentType:
+		return m.ContentType()
 	case file.FieldSize:
 		return m.Size()
+	case file.FieldLocation:
+		return m.Location()
+	case file.FieldBucket:
+		return m.Bucket()
+	case file.FieldPath:
+		return m.Path()
 	case file.FieldCreatedAt:
 		return m.CreatedAt()
 	case file.FieldUpdatedAt:
@@ -571,12 +666,16 @@ func (m *FileMutation) OldField(ctx context.Context, name string) (ent.Value, er
 	switch name {
 	case file.FieldName:
 		return m.OldName(ctx)
-	case file.FieldMimeType:
-		return m.OldMimeType(ctx)
-	case file.FieldDisk:
-		return m.OldDisk(ctx)
+	case file.FieldContentType:
+		return m.OldContentType(ctx)
 	case file.FieldSize:
 		return m.OldSize(ctx)
+	case file.FieldLocation:
+		return m.OldLocation(ctx)
+	case file.FieldBucket:
+		return m.OldBucket(ctx)
+	case file.FieldPath:
+		return m.OldPath(ctx)
 	case file.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case file.FieldUpdatedAt:
@@ -597,19 +696,12 @@ func (m *FileMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetName(v)
 		return nil
-	case file.FieldMimeType:
+	case file.FieldContentType:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetMimeType(v)
-		return nil
-	case file.FieldDisk:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDisk(v)
+		m.SetContentType(v)
 		return nil
 	case file.FieldSize:
 		v, ok := value.(uint64)
@@ -617,6 +709,27 @@ func (m *FileMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSize(v)
+		return nil
+	case file.FieldLocation:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocation(v)
+		return nil
+	case file.FieldBucket:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBucket(v)
+		return nil
+	case file.FieldPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPath(v)
 		return nil
 	case file.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -676,7 +789,11 @@ func (m *FileMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *FileMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(file.FieldLocation) {
+		fields = append(fields, file.FieldLocation)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -689,6 +806,11 @@ func (m *FileMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *FileMutation) ClearField(name string) error {
+	switch name {
+	case file.FieldLocation:
+		m.ClearLocation()
+		return nil
+	}
 	return fmt.Errorf("unknown File nullable field %s", name)
 }
 
@@ -699,14 +821,20 @@ func (m *FileMutation) ResetField(name string) error {
 	case file.FieldName:
 		m.ResetName()
 		return nil
-	case file.FieldMimeType:
-		m.ResetMimeType()
-		return nil
-	case file.FieldDisk:
-		m.ResetDisk()
+	case file.FieldContentType:
+		m.ResetContentType()
 		return nil
 	case file.FieldSize:
 		m.ResetSize()
+		return nil
+	case file.FieldLocation:
+		m.ResetLocation()
+		return nil
+	case file.FieldBucket:
+		m.ResetBucket()
+		return nil
+	case file.FieldPath:
+		m.ResetPath()
 		return nil
 	case file.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -1668,7 +1796,6 @@ type MessageAttachmentMutation struct {
 	op             Op
 	typ            string
 	id             *pulid.ID
-	_type          *messageattachment.Type
 	_order         *uint
 	add_order      *int
 	attached_at    *time.Time
@@ -1786,42 +1913,6 @@ func (m *MessageAttachmentMutation) IDs(ctx context.Context) ([]pulid.ID, error)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetType sets the "type" field.
-func (m *MessageAttachmentMutation) SetType(value messageattachment.Type) {
-	m._type = &value
-}
-
-// GetType returns the value of the "type" field in the mutation.
-func (m *MessageAttachmentMutation) GetType() (r messageattachment.Type, exists bool) {
-	v := m._type
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldType returns the old "type" field's value of the MessageAttachment entity.
-// If the MessageAttachment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageAttachmentMutation) OldType(ctx context.Context) (v messageattachment.Type, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldType is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldType requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldType: %w", err)
-	}
-	return oldValue.Type, nil
-}
-
-// ResetType resets all changes to the "type" field.
-func (m *MessageAttachmentMutation) ResetType() {
-	m._type = nil
 }
 
 // SetOrder sets the "order" field.
@@ -2067,10 +2158,7 @@ func (m *MessageAttachmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MessageAttachmentMutation) Fields() []string {
-	fields := make([]string, 0, 3)
-	if m._type != nil {
-		fields = append(fields, messageattachment.FieldType)
-	}
+	fields := make([]string, 0, 2)
 	if m._order != nil {
 		fields = append(fields, messageattachment.FieldOrder)
 	}
@@ -2085,8 +2173,6 @@ func (m *MessageAttachmentMutation) Fields() []string {
 // schema.
 func (m *MessageAttachmentMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case messageattachment.FieldType:
-		return m.GetType()
 	case messageattachment.FieldOrder:
 		return m.Order()
 	case messageattachment.FieldAttachedAt:
@@ -2100,8 +2186,6 @@ func (m *MessageAttachmentMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *MessageAttachmentMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case messageattachment.FieldType:
-		return m.OldType(ctx)
 	case messageattachment.FieldOrder:
 		return m.OldOrder(ctx)
 	case messageattachment.FieldAttachedAt:
@@ -2115,13 +2199,6 @@ func (m *MessageAttachmentMutation) OldField(ctx context.Context, name string) (
 // type.
 func (m *MessageAttachmentMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case messageattachment.FieldType:
-		v, ok := value.(messageattachment.Type)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetType(v)
-		return nil
 	case messageattachment.FieldOrder:
 		v, ok := value.(uint)
 		if !ok {
@@ -2200,9 +2277,6 @@ func (m *MessageAttachmentMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *MessageAttachmentMutation) ResetField(name string) error {
 	switch name {
-	case messageattachment.FieldType:
-		m.ResetType()
-		return nil
 	case messageattachment.FieldOrder:
 		m.ResetOrder()
 		return nil
@@ -2895,8 +2969,6 @@ type MessageVoiceMutation struct {
 	op             Op
 	typ            string
 	id             *pulid.ID
-	length         *int
-	addlength      *int
 	attached_at    *time.Time
 	clearedFields  map[string]struct{}
 	room           *pulid.ID
@@ -3012,62 +3084,6 @@ func (m *MessageVoiceMutation) IDs(ctx context.Context) ([]pulid.ID, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetLength sets the "length" field.
-func (m *MessageVoiceMutation) SetLength(i int) {
-	m.length = &i
-	m.addlength = nil
-}
-
-// Length returns the value of the "length" field in the mutation.
-func (m *MessageVoiceMutation) Length() (r int, exists bool) {
-	v := m.length
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLength returns the old "length" field's value of the MessageVoice entity.
-// If the MessageVoice object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageVoiceMutation) OldLength(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLength is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLength requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLength: %w", err)
-	}
-	return oldValue.Length, nil
-}
-
-// AddLength adds i to the "length" field.
-func (m *MessageVoiceMutation) AddLength(i int) {
-	if m.addlength != nil {
-		*m.addlength += i
-	} else {
-		m.addlength = &i
-	}
-}
-
-// AddedLength returns the value that was added to the "length" field in this mutation.
-func (m *MessageVoiceMutation) AddedLength() (r int, exists bool) {
-	v := m.addlength
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetLength resets all changes to the "length" field.
-func (m *MessageVoiceMutation) ResetLength() {
-	m.length = nil
-	m.addlength = nil
 }
 
 // SetAttachedAt sets the "attached_at" field.
@@ -3257,10 +3273,7 @@ func (m *MessageVoiceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MessageVoiceMutation) Fields() []string {
-	fields := make([]string, 0, 2)
-	if m.length != nil {
-		fields = append(fields, messagevoice.FieldLength)
-	}
+	fields := make([]string, 0, 1)
 	if m.attached_at != nil {
 		fields = append(fields, messagevoice.FieldAttachedAt)
 	}
@@ -3272,8 +3285,6 @@ func (m *MessageVoiceMutation) Fields() []string {
 // schema.
 func (m *MessageVoiceMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case messagevoice.FieldLength:
-		return m.Length()
 	case messagevoice.FieldAttachedAt:
 		return m.AttachedAt()
 	}
@@ -3285,8 +3296,6 @@ func (m *MessageVoiceMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *MessageVoiceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case messagevoice.FieldLength:
-		return m.OldLength(ctx)
 	case messagevoice.FieldAttachedAt:
 		return m.OldAttachedAt(ctx)
 	}
@@ -3298,13 +3307,6 @@ func (m *MessageVoiceMutation) OldField(ctx context.Context, name string) (ent.V
 // type.
 func (m *MessageVoiceMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case messagevoice.FieldLength:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLength(v)
-		return nil
 	case messagevoice.FieldAttachedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -3319,21 +3321,13 @@ func (m *MessageVoiceMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *MessageVoiceMutation) AddedFields() []string {
-	var fields []string
-	if m.addlength != nil {
-		fields = append(fields, messagevoice.FieldLength)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *MessageVoiceMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case messagevoice.FieldLength:
-		return m.AddedLength()
-	}
 	return nil, false
 }
 
@@ -3342,13 +3336,6 @@ func (m *MessageVoiceMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *MessageVoiceMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case messagevoice.FieldLength:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddLength(v)
-		return nil
 	}
 	return fmt.Errorf("unknown MessageVoice numeric field %s", name)
 }
@@ -3376,9 +3363,6 @@ func (m *MessageVoiceMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *MessageVoiceMutation) ResetField(name string) error {
 	switch name {
-	case messagevoice.FieldLength:
-		m.ResetLength()
-		return nil
 	case messagevoice.FieldAttachedAt:
 		m.ResetAttachedAt()
 		return nil
@@ -5138,7 +5122,6 @@ type UserMutation struct {
 	last_name            *string
 	nickname             *string
 	email                *string
-	contact_pin          *string
 	password             *string
 	created_at           *time.Time
 	updated_at           *time.Time
@@ -5422,42 +5405,6 @@ func (m *UserMutation) EmailCleared() bool {
 func (m *UserMutation) ResetEmail() {
 	m.email = nil
 	delete(m.clearedFields, user.FieldEmail)
-}
-
-// SetContactPin sets the "contact_pin" field.
-func (m *UserMutation) SetContactPin(s string) {
-	m.contact_pin = &s
-}
-
-// ContactPin returns the value of the "contact_pin" field in the mutation.
-func (m *UserMutation) ContactPin() (r string, exists bool) {
-	v := m.contact_pin
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldContactPin returns the old "contact_pin" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldContactPin(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldContactPin is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldContactPin requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldContactPin: %w", err)
-	}
-	return oldValue.ContactPin, nil
-}
-
-// ResetContactPin resets all changes to the "contact_pin" field.
-func (m *UserMutation) ResetContactPin() {
-	m.contact_pin = nil
 }
 
 // SetPassword sets the "password" field.
@@ -5872,7 +5819,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 7)
 	if m.first_name != nil {
 		fields = append(fields, user.FieldFirstName)
 	}
@@ -5884,9 +5831,6 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
-	}
-	if m.contact_pin != nil {
-		fields = append(fields, user.FieldContactPin)
 	}
 	if m.password != nil {
 		fields = append(fields, user.FieldPassword)
@@ -5913,8 +5857,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Nickname()
 	case user.FieldEmail:
 		return m.Email()
-	case user.FieldContactPin:
-		return m.ContactPin()
 	case user.FieldPassword:
 		return m.Password()
 	case user.FieldCreatedAt:
@@ -5938,8 +5880,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldNickname(ctx)
 	case user.FieldEmail:
 		return m.OldEmail(ctx)
-	case user.FieldContactPin:
-		return m.OldContactPin(ctx)
 	case user.FieldPassword:
 		return m.OldPassword(ctx)
 	case user.FieldCreatedAt:
@@ -5982,13 +5922,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEmail(v)
-		return nil
-	case user.FieldContactPin:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetContactPin(v)
 		return nil
 	case user.FieldPassword:
 		v, ok := value.(string)
@@ -6080,9 +6013,6 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldEmail:
 		m.ResetEmail()
-		return nil
-	case user.FieldContactPin:
-		m.ResetContactPin()
 		return nil
 	case user.FieldPassword:
 		m.ResetPassword()
@@ -6945,666 +6875,4 @@ func (m *UserContactMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown UserContact edge %s", name)
-}
-
-// UserPinCodeMutation represents an operation that mutates the UserPinCode nodes in the graph.
-type UserPinCodeMutation struct {
-	config
-	op             Op
-	typ            string
-	id             *pulid.ID
-	created_at     *time.Time
-	clearedFields  map[string]struct{}
-	user           *pulid.ID
-	cleareduser    bool
-	contact        *pulid.ID
-	clearedcontact bool
-	room           *pulid.ID
-	clearedroom    bool
-	done           bool
-	oldValue       func(context.Context) (*UserPinCode, error)
-	predicates     []predicate.UserPinCode
-}
-
-var _ ent.Mutation = (*UserPinCodeMutation)(nil)
-
-// userpincodeOption allows management of the mutation configuration using functional options.
-type userpincodeOption func(*UserPinCodeMutation)
-
-// newUserPinCodeMutation creates new mutation for the UserPinCode entity.
-func newUserPinCodeMutation(c config, op Op, opts ...userpincodeOption) *UserPinCodeMutation {
-	m := &UserPinCodeMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeUserPinCode,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withUserPinCodeID sets the ID field of the mutation.
-func withUserPinCodeID(id pulid.ID) userpincodeOption {
-	return func(m *UserPinCodeMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *UserPinCode
-		)
-		m.oldValue = func(ctx context.Context) (*UserPinCode, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().UserPinCode.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withUserPinCode sets the old UserPinCode of the mutation.
-func withUserPinCode(node *UserPinCode) userpincodeOption {
-	return func(m *UserPinCodeMutation) {
-		m.oldValue = func(context.Context) (*UserPinCode, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m UserPinCodeMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m UserPinCodeMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of UserPinCode entities.
-func (m *UserPinCodeMutation) SetID(id pulid.ID) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *UserPinCodeMutation) ID() (id pulid.ID, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *UserPinCodeMutation) IDs(ctx context.Context) ([]pulid.ID, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []pulid.ID{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().UserPinCode.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetUserID sets the "user_id" field.
-func (m *UserPinCodeMutation) SetUserID(pu pulid.ID) {
-	m.user = &pu
-}
-
-// UserID returns the value of the "user_id" field in the mutation.
-func (m *UserPinCodeMutation) UserID() (r pulid.ID, exists bool) {
-	v := m.user
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserID returns the old "user_id" field's value of the UserPinCode entity.
-// If the UserPinCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserPinCodeMutation) OldUserID(ctx context.Context) (v pulid.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
-	}
-	return oldValue.UserID, nil
-}
-
-// ResetUserID resets all changes to the "user_id" field.
-func (m *UserPinCodeMutation) ResetUserID() {
-	m.user = nil
-}
-
-// SetContactID sets the "contact_id" field.
-func (m *UserPinCodeMutation) SetContactID(pu pulid.ID) {
-	m.contact = &pu
-}
-
-// ContactID returns the value of the "contact_id" field in the mutation.
-func (m *UserPinCodeMutation) ContactID() (r pulid.ID, exists bool) {
-	v := m.contact
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldContactID returns the old "contact_id" field's value of the UserPinCode entity.
-// If the UserPinCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserPinCodeMutation) OldContactID(ctx context.Context) (v pulid.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldContactID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldContactID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldContactID: %w", err)
-	}
-	return oldValue.ContactID, nil
-}
-
-// ResetContactID resets all changes to the "contact_id" field.
-func (m *UserPinCodeMutation) ResetContactID() {
-	m.contact = nil
-}
-
-// SetRoomID sets the "room_id" field.
-func (m *UserPinCodeMutation) SetRoomID(pu pulid.ID) {
-	m.room = &pu
-}
-
-// RoomID returns the value of the "room_id" field in the mutation.
-func (m *UserPinCodeMutation) RoomID() (r pulid.ID, exists bool) {
-	v := m.room
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRoomID returns the old "room_id" field's value of the UserPinCode entity.
-// If the UserPinCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserPinCodeMutation) OldRoomID(ctx context.Context) (v pulid.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRoomID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRoomID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRoomID: %w", err)
-	}
-	return oldValue.RoomID, nil
-}
-
-// ClearRoomID clears the value of the "room_id" field.
-func (m *UserPinCodeMutation) ClearRoomID() {
-	m.room = nil
-	m.clearedFields[userpincode.FieldRoomID] = struct{}{}
-}
-
-// RoomIDCleared returns if the "room_id" field was cleared in this mutation.
-func (m *UserPinCodeMutation) RoomIDCleared() bool {
-	_, ok := m.clearedFields[userpincode.FieldRoomID]
-	return ok
-}
-
-// ResetRoomID resets all changes to the "room_id" field.
-func (m *UserPinCodeMutation) ResetRoomID() {
-	m.room = nil
-	delete(m.clearedFields, userpincode.FieldRoomID)
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *UserPinCodeMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *UserPinCodeMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the UserPinCode entity.
-// If the UserPinCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserPinCodeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *UserPinCodeMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (m *UserPinCodeMutation) ClearUser() {
-	m.cleareduser = true
-	m.clearedFields[userpincode.FieldUserID] = struct{}{}
-}
-
-// UserCleared reports if the "user" edge to the User entity was cleared.
-func (m *UserPinCodeMutation) UserCleared() bool {
-	return m.cleareduser
-}
-
-// UserIDs returns the "user" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// UserID instead. It exists only for internal usage by the builders.
-func (m *UserPinCodeMutation) UserIDs() (ids []pulid.ID) {
-	if id := m.user; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetUser resets all changes to the "user" edge.
-func (m *UserPinCodeMutation) ResetUser() {
-	m.user = nil
-	m.cleareduser = false
-}
-
-// ClearContact clears the "contact" edge to the User entity.
-func (m *UserPinCodeMutation) ClearContact() {
-	m.clearedcontact = true
-	m.clearedFields[userpincode.FieldContactID] = struct{}{}
-}
-
-// ContactCleared reports if the "contact" edge to the User entity was cleared.
-func (m *UserPinCodeMutation) ContactCleared() bool {
-	return m.clearedcontact
-}
-
-// ContactIDs returns the "contact" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ContactID instead. It exists only for internal usage by the builders.
-func (m *UserPinCodeMutation) ContactIDs() (ids []pulid.ID) {
-	if id := m.contact; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetContact resets all changes to the "contact" edge.
-func (m *UserPinCodeMutation) ResetContact() {
-	m.contact = nil
-	m.clearedcontact = false
-}
-
-// ClearRoom clears the "room" edge to the Room entity.
-func (m *UserPinCodeMutation) ClearRoom() {
-	m.clearedroom = true
-	m.clearedFields[userpincode.FieldRoomID] = struct{}{}
-}
-
-// RoomCleared reports if the "room" edge to the Room entity was cleared.
-func (m *UserPinCodeMutation) RoomCleared() bool {
-	return m.RoomIDCleared() || m.clearedroom
-}
-
-// RoomIDs returns the "room" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// RoomID instead. It exists only for internal usage by the builders.
-func (m *UserPinCodeMutation) RoomIDs() (ids []pulid.ID) {
-	if id := m.room; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetRoom resets all changes to the "room" edge.
-func (m *UserPinCodeMutation) ResetRoom() {
-	m.room = nil
-	m.clearedroom = false
-}
-
-// Where appends a list predicates to the UserPinCodeMutation builder.
-func (m *UserPinCodeMutation) Where(ps ...predicate.UserPinCode) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the UserPinCodeMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *UserPinCodeMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.UserPinCode, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *UserPinCodeMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *UserPinCodeMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (UserPinCode).
-func (m *UserPinCodeMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *UserPinCodeMutation) Fields() []string {
-	fields := make([]string, 0, 4)
-	if m.user != nil {
-		fields = append(fields, userpincode.FieldUserID)
-	}
-	if m.contact != nil {
-		fields = append(fields, userpincode.FieldContactID)
-	}
-	if m.room != nil {
-		fields = append(fields, userpincode.FieldRoomID)
-	}
-	if m.created_at != nil {
-		fields = append(fields, userpincode.FieldCreatedAt)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *UserPinCodeMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case userpincode.FieldUserID:
-		return m.UserID()
-	case userpincode.FieldContactID:
-		return m.ContactID()
-	case userpincode.FieldRoomID:
-		return m.RoomID()
-	case userpincode.FieldCreatedAt:
-		return m.CreatedAt()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *UserPinCodeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case userpincode.FieldUserID:
-		return m.OldUserID(ctx)
-	case userpincode.FieldContactID:
-		return m.OldContactID(ctx)
-	case userpincode.FieldRoomID:
-		return m.OldRoomID(ctx)
-	case userpincode.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	}
-	return nil, fmt.Errorf("unknown UserPinCode field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *UserPinCodeMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case userpincode.FieldUserID:
-		v, ok := value.(pulid.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserID(v)
-		return nil
-	case userpincode.FieldContactID:
-		v, ok := value.(pulid.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetContactID(v)
-		return nil
-	case userpincode.FieldRoomID:
-		v, ok := value.(pulid.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRoomID(v)
-		return nil
-	case userpincode.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	}
-	return fmt.Errorf("unknown UserPinCode field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *UserPinCodeMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *UserPinCodeMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *UserPinCodeMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown UserPinCode numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *UserPinCodeMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(userpincode.FieldRoomID) {
-		fields = append(fields, userpincode.FieldRoomID)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *UserPinCodeMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *UserPinCodeMutation) ClearField(name string) error {
-	switch name {
-	case userpincode.FieldRoomID:
-		m.ClearRoomID()
-		return nil
-	}
-	return fmt.Errorf("unknown UserPinCode nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *UserPinCodeMutation) ResetField(name string) error {
-	switch name {
-	case userpincode.FieldUserID:
-		m.ResetUserID()
-		return nil
-	case userpincode.FieldContactID:
-		m.ResetContactID()
-		return nil
-	case userpincode.FieldRoomID:
-		m.ResetRoomID()
-		return nil
-	case userpincode.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown UserPinCode field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *UserPinCodeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.user != nil {
-		edges = append(edges, userpincode.EdgeUser)
-	}
-	if m.contact != nil {
-		edges = append(edges, userpincode.EdgeContact)
-	}
-	if m.room != nil {
-		edges = append(edges, userpincode.EdgeRoom)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *UserPinCodeMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case userpincode.EdgeUser:
-		if id := m.user; id != nil {
-			return []ent.Value{*id}
-		}
-	case userpincode.EdgeContact:
-		if id := m.contact; id != nil {
-			return []ent.Value{*id}
-		}
-	case userpincode.EdgeRoom:
-		if id := m.room; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *UserPinCodeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *UserPinCodeMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *UserPinCodeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.cleareduser {
-		edges = append(edges, userpincode.EdgeUser)
-	}
-	if m.clearedcontact {
-		edges = append(edges, userpincode.EdgeContact)
-	}
-	if m.clearedroom {
-		edges = append(edges, userpincode.EdgeRoom)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *UserPinCodeMutation) EdgeCleared(name string) bool {
-	switch name {
-	case userpincode.EdgeUser:
-		return m.cleareduser
-	case userpincode.EdgeContact:
-		return m.clearedcontact
-	case userpincode.EdgeRoom:
-		return m.clearedroom
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *UserPinCodeMutation) ClearEdge(name string) error {
-	switch name {
-	case userpincode.EdgeUser:
-		m.ClearUser()
-		return nil
-	case userpincode.EdgeContact:
-		m.ClearContact()
-		return nil
-	case userpincode.EdgeRoom:
-		m.ClearRoom()
-		return nil
-	}
-	return fmt.Errorf("unknown UserPinCode unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *UserPinCodeMutation) ResetEdge(name string) error {
-	switch name {
-	case userpincode.EdgeUser:
-		m.ResetUser()
-		return nil
-	case userpincode.EdgeContact:
-		m.ResetContact()
-		return nil
-	case userpincode.EdgeRoom:
-		m.ResetRoom()
-		return nil
-	}
-	return fmt.Errorf("unknown UserPinCode edge %s", name)
 }

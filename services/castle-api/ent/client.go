@@ -21,7 +21,6 @@ import (
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/user"
 	"journeyhub/ent/usercontact"
-	"journeyhub/ent/userpincode"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -52,8 +51,6 @@ type Client struct {
 	User *UserClient
 	// UserContact is the client for interacting with the UserContact builders.
 	UserContact *UserContactClient
-	// UserPinCode is the client for interacting with the UserPinCode builders.
-	UserPinCode *UserPinCodeClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -74,7 +71,6 @@ func (c *Client) init() {
 	c.RoomMember = NewRoomMemberClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserContact = NewUserContactClient(c.config)
-	c.UserPinCode = NewUserPinCodeClient(c.config)
 }
 
 type (
@@ -176,7 +172,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		RoomMember:        NewRoomMemberClient(cfg),
 		User:              NewUserClient(cfg),
 		UserContact:       NewUserContactClient(cfg),
-		UserPinCode:       NewUserPinCodeClient(cfg),
 	}, nil
 }
 
@@ -205,7 +200,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		RoomMember:        NewRoomMemberClient(cfg),
 		User:              NewUserClient(cfg),
 		UserContact:       NewUserContactClient(cfg),
-		UserPinCode:       NewUserPinCodeClient(cfg),
 	}, nil
 }
 
@@ -236,7 +230,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.File, c.Message, c.MessageAttachment, c.MessageLink, c.MessageVoice, c.Room,
-		c.RoomMember, c.User, c.UserContact, c.UserPinCode,
+		c.RoomMember, c.User, c.UserContact,
 	} {
 		n.Use(hooks...)
 	}
@@ -247,7 +241,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.File, c.Message, c.MessageAttachment, c.MessageLink, c.MessageVoice, c.Room,
-		c.RoomMember, c.User, c.UserContact, c.UserPinCode,
+		c.RoomMember, c.User, c.UserContact,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -274,8 +268,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	case *UserContactMutation:
 		return c.UserContact.mutate(ctx, m)
-	case *UserPinCodeMutation:
-		return c.UserPinCode.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -1990,195 +1982,14 @@ func (c *UserContactClient) mutate(ctx context.Context, m *UserContactMutation) 
 	}
 }
 
-// UserPinCodeClient is a client for the UserPinCode schema.
-type UserPinCodeClient struct {
-	config
-}
-
-// NewUserPinCodeClient returns a client for the UserPinCode from the given config.
-func NewUserPinCodeClient(c config) *UserPinCodeClient {
-	return &UserPinCodeClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `userpincode.Hooks(f(g(h())))`.
-func (c *UserPinCodeClient) Use(hooks ...Hook) {
-	c.hooks.UserPinCode = append(c.hooks.UserPinCode, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `userpincode.Intercept(f(g(h())))`.
-func (c *UserPinCodeClient) Intercept(interceptors ...Interceptor) {
-	c.inters.UserPinCode = append(c.inters.UserPinCode, interceptors...)
-}
-
-// Create returns a builder for creating a UserPinCode entity.
-func (c *UserPinCodeClient) Create() *UserPinCodeCreate {
-	mutation := newUserPinCodeMutation(c.config, OpCreate)
-	return &UserPinCodeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of UserPinCode entities.
-func (c *UserPinCodeClient) CreateBulk(builders ...*UserPinCodeCreate) *UserPinCodeCreateBulk {
-	return &UserPinCodeCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *UserPinCodeClient) MapCreateBulk(slice any, setFunc func(*UserPinCodeCreate, int)) *UserPinCodeCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &UserPinCodeCreateBulk{err: fmt.Errorf("calling to UserPinCodeClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*UserPinCodeCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &UserPinCodeCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for UserPinCode.
-func (c *UserPinCodeClient) Update() *UserPinCodeUpdate {
-	mutation := newUserPinCodeMutation(c.config, OpUpdate)
-	return &UserPinCodeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *UserPinCodeClient) UpdateOne(upc *UserPinCode) *UserPinCodeUpdateOne {
-	mutation := newUserPinCodeMutation(c.config, OpUpdateOne, withUserPinCode(upc))
-	return &UserPinCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *UserPinCodeClient) UpdateOneID(id pulid.ID) *UserPinCodeUpdateOne {
-	mutation := newUserPinCodeMutation(c.config, OpUpdateOne, withUserPinCodeID(id))
-	return &UserPinCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for UserPinCode.
-func (c *UserPinCodeClient) Delete() *UserPinCodeDelete {
-	mutation := newUserPinCodeMutation(c.config, OpDelete)
-	return &UserPinCodeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *UserPinCodeClient) DeleteOne(upc *UserPinCode) *UserPinCodeDeleteOne {
-	return c.DeleteOneID(upc.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *UserPinCodeClient) DeleteOneID(id pulid.ID) *UserPinCodeDeleteOne {
-	builder := c.Delete().Where(userpincode.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &UserPinCodeDeleteOne{builder}
-}
-
-// Query returns a query builder for UserPinCode.
-func (c *UserPinCodeClient) Query() *UserPinCodeQuery {
-	return &UserPinCodeQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeUserPinCode},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a UserPinCode entity by its id.
-func (c *UserPinCodeClient) Get(ctx context.Context, id pulid.ID) (*UserPinCode, error) {
-	return c.Query().Where(userpincode.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *UserPinCodeClient) GetX(ctx context.Context, id pulid.ID) *UserPinCode {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryUser queries the user edge of a UserPinCode.
-func (c *UserPinCodeClient) QueryUser(upc *UserPinCode) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := upc.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(userpincode.Table, userpincode.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, userpincode.UserTable, userpincode.UserColumn),
-		)
-		fromV = sqlgraph.Neighbors(upc.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryContact queries the contact edge of a UserPinCode.
-func (c *UserPinCodeClient) QueryContact(upc *UserPinCode) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := upc.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(userpincode.Table, userpincode.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, userpincode.ContactTable, userpincode.ContactColumn),
-		)
-		fromV = sqlgraph.Neighbors(upc.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryRoom queries the room edge of a UserPinCode.
-func (c *UserPinCodeClient) QueryRoom(upc *UserPinCode) *RoomQuery {
-	query := (&RoomClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := upc.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(userpincode.Table, userpincode.FieldID, id),
-			sqlgraph.To(room.Table, room.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, userpincode.RoomTable, userpincode.RoomColumn),
-		)
-		fromV = sqlgraph.Neighbors(upc.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *UserPinCodeClient) Hooks() []Hook {
-	return c.hooks.UserPinCode
-}
-
-// Interceptors returns the client interceptors.
-func (c *UserPinCodeClient) Interceptors() []Interceptor {
-	return c.inters.UserPinCode
-}
-
-func (c *UserPinCodeClient) mutate(ctx context.Context, m *UserPinCodeMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&UserPinCodeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&UserPinCodeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&UserPinCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&UserPinCodeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown UserPinCode mutation op: %q", m.Op())
-	}
-}
-
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
 		File, Message, MessageAttachment, MessageLink, MessageVoice, Room, RoomMember,
-		User, UserContact, UserPinCode []ent.Hook
+		User, UserContact []ent.Hook
 	}
 	inters struct {
 		File, Message, MessageAttachment, MessageLink, MessageVoice, Room, RoomMember,
-		User, UserContact, UserPinCode []ent.Interceptor
+		User, UserContact []ent.Interceptor
 	}
 )

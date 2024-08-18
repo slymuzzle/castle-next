@@ -32,21 +32,41 @@ func (fc *FileCreate) SetName(s string) *FileCreate {
 	return fc
 }
 
-// SetMimeType sets the "mime_type" field.
-func (fc *FileCreate) SetMimeType(s string) *FileCreate {
-	fc.mutation.SetMimeType(s)
-	return fc
-}
-
-// SetDisk sets the "disk" field.
-func (fc *FileCreate) SetDisk(s string) *FileCreate {
-	fc.mutation.SetDisk(s)
+// SetContentType sets the "content_type" field.
+func (fc *FileCreate) SetContentType(s string) *FileCreate {
+	fc.mutation.SetContentType(s)
 	return fc
 }
 
 // SetSize sets the "size" field.
 func (fc *FileCreate) SetSize(u uint64) *FileCreate {
 	fc.mutation.SetSize(u)
+	return fc
+}
+
+// SetLocation sets the "location" field.
+func (fc *FileCreate) SetLocation(s string) *FileCreate {
+	fc.mutation.SetLocation(s)
+	return fc
+}
+
+// SetNillableLocation sets the "location" field if the given value is not nil.
+func (fc *FileCreate) SetNillableLocation(s *string) *FileCreate {
+	if s != nil {
+		fc.SetLocation(*s)
+	}
+	return fc
+}
+
+// SetBucket sets the "bucket" field.
+func (fc *FileCreate) SetBucket(s string) *FileCreate {
+	fc.mutation.SetBucket(s)
+	return fc
+}
+
+// SetPath sets the "path" field.
+func (fc *FileCreate) SetPath(s string) *FileCreate {
+	fc.mutation.SetPath(s)
 	return fc
 }
 
@@ -184,14 +204,17 @@ func (fc *FileCreate) check() error {
 	if _, ok := fc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "File.name"`)}
 	}
-	if _, ok := fc.mutation.MimeType(); !ok {
-		return &ValidationError{Name: "mime_type", err: errors.New(`ent: missing required field "File.mime_type"`)}
-	}
-	if _, ok := fc.mutation.Disk(); !ok {
-		return &ValidationError{Name: "disk", err: errors.New(`ent: missing required field "File.disk"`)}
+	if _, ok := fc.mutation.ContentType(); !ok {
+		return &ValidationError{Name: "content_type", err: errors.New(`ent: missing required field "File.content_type"`)}
 	}
 	if _, ok := fc.mutation.Size(); !ok {
 		return &ValidationError{Name: "size", err: errors.New(`ent: missing required field "File.size"`)}
+	}
+	if _, ok := fc.mutation.Bucket(); !ok {
+		return &ValidationError{Name: "bucket", err: errors.New(`ent: missing required field "File.bucket"`)}
+	}
+	if _, ok := fc.mutation.Path(); !ok {
+		return &ValidationError{Name: "path", err: errors.New(`ent: missing required field "File.path"`)}
 	}
 	if _, ok := fc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "File.created_at"`)}
@@ -239,17 +262,25 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 		_spec.SetField(file.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := fc.mutation.MimeType(); ok {
-		_spec.SetField(file.FieldMimeType, field.TypeString, value)
-		_node.MimeType = value
-	}
-	if value, ok := fc.mutation.Disk(); ok {
-		_spec.SetField(file.FieldDisk, field.TypeString, value)
-		_node.Disk = value
+	if value, ok := fc.mutation.ContentType(); ok {
+		_spec.SetField(file.FieldContentType, field.TypeString, value)
+		_node.ContentType = value
 	}
 	if value, ok := fc.mutation.Size(); ok {
 		_spec.SetField(file.FieldSize, field.TypeUint64, value)
 		_node.Size = value
+	}
+	if value, ok := fc.mutation.Location(); ok {
+		_spec.SetField(file.FieldLocation, field.TypeString, value)
+		_node.Location = value
+	}
+	if value, ok := fc.mutation.Bucket(); ok {
+		_spec.SetField(file.FieldBucket, field.TypeString, value)
+		_node.Bucket = value
+	}
+	if value, ok := fc.mutation.Path(); ok {
+		_spec.SetField(file.FieldPath, field.TypeString, value)
+		_node.Path = value
 	}
 	if value, ok := fc.mutation.CreatedAt(); ok {
 		_spec.SetField(file.FieldCreatedAt, field.TypeTime, value)
@@ -355,27 +386,15 @@ func (u *FileUpsert) UpdateName() *FileUpsert {
 	return u
 }
 
-// SetMimeType sets the "mime_type" field.
-func (u *FileUpsert) SetMimeType(v string) *FileUpsert {
-	u.Set(file.FieldMimeType, v)
+// SetContentType sets the "content_type" field.
+func (u *FileUpsert) SetContentType(v string) *FileUpsert {
+	u.Set(file.FieldContentType, v)
 	return u
 }
 
-// UpdateMimeType sets the "mime_type" field to the value that was provided on create.
-func (u *FileUpsert) UpdateMimeType() *FileUpsert {
-	u.SetExcluded(file.FieldMimeType)
-	return u
-}
-
-// SetDisk sets the "disk" field.
-func (u *FileUpsert) SetDisk(v string) *FileUpsert {
-	u.Set(file.FieldDisk, v)
-	return u
-}
-
-// UpdateDisk sets the "disk" field to the value that was provided on create.
-func (u *FileUpsert) UpdateDisk() *FileUpsert {
-	u.SetExcluded(file.FieldDisk)
+// UpdateContentType sets the "content_type" field to the value that was provided on create.
+func (u *FileUpsert) UpdateContentType() *FileUpsert {
+	u.SetExcluded(file.FieldContentType)
 	return u
 }
 
@@ -394,6 +413,48 @@ func (u *FileUpsert) UpdateSize() *FileUpsert {
 // AddSize adds v to the "size" field.
 func (u *FileUpsert) AddSize(v uint64) *FileUpsert {
 	u.Add(file.FieldSize, v)
+	return u
+}
+
+// SetLocation sets the "location" field.
+func (u *FileUpsert) SetLocation(v string) *FileUpsert {
+	u.Set(file.FieldLocation, v)
+	return u
+}
+
+// UpdateLocation sets the "location" field to the value that was provided on create.
+func (u *FileUpsert) UpdateLocation() *FileUpsert {
+	u.SetExcluded(file.FieldLocation)
+	return u
+}
+
+// ClearLocation clears the value of the "location" field.
+func (u *FileUpsert) ClearLocation() *FileUpsert {
+	u.SetNull(file.FieldLocation)
+	return u
+}
+
+// SetBucket sets the "bucket" field.
+func (u *FileUpsert) SetBucket(v string) *FileUpsert {
+	u.Set(file.FieldBucket, v)
+	return u
+}
+
+// UpdateBucket sets the "bucket" field to the value that was provided on create.
+func (u *FileUpsert) UpdateBucket() *FileUpsert {
+	u.SetExcluded(file.FieldBucket)
+	return u
+}
+
+// SetPath sets the "path" field.
+func (u *FileUpsert) SetPath(v string) *FileUpsert {
+	u.Set(file.FieldPath, v)
+	return u
+}
+
+// UpdatePath sets the "path" field to the value that was provided on create.
+func (u *FileUpsert) UpdatePath() *FileUpsert {
+	u.SetExcluded(file.FieldPath)
 	return u
 }
 
@@ -474,31 +535,17 @@ func (u *FileUpsertOne) UpdateName() *FileUpsertOne {
 	})
 }
 
-// SetMimeType sets the "mime_type" field.
-func (u *FileUpsertOne) SetMimeType(v string) *FileUpsertOne {
+// SetContentType sets the "content_type" field.
+func (u *FileUpsertOne) SetContentType(v string) *FileUpsertOne {
 	return u.Update(func(s *FileUpsert) {
-		s.SetMimeType(v)
+		s.SetContentType(v)
 	})
 }
 
-// UpdateMimeType sets the "mime_type" field to the value that was provided on create.
-func (u *FileUpsertOne) UpdateMimeType() *FileUpsertOne {
+// UpdateContentType sets the "content_type" field to the value that was provided on create.
+func (u *FileUpsertOne) UpdateContentType() *FileUpsertOne {
 	return u.Update(func(s *FileUpsert) {
-		s.UpdateMimeType()
-	})
-}
-
-// SetDisk sets the "disk" field.
-func (u *FileUpsertOne) SetDisk(v string) *FileUpsertOne {
-	return u.Update(func(s *FileUpsert) {
-		s.SetDisk(v)
-	})
-}
-
-// UpdateDisk sets the "disk" field to the value that was provided on create.
-func (u *FileUpsertOne) UpdateDisk() *FileUpsertOne {
-	return u.Update(func(s *FileUpsert) {
-		s.UpdateDisk()
+		s.UpdateContentType()
 	})
 }
 
@@ -520,6 +567,55 @@ func (u *FileUpsertOne) AddSize(v uint64) *FileUpsertOne {
 func (u *FileUpsertOne) UpdateSize() *FileUpsertOne {
 	return u.Update(func(s *FileUpsert) {
 		s.UpdateSize()
+	})
+}
+
+// SetLocation sets the "location" field.
+func (u *FileUpsertOne) SetLocation(v string) *FileUpsertOne {
+	return u.Update(func(s *FileUpsert) {
+		s.SetLocation(v)
+	})
+}
+
+// UpdateLocation sets the "location" field to the value that was provided on create.
+func (u *FileUpsertOne) UpdateLocation() *FileUpsertOne {
+	return u.Update(func(s *FileUpsert) {
+		s.UpdateLocation()
+	})
+}
+
+// ClearLocation clears the value of the "location" field.
+func (u *FileUpsertOne) ClearLocation() *FileUpsertOne {
+	return u.Update(func(s *FileUpsert) {
+		s.ClearLocation()
+	})
+}
+
+// SetBucket sets the "bucket" field.
+func (u *FileUpsertOne) SetBucket(v string) *FileUpsertOne {
+	return u.Update(func(s *FileUpsert) {
+		s.SetBucket(v)
+	})
+}
+
+// UpdateBucket sets the "bucket" field to the value that was provided on create.
+func (u *FileUpsertOne) UpdateBucket() *FileUpsertOne {
+	return u.Update(func(s *FileUpsert) {
+		s.UpdateBucket()
+	})
+}
+
+// SetPath sets the "path" field.
+func (u *FileUpsertOne) SetPath(v string) *FileUpsertOne {
+	return u.Update(func(s *FileUpsert) {
+		s.SetPath(v)
+	})
+}
+
+// UpdatePath sets the "path" field to the value that was provided on create.
+func (u *FileUpsertOne) UpdatePath() *FileUpsertOne {
+	return u.Update(func(s *FileUpsert) {
+		s.UpdatePath()
 	})
 }
 
@@ -769,31 +865,17 @@ func (u *FileUpsertBulk) UpdateName() *FileUpsertBulk {
 	})
 }
 
-// SetMimeType sets the "mime_type" field.
-func (u *FileUpsertBulk) SetMimeType(v string) *FileUpsertBulk {
+// SetContentType sets the "content_type" field.
+func (u *FileUpsertBulk) SetContentType(v string) *FileUpsertBulk {
 	return u.Update(func(s *FileUpsert) {
-		s.SetMimeType(v)
+		s.SetContentType(v)
 	})
 }
 
-// UpdateMimeType sets the "mime_type" field to the value that was provided on create.
-func (u *FileUpsertBulk) UpdateMimeType() *FileUpsertBulk {
+// UpdateContentType sets the "content_type" field to the value that was provided on create.
+func (u *FileUpsertBulk) UpdateContentType() *FileUpsertBulk {
 	return u.Update(func(s *FileUpsert) {
-		s.UpdateMimeType()
-	})
-}
-
-// SetDisk sets the "disk" field.
-func (u *FileUpsertBulk) SetDisk(v string) *FileUpsertBulk {
-	return u.Update(func(s *FileUpsert) {
-		s.SetDisk(v)
-	})
-}
-
-// UpdateDisk sets the "disk" field to the value that was provided on create.
-func (u *FileUpsertBulk) UpdateDisk() *FileUpsertBulk {
-	return u.Update(func(s *FileUpsert) {
-		s.UpdateDisk()
+		s.UpdateContentType()
 	})
 }
 
@@ -815,6 +897,55 @@ func (u *FileUpsertBulk) AddSize(v uint64) *FileUpsertBulk {
 func (u *FileUpsertBulk) UpdateSize() *FileUpsertBulk {
 	return u.Update(func(s *FileUpsert) {
 		s.UpdateSize()
+	})
+}
+
+// SetLocation sets the "location" field.
+func (u *FileUpsertBulk) SetLocation(v string) *FileUpsertBulk {
+	return u.Update(func(s *FileUpsert) {
+		s.SetLocation(v)
+	})
+}
+
+// UpdateLocation sets the "location" field to the value that was provided on create.
+func (u *FileUpsertBulk) UpdateLocation() *FileUpsertBulk {
+	return u.Update(func(s *FileUpsert) {
+		s.UpdateLocation()
+	})
+}
+
+// ClearLocation clears the value of the "location" field.
+func (u *FileUpsertBulk) ClearLocation() *FileUpsertBulk {
+	return u.Update(func(s *FileUpsert) {
+		s.ClearLocation()
+	})
+}
+
+// SetBucket sets the "bucket" field.
+func (u *FileUpsertBulk) SetBucket(v string) *FileUpsertBulk {
+	return u.Update(func(s *FileUpsert) {
+		s.SetBucket(v)
+	})
+}
+
+// UpdateBucket sets the "bucket" field to the value that was provided on create.
+func (u *FileUpsertBulk) UpdateBucket() *FileUpsertBulk {
+	return u.Update(func(s *FileUpsert) {
+		s.UpdateBucket()
+	})
+}
+
+// SetPath sets the "path" field.
+func (u *FileUpsertBulk) SetPath(v string) *FileUpsertBulk {
+	return u.Update(func(s *FileUpsert) {
+		s.SetPath(v)
+	})
+}
+
+// UpdatePath sets the "path" field to the value that was provided on create.
+func (u *FileUpsertBulk) UpdatePath() *FileUpsertBulk {
+	return u.Update(func(s *FileUpsert) {
+		s.UpdatePath()
 	})
 }
 

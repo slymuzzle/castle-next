@@ -78,8 +78,6 @@ func (ec *executionContext) fieldContext_LoginUser_user(_ context.Context, field
 				return ec.fieldContext_User_nickname(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
-			case "contactPin":
-				return ec.fieldContext_User_contactPin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":

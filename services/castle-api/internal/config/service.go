@@ -33,11 +33,20 @@ type DatabaseConfig struct {
 	Driver   string `koanf:"driver"`
 }
 
+type S3Config struct {
+	Host      string `koanf:"host"`
+	AccessKey string `koanf:"access_key"`
+	SecretKey string `koanf:"secret_key"`
+	Bucket    string `koanf:"bucket"`
+	Ssl       bool   `koanf:"ssl"`
+}
+
 type Config struct {
 	Server   ServerConfig   `koanf:"server"`
 	Auth     AuthConfig     `koanf:"auth"`
 	Nats     NatsConfig     `koanf:"nats"`
 	Database DatabaseConfig `koanf:"database"`
+	S3       S3Config       `koanf:"s3"`
 }
 
 var (

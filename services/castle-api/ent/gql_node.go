@@ -15,7 +15,6 @@ import (
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"journeyhub/ent/usercontact"
-	"journeyhub/ent/userpincode"
 
 	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/graphql"
@@ -71,11 +70,6 @@ var usercontactImplementors = []string{"UserContact", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*UserContact) IsNode() {}
-
-var userpincodeImplementors = []string{"UserPinCode", "Node"}
-
-// IsNode implements the Node interface check for GQLGen.
-func (*UserPinCode) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -248,19 +242,6 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 			Where(usercontact.ID(uid))
 		if fc := graphql.GetFieldContext(ctx); fc != nil {
 			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, usercontactImplementors...); err != nil {
-				return nil, err
-			}
-		}
-		return query.Only(ctx)
-	case userpincode.Table:
-		var uid pulid.ID
-		if err := uid.UnmarshalGQL(id); err != nil {
-			return nil, err
-		}
-		query := c.UserPinCode.Query().
-			Where(userpincode.ID(uid))
-		if fc := graphql.GetFieldContext(ctx); fc != nil {
-			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, userpincodeImplementors...); err != nil {
 				return nil, err
 			}
 		}
@@ -470,22 +451,6 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 		query := c.UserContact.Query().
 			Where(usercontact.IDIn(ids...))
 		query, err := query.CollectFields(ctx, usercontactImplementors...)
-		if err != nil {
-			return nil, err
-		}
-		nodes, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, node := range nodes {
-			for _, noder := range idmap[node.ID] {
-				*noder = node
-			}
-		}
-	case userpincode.Table:
-		query := c.UserPinCode.Query().
-			Where(userpincode.IDIn(ids...))
-		query, err := query.CollectFields(ctx, userpincodeImplementors...)
 		if err != nil {
 			return nil, err
 		}

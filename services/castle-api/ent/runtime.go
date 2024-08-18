@@ -14,7 +14,6 @@ import (
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"journeyhub/ent/usercontact"
-	"journeyhub/ent/userpincode"
 	"time"
 )
 
@@ -28,11 +27,11 @@ func init() {
 	fileFields := schema.File{}.Fields()
 	_ = fileFields
 	// fileDescCreatedAt is the schema descriptor for created_at field.
-	fileDescCreatedAt := fileFields[4].Descriptor()
+	fileDescCreatedAt := fileFields[6].Descriptor()
 	// file.DefaultCreatedAt holds the default value on creation for the created_at field.
 	file.DefaultCreatedAt = fileDescCreatedAt.Default.(func() time.Time)
 	// fileDescUpdatedAt is the schema descriptor for updated_at field.
-	fileDescUpdatedAt := fileFields[5].Descriptor()
+	fileDescUpdatedAt := fileFields[7].Descriptor()
 	// file.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	file.DefaultUpdatedAt = fileDescUpdatedAt.Default.(func() time.Time)
 	// file.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -66,7 +65,7 @@ func init() {
 	messageattachmentFields := schema.MessageAttachment{}.Fields()
 	_ = messageattachmentFields
 	// messageattachmentDescAttachedAt is the schema descriptor for attached_at field.
-	messageattachmentDescAttachedAt := messageattachmentFields[2].Descriptor()
+	messageattachmentDescAttachedAt := messageattachmentFields[1].Descriptor()
 	// messageattachment.DefaultAttachedAt holds the default value on creation for the attached_at field.
 	messageattachment.DefaultAttachedAt = messageattachmentDescAttachedAt.Default.(func() time.Time)
 	// messageattachmentDescID is the schema descriptor for id field.
@@ -98,7 +97,7 @@ func init() {
 	messagevoiceFields := schema.MessageVoice{}.Fields()
 	_ = messagevoiceFields
 	// messagevoiceDescAttachedAt is the schema descriptor for attached_at field.
-	messagevoiceDescAttachedAt := messagevoiceFields[1].Descriptor()
+	messagevoiceDescAttachedAt := messagevoiceFields[0].Descriptor()
 	// messagevoice.DefaultAttachedAt holds the default value on creation for the attached_at field.
 	messagevoice.DefaultAttachedAt = messagevoiceDescAttachedAt.Default.(func() time.Time)
 	// messagevoiceDescID is the schema descriptor for id field.
@@ -149,11 +148,11 @@ func init() {
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[6].Descriptor()
+	userDescCreatedAt := userFields[5].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[7].Descriptor()
+	userDescUpdatedAt := userFields[6].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -175,17 +174,4 @@ func init() {
 	usercontactDescID := usercontactMixinFields0[0].Descriptor()
 	// usercontact.DefaultID holds the default value on creation for the id field.
 	usercontact.DefaultID = usercontactDescID.Default.(func() pulid.ID)
-	userpincodeMixin := schema.UserPinCode{}.Mixin()
-	userpincodeMixinFields0 := userpincodeMixin[0].Fields()
-	_ = userpincodeMixinFields0
-	userpincodeFields := schema.UserPinCode{}.Fields()
-	_ = userpincodeFields
-	// userpincodeDescCreatedAt is the schema descriptor for created_at field.
-	userpincodeDescCreatedAt := userpincodeFields[3].Descriptor()
-	// userpincode.DefaultCreatedAt holds the default value on creation for the created_at field.
-	userpincode.DefaultCreatedAt = userpincodeDescCreatedAt.Default.(func() time.Time)
-	// userpincodeDescID is the schema descriptor for id field.
-	userpincodeDescID := userpincodeMixinFields0[0].Descriptor()
-	// userpincode.DefaultID holds the default value on creation for the id field.
-	userpincode.DefaultID = userpincodeDescID.Default.(func() pulid.ID)
 }

@@ -61,19 +61,29 @@ func Name(v string) predicate.File {
 	return predicate.File(sql.FieldEQ(FieldName, v))
 }
 
-// MimeType applies equality check predicate on the "mime_type" field. It's identical to MimeTypeEQ.
-func MimeType(v string) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldMimeType, v))
-}
-
-// Disk applies equality check predicate on the "disk" field. It's identical to DiskEQ.
-func Disk(v string) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldDisk, v))
+// ContentType applies equality check predicate on the "content_type" field. It's identical to ContentTypeEQ.
+func ContentType(v string) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldContentType, v))
 }
 
 // Size applies equality check predicate on the "size" field. It's identical to SizeEQ.
 func Size(v uint64) predicate.File {
 	return predicate.File(sql.FieldEQ(FieldSize, v))
+}
+
+// Location applies equality check predicate on the "location" field. It's identical to LocationEQ.
+func Location(v string) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldLocation, v))
+}
+
+// Bucket applies equality check predicate on the "bucket" field. It's identical to BucketEQ.
+func Bucket(v string) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldBucket, v))
+}
+
+// Path applies equality check predicate on the "path" field. It's identical to PathEQ.
+func Path(v string) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldPath, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -151,134 +161,69 @@ func NameContainsFold(v string) predicate.File {
 	return predicate.File(sql.FieldContainsFold(FieldName, v))
 }
 
-// MimeTypeEQ applies the EQ predicate on the "mime_type" field.
-func MimeTypeEQ(v string) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldMimeType, v))
+// ContentTypeEQ applies the EQ predicate on the "content_type" field.
+func ContentTypeEQ(v string) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldContentType, v))
 }
 
-// MimeTypeNEQ applies the NEQ predicate on the "mime_type" field.
-func MimeTypeNEQ(v string) predicate.File {
-	return predicate.File(sql.FieldNEQ(FieldMimeType, v))
+// ContentTypeNEQ applies the NEQ predicate on the "content_type" field.
+func ContentTypeNEQ(v string) predicate.File {
+	return predicate.File(sql.FieldNEQ(FieldContentType, v))
 }
 
-// MimeTypeIn applies the In predicate on the "mime_type" field.
-func MimeTypeIn(vs ...string) predicate.File {
-	return predicate.File(sql.FieldIn(FieldMimeType, vs...))
+// ContentTypeIn applies the In predicate on the "content_type" field.
+func ContentTypeIn(vs ...string) predicate.File {
+	return predicate.File(sql.FieldIn(FieldContentType, vs...))
 }
 
-// MimeTypeNotIn applies the NotIn predicate on the "mime_type" field.
-func MimeTypeNotIn(vs ...string) predicate.File {
-	return predicate.File(sql.FieldNotIn(FieldMimeType, vs...))
+// ContentTypeNotIn applies the NotIn predicate on the "content_type" field.
+func ContentTypeNotIn(vs ...string) predicate.File {
+	return predicate.File(sql.FieldNotIn(FieldContentType, vs...))
 }
 
-// MimeTypeGT applies the GT predicate on the "mime_type" field.
-func MimeTypeGT(v string) predicate.File {
-	return predicate.File(sql.FieldGT(FieldMimeType, v))
+// ContentTypeGT applies the GT predicate on the "content_type" field.
+func ContentTypeGT(v string) predicate.File {
+	return predicate.File(sql.FieldGT(FieldContentType, v))
 }
 
-// MimeTypeGTE applies the GTE predicate on the "mime_type" field.
-func MimeTypeGTE(v string) predicate.File {
-	return predicate.File(sql.FieldGTE(FieldMimeType, v))
+// ContentTypeGTE applies the GTE predicate on the "content_type" field.
+func ContentTypeGTE(v string) predicate.File {
+	return predicate.File(sql.FieldGTE(FieldContentType, v))
 }
 
-// MimeTypeLT applies the LT predicate on the "mime_type" field.
-func MimeTypeLT(v string) predicate.File {
-	return predicate.File(sql.FieldLT(FieldMimeType, v))
+// ContentTypeLT applies the LT predicate on the "content_type" field.
+func ContentTypeLT(v string) predicate.File {
+	return predicate.File(sql.FieldLT(FieldContentType, v))
 }
 
-// MimeTypeLTE applies the LTE predicate on the "mime_type" field.
-func MimeTypeLTE(v string) predicate.File {
-	return predicate.File(sql.FieldLTE(FieldMimeType, v))
+// ContentTypeLTE applies the LTE predicate on the "content_type" field.
+func ContentTypeLTE(v string) predicate.File {
+	return predicate.File(sql.FieldLTE(FieldContentType, v))
 }
 
-// MimeTypeContains applies the Contains predicate on the "mime_type" field.
-func MimeTypeContains(v string) predicate.File {
-	return predicate.File(sql.FieldContains(FieldMimeType, v))
+// ContentTypeContains applies the Contains predicate on the "content_type" field.
+func ContentTypeContains(v string) predicate.File {
+	return predicate.File(sql.FieldContains(FieldContentType, v))
 }
 
-// MimeTypeHasPrefix applies the HasPrefix predicate on the "mime_type" field.
-func MimeTypeHasPrefix(v string) predicate.File {
-	return predicate.File(sql.FieldHasPrefix(FieldMimeType, v))
+// ContentTypeHasPrefix applies the HasPrefix predicate on the "content_type" field.
+func ContentTypeHasPrefix(v string) predicate.File {
+	return predicate.File(sql.FieldHasPrefix(FieldContentType, v))
 }
 
-// MimeTypeHasSuffix applies the HasSuffix predicate on the "mime_type" field.
-func MimeTypeHasSuffix(v string) predicate.File {
-	return predicate.File(sql.FieldHasSuffix(FieldMimeType, v))
+// ContentTypeHasSuffix applies the HasSuffix predicate on the "content_type" field.
+func ContentTypeHasSuffix(v string) predicate.File {
+	return predicate.File(sql.FieldHasSuffix(FieldContentType, v))
 }
 
-// MimeTypeEqualFold applies the EqualFold predicate on the "mime_type" field.
-func MimeTypeEqualFold(v string) predicate.File {
-	return predicate.File(sql.FieldEqualFold(FieldMimeType, v))
+// ContentTypeEqualFold applies the EqualFold predicate on the "content_type" field.
+func ContentTypeEqualFold(v string) predicate.File {
+	return predicate.File(sql.FieldEqualFold(FieldContentType, v))
 }
 
-// MimeTypeContainsFold applies the ContainsFold predicate on the "mime_type" field.
-func MimeTypeContainsFold(v string) predicate.File {
-	return predicate.File(sql.FieldContainsFold(FieldMimeType, v))
-}
-
-// DiskEQ applies the EQ predicate on the "disk" field.
-func DiskEQ(v string) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldDisk, v))
-}
-
-// DiskNEQ applies the NEQ predicate on the "disk" field.
-func DiskNEQ(v string) predicate.File {
-	return predicate.File(sql.FieldNEQ(FieldDisk, v))
-}
-
-// DiskIn applies the In predicate on the "disk" field.
-func DiskIn(vs ...string) predicate.File {
-	return predicate.File(sql.FieldIn(FieldDisk, vs...))
-}
-
-// DiskNotIn applies the NotIn predicate on the "disk" field.
-func DiskNotIn(vs ...string) predicate.File {
-	return predicate.File(sql.FieldNotIn(FieldDisk, vs...))
-}
-
-// DiskGT applies the GT predicate on the "disk" field.
-func DiskGT(v string) predicate.File {
-	return predicate.File(sql.FieldGT(FieldDisk, v))
-}
-
-// DiskGTE applies the GTE predicate on the "disk" field.
-func DiskGTE(v string) predicate.File {
-	return predicate.File(sql.FieldGTE(FieldDisk, v))
-}
-
-// DiskLT applies the LT predicate on the "disk" field.
-func DiskLT(v string) predicate.File {
-	return predicate.File(sql.FieldLT(FieldDisk, v))
-}
-
-// DiskLTE applies the LTE predicate on the "disk" field.
-func DiskLTE(v string) predicate.File {
-	return predicate.File(sql.FieldLTE(FieldDisk, v))
-}
-
-// DiskContains applies the Contains predicate on the "disk" field.
-func DiskContains(v string) predicate.File {
-	return predicate.File(sql.FieldContains(FieldDisk, v))
-}
-
-// DiskHasPrefix applies the HasPrefix predicate on the "disk" field.
-func DiskHasPrefix(v string) predicate.File {
-	return predicate.File(sql.FieldHasPrefix(FieldDisk, v))
-}
-
-// DiskHasSuffix applies the HasSuffix predicate on the "disk" field.
-func DiskHasSuffix(v string) predicate.File {
-	return predicate.File(sql.FieldHasSuffix(FieldDisk, v))
-}
-
-// DiskEqualFold applies the EqualFold predicate on the "disk" field.
-func DiskEqualFold(v string) predicate.File {
-	return predicate.File(sql.FieldEqualFold(FieldDisk, v))
-}
-
-// DiskContainsFold applies the ContainsFold predicate on the "disk" field.
-func DiskContainsFold(v string) predicate.File {
-	return predicate.File(sql.FieldContainsFold(FieldDisk, v))
+// ContentTypeContainsFold applies the ContainsFold predicate on the "content_type" field.
+func ContentTypeContainsFold(v string) predicate.File {
+	return predicate.File(sql.FieldContainsFold(FieldContentType, v))
 }
 
 // SizeEQ applies the EQ predicate on the "size" field.
@@ -319,6 +264,211 @@ func SizeLT(v uint64) predicate.File {
 // SizeLTE applies the LTE predicate on the "size" field.
 func SizeLTE(v uint64) predicate.File {
 	return predicate.File(sql.FieldLTE(FieldSize, v))
+}
+
+// LocationEQ applies the EQ predicate on the "location" field.
+func LocationEQ(v string) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldLocation, v))
+}
+
+// LocationNEQ applies the NEQ predicate on the "location" field.
+func LocationNEQ(v string) predicate.File {
+	return predicate.File(sql.FieldNEQ(FieldLocation, v))
+}
+
+// LocationIn applies the In predicate on the "location" field.
+func LocationIn(vs ...string) predicate.File {
+	return predicate.File(sql.FieldIn(FieldLocation, vs...))
+}
+
+// LocationNotIn applies the NotIn predicate on the "location" field.
+func LocationNotIn(vs ...string) predicate.File {
+	return predicate.File(sql.FieldNotIn(FieldLocation, vs...))
+}
+
+// LocationGT applies the GT predicate on the "location" field.
+func LocationGT(v string) predicate.File {
+	return predicate.File(sql.FieldGT(FieldLocation, v))
+}
+
+// LocationGTE applies the GTE predicate on the "location" field.
+func LocationGTE(v string) predicate.File {
+	return predicate.File(sql.FieldGTE(FieldLocation, v))
+}
+
+// LocationLT applies the LT predicate on the "location" field.
+func LocationLT(v string) predicate.File {
+	return predicate.File(sql.FieldLT(FieldLocation, v))
+}
+
+// LocationLTE applies the LTE predicate on the "location" field.
+func LocationLTE(v string) predicate.File {
+	return predicate.File(sql.FieldLTE(FieldLocation, v))
+}
+
+// LocationContains applies the Contains predicate on the "location" field.
+func LocationContains(v string) predicate.File {
+	return predicate.File(sql.FieldContains(FieldLocation, v))
+}
+
+// LocationHasPrefix applies the HasPrefix predicate on the "location" field.
+func LocationHasPrefix(v string) predicate.File {
+	return predicate.File(sql.FieldHasPrefix(FieldLocation, v))
+}
+
+// LocationHasSuffix applies the HasSuffix predicate on the "location" field.
+func LocationHasSuffix(v string) predicate.File {
+	return predicate.File(sql.FieldHasSuffix(FieldLocation, v))
+}
+
+// LocationIsNil applies the IsNil predicate on the "location" field.
+func LocationIsNil() predicate.File {
+	return predicate.File(sql.FieldIsNull(FieldLocation))
+}
+
+// LocationNotNil applies the NotNil predicate on the "location" field.
+func LocationNotNil() predicate.File {
+	return predicate.File(sql.FieldNotNull(FieldLocation))
+}
+
+// LocationEqualFold applies the EqualFold predicate on the "location" field.
+func LocationEqualFold(v string) predicate.File {
+	return predicate.File(sql.FieldEqualFold(FieldLocation, v))
+}
+
+// LocationContainsFold applies the ContainsFold predicate on the "location" field.
+func LocationContainsFold(v string) predicate.File {
+	return predicate.File(sql.FieldContainsFold(FieldLocation, v))
+}
+
+// BucketEQ applies the EQ predicate on the "bucket" field.
+func BucketEQ(v string) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldBucket, v))
+}
+
+// BucketNEQ applies the NEQ predicate on the "bucket" field.
+func BucketNEQ(v string) predicate.File {
+	return predicate.File(sql.FieldNEQ(FieldBucket, v))
+}
+
+// BucketIn applies the In predicate on the "bucket" field.
+func BucketIn(vs ...string) predicate.File {
+	return predicate.File(sql.FieldIn(FieldBucket, vs...))
+}
+
+// BucketNotIn applies the NotIn predicate on the "bucket" field.
+func BucketNotIn(vs ...string) predicate.File {
+	return predicate.File(sql.FieldNotIn(FieldBucket, vs...))
+}
+
+// BucketGT applies the GT predicate on the "bucket" field.
+func BucketGT(v string) predicate.File {
+	return predicate.File(sql.FieldGT(FieldBucket, v))
+}
+
+// BucketGTE applies the GTE predicate on the "bucket" field.
+func BucketGTE(v string) predicate.File {
+	return predicate.File(sql.FieldGTE(FieldBucket, v))
+}
+
+// BucketLT applies the LT predicate on the "bucket" field.
+func BucketLT(v string) predicate.File {
+	return predicate.File(sql.FieldLT(FieldBucket, v))
+}
+
+// BucketLTE applies the LTE predicate on the "bucket" field.
+func BucketLTE(v string) predicate.File {
+	return predicate.File(sql.FieldLTE(FieldBucket, v))
+}
+
+// BucketContains applies the Contains predicate on the "bucket" field.
+func BucketContains(v string) predicate.File {
+	return predicate.File(sql.FieldContains(FieldBucket, v))
+}
+
+// BucketHasPrefix applies the HasPrefix predicate on the "bucket" field.
+func BucketHasPrefix(v string) predicate.File {
+	return predicate.File(sql.FieldHasPrefix(FieldBucket, v))
+}
+
+// BucketHasSuffix applies the HasSuffix predicate on the "bucket" field.
+func BucketHasSuffix(v string) predicate.File {
+	return predicate.File(sql.FieldHasSuffix(FieldBucket, v))
+}
+
+// BucketEqualFold applies the EqualFold predicate on the "bucket" field.
+func BucketEqualFold(v string) predicate.File {
+	return predicate.File(sql.FieldEqualFold(FieldBucket, v))
+}
+
+// BucketContainsFold applies the ContainsFold predicate on the "bucket" field.
+func BucketContainsFold(v string) predicate.File {
+	return predicate.File(sql.FieldContainsFold(FieldBucket, v))
+}
+
+// PathEQ applies the EQ predicate on the "path" field.
+func PathEQ(v string) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldPath, v))
+}
+
+// PathNEQ applies the NEQ predicate on the "path" field.
+func PathNEQ(v string) predicate.File {
+	return predicate.File(sql.FieldNEQ(FieldPath, v))
+}
+
+// PathIn applies the In predicate on the "path" field.
+func PathIn(vs ...string) predicate.File {
+	return predicate.File(sql.FieldIn(FieldPath, vs...))
+}
+
+// PathNotIn applies the NotIn predicate on the "path" field.
+func PathNotIn(vs ...string) predicate.File {
+	return predicate.File(sql.FieldNotIn(FieldPath, vs...))
+}
+
+// PathGT applies the GT predicate on the "path" field.
+func PathGT(v string) predicate.File {
+	return predicate.File(sql.FieldGT(FieldPath, v))
+}
+
+// PathGTE applies the GTE predicate on the "path" field.
+func PathGTE(v string) predicate.File {
+	return predicate.File(sql.FieldGTE(FieldPath, v))
+}
+
+// PathLT applies the LT predicate on the "path" field.
+func PathLT(v string) predicate.File {
+	return predicate.File(sql.FieldLT(FieldPath, v))
+}
+
+// PathLTE applies the LTE predicate on the "path" field.
+func PathLTE(v string) predicate.File {
+	return predicate.File(sql.FieldLTE(FieldPath, v))
+}
+
+// PathContains applies the Contains predicate on the "path" field.
+func PathContains(v string) predicate.File {
+	return predicate.File(sql.FieldContains(FieldPath, v))
+}
+
+// PathHasPrefix applies the HasPrefix predicate on the "path" field.
+func PathHasPrefix(v string) predicate.File {
+	return predicate.File(sql.FieldHasPrefix(FieldPath, v))
+}
+
+// PathHasSuffix applies the HasSuffix predicate on the "path" field.
+func PathHasSuffix(v string) predicate.File {
+	return predicate.File(sql.FieldHasSuffix(FieldPath, v))
+}
+
+// PathEqualFold applies the EqualFold predicate on the "path" field.
+func PathEqualFold(v string) predicate.File {
+	return predicate.File(sql.FieldEqualFold(FieldPath, v))
+}
+
+// PathContainsFold applies the ContainsFold predicate on the "path" field.
+func PathContainsFold(v string) predicate.File {
+	return predicate.File(sql.FieldContainsFold(FieldPath, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

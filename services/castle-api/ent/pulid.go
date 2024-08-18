@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"context"
 	"fmt"
 	"journeyhub/ent/file"
 	"journeyhub/ent/message"
@@ -15,7 +14,6 @@ import (
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"journeyhub/ent/usercontact"
-	"journeyhub/ent/userpincode"
 )
 
 // prefixMap maps PULID prefixes to table names.
@@ -29,11 +27,23 @@ var prefixMap = map[pulid.ID]string{
 	"RM": roommember.Table,
 	"UR": user.Table,
 	"UC": usercontact.Table,
-	"UC": userpincode.Table,
+}
+
+// tableMap maps table names to PULID prefixes.
+var tableMap = map[string]pulid.ID{
+	file.Table:              "FE",
+	message.Table:           "ME",
+	messageattachment.Table: "MA",
+	messagelink.Table:       "ML",
+	messagevoice.Table:      "MV",
+	room.Table:              "RO",
+	roommember.Table:        "RM",
+	user.Table:              "UR",
+	usercontact.Table:       "UC",
 }
 
 // IDToType maps a pulid.ID to the underlying table.
-func IDToType(ctx context.Context, id pulid.ID) (string, error) {
+func IDToType(id pulid.ID) (string, error) {
 	if len(id) < 2 {
 		return "", fmt.Errorf("IDToType: id too short")
 	}
@@ -43,4 +53,13 @@ func IDToType(ctx context.Context, id pulid.ID) (string, error) {
 		return "", fmt.Errorf("IDToType: could not map prefix '%s' to a type", prefix)
 	}
 	return typ, nil
+}
+
+// TableToPrefix maps table name to PULID prefix.
+func TableToPrefix(table string) (string, error) {
+	typ := tableMap[table]
+	if typ == "" {
+		return "", fmt.Errorf("TableToPrefix: could not map table '%s' to a type", table)
+	}
+	return string(typ), nil
 }

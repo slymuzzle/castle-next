@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"journeyhub/internal/validation/validators"
 	"reflect"
 	"strings"
 
@@ -23,6 +24,12 @@ type service struct {
 
 func NewService() Service {
 	validate := validator.New()
+
+	validate.RegisterStructValidation(
+		validators.GqlUploadImageValidator,
+		validators.Upload{},
+	)
+
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
 		// skip if tag key says it should be ignored

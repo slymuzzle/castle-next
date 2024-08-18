@@ -5,72 +5,108 @@ import (
 	"fmt"
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
+	"journeyhub/graph/model"
+	"journeyhub/internal/media"
 	"journeyhub/internal/nats"
+)
+
+type (
+	ID                 = pulid.ID
+	SendMessageInput   = model.SendMessageInput
+	UpdateMessageInput = model.UpdateMessageInput
+	Message            = ent.Message
+	Room               = ent.Room
 )
 
 type Service interface {
 	SendMessage(
 		ctx context.Context,
-		currentUserID pulid.ID,
-		targetUserID pulid.ID,
-		replyTo pulid.ID,
-		content string,
-	) (*ent.Message, error)
-	SubscribeToMessageAddedEvent(roomID pulid.ID) (<-chan *ent.Message, error)
+		currentUserID ID,
+		input SendMessageInput,
+	) (*Message, error)
+	SubscribeToMessageAddedEvent(
+		roomID ID,
+	) (<-chan *Message, error)
 	UpdateMessage(
 		ctx context.Context,
-		messageID pulid.ID,
-		content string,
-	) (*ent.Message, error)
-	SubscribeToMessageUpdatedEvent(roomID pulid.ID) (<-chan *ent.Message, error)
+		messageID ID,
+		input UpdateMessageInput,
+	) (*Message, error)
+	SubscribeToMessageUpdatedEvent(
+		roomID ID,
+	) (<-chan *Message, error)
 	DeleteMessage(
 		ctx context.Context,
-		messageID pulid.ID,
-	) (*ent.Message, error)
-	SubscribeToMessageDeletedEvent(roomID pulid.ID) (<-chan *ent.Message, error)
+		messageID ID,
+	) (*Message, error)
+	SubscribeToMessageDeletedEvent(
+		roomID ID,
+	) (<-chan *Message, error)
 }
 
 type service struct {
 	chatRepository Repository
 	natsService    nats.Service
+	mediaService   media.Service
 }
 
-func NewService(chatRepository Repository, natsConn nats.Service) Service {
+func NewService(
+	chatRepository Repository,
+	natsService nats.Service,
+	mediaService media.Service,
+) Service {
 	return &service{
 		chatRepository: chatRepository,
-		natsService:    natsConn,
+		natsService:    natsService,
+		mediaService:   mediaService,
 	}
 }
 
 func (s *service) SendMessage(
 	ctx context.Context,
-	currentUserID pulid.ID,
-	targetUserID pulid.ID,
-	replyTo pulid.ID,
-	content string,
-) (*ent.Message, error) {
+	currentUserID ID,
+	input SendMessageInput,
+) (*Message, error) {
 	rm, err := s.chatRepository.FindOrCreatePersonalRoom(
 		ctx,
 		currentUserID,
-		targetUserID,
+		input.TargetUserID,
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	var uploadAttachmentsFn UploadAttachmentsFn
+	if input.Files != nil && len(input.Files) > 0 {
+		uploadAttachmentsFn = func(m *ent.Message) ([]*media.UploadInfo, error) {
+			uploadPrefix := fmt.Sprintf("rooms/%s/%s/attachments", rm.ID, m.ID)
+			return s.mediaService.UploadFiles(ctx, uploadPrefix, input.Files)
+		}
+	}
+
+	var uploadVoiceFn UploadVoiceFn
+	if input.Voice != nil {
+		uploadVoiceFn = func(m *ent.Message) (*media.UploadInfo, error) {
+			uploadPrefix := fmt.Sprintf("rooms/%s/%s/voice", rm.ID, m.ID)
+			return s.mediaService.UploadFile(ctx, uploadPrefix, input.Voice)
+		}
 	}
 
 	msg, err := s.chatRepository.CreateMessage(
 		ctx,
 		rm.ID,
 		currentUserID,
-		replyTo,
-		content,
+		input.ReplyTo,
+		input.Content,
+		uploadAttachmentsFn,
+		uploadVoiceFn,
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	natsClient := s.natsService.Client()
-	subject := fmt.Sprintf("room.%s.message.add", rm.ID)
+	subject := fmt.Sprintf("room.%s.message.send", rm.ID)
 
 	if err := natsClient.Publish(subject, msg); err != nil {
 		return msg, err
@@ -79,17 +115,17 @@ func (s *service) SendMessage(
 	return msg, nil
 }
 
-func (s *service) SubscribeToMessageAddedEvent(roomID pulid.ID) (<-chan *ent.Message, error) {
-	subject := fmt.Sprintf("room.%s.message.add", roomID)
+func (s *service) SubscribeToMessageAddedEvent(roomID ID) (<-chan *Message, error) {
+	subject := fmt.Sprintf("room.%s.message.send", roomID)
 
 	return s.subscribe(subject)
 }
 
 func (s *service) UpdateMessage(
 	ctx context.Context,
-	messageID pulid.ID,
-	content string,
-) (*ent.Message, error) {
+	messageID ID,
+	input UpdateMessageInput,
+) (*Message, error) {
 	rm, err := s.chatRepository.FindRoomByMessage(
 		ctx,
 		messageID,
@@ -101,7 +137,7 @@ func (s *service) UpdateMessage(
 	msg, err := s.chatRepository.UpdateMessage(
 		ctx,
 		messageID,
-		content,
+		input.Content,
 	)
 	if err != nil {
 		return nil, err
@@ -117,7 +153,9 @@ func (s *service) UpdateMessage(
 	return msg, nil
 }
 
-func (s *service) SubscribeToMessageUpdatedEvent(roomID pulid.ID) (<-chan *ent.Message, error) {
+func (s *service) SubscribeToMessageUpdatedEvent(
+	roomID ID,
+) (<-chan *Message, error) {
 	subject := fmt.Sprintf("room.%s.message.update", roomID)
 
 	return s.subscribe(subject)
@@ -125,8 +163,8 @@ func (s *service) SubscribeToMessageUpdatedEvent(roomID pulid.ID) (<-chan *ent.M
 
 func (s *service) DeleteMessage(
 	ctx context.Context,
-	messageID pulid.ID,
-) (*ent.Message, error) {
+	messageID ID,
+) (*Message, error) {
 	rm, err := s.chatRepository.FindRoomByMessage(
 		ctx,
 		messageID,
@@ -153,17 +191,21 @@ func (s *service) DeleteMessage(
 	return msg, nil
 }
 
-func (s *service) SubscribeToMessageDeletedEvent(roomID pulid.ID) (<-chan *ent.Message, error) {
+func (s *service) SubscribeToMessageDeletedEvent(
+	roomID ID,
+) (<-chan *Message, error) {
 	subject := fmt.Sprintf("room.%s.message.delete", roomID)
 
 	return s.subscribe(subject)
 }
 
-func (s *service) subscribe(subject string) (<-chan *ent.Message, error) {
+func (s *service) subscribe(
+	subject string,
+) (<-chan *Message, error) {
 	natsClient := s.natsService.Client()
-	ch := make(chan *ent.Message)
+	ch := make(chan *Message)
 
-	_, err := natsClient.Subscribe(subject, func(msg *ent.Message) {
+	_, err := natsClient.Subscribe(subject, func(msg *Message) {
 		ch <- msg
 	})
 	if err != nil {

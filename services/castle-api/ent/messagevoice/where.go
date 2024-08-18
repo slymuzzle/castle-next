@@ -56,54 +56,9 @@ func IDLTE(id pulid.ID) predicate.MessageVoice {
 	return predicate.MessageVoice(sql.FieldLTE(FieldID, id))
 }
 
-// Length applies equality check predicate on the "length" field. It's identical to LengthEQ.
-func Length(v int) predicate.MessageVoice {
-	return predicate.MessageVoice(sql.FieldEQ(FieldLength, v))
-}
-
 // AttachedAt applies equality check predicate on the "attached_at" field. It's identical to AttachedAtEQ.
 func AttachedAt(v time.Time) predicate.MessageVoice {
 	return predicate.MessageVoice(sql.FieldEQ(FieldAttachedAt, v))
-}
-
-// LengthEQ applies the EQ predicate on the "length" field.
-func LengthEQ(v int) predicate.MessageVoice {
-	return predicate.MessageVoice(sql.FieldEQ(FieldLength, v))
-}
-
-// LengthNEQ applies the NEQ predicate on the "length" field.
-func LengthNEQ(v int) predicate.MessageVoice {
-	return predicate.MessageVoice(sql.FieldNEQ(FieldLength, v))
-}
-
-// LengthIn applies the In predicate on the "length" field.
-func LengthIn(vs ...int) predicate.MessageVoice {
-	return predicate.MessageVoice(sql.FieldIn(FieldLength, vs...))
-}
-
-// LengthNotIn applies the NotIn predicate on the "length" field.
-func LengthNotIn(vs ...int) predicate.MessageVoice {
-	return predicate.MessageVoice(sql.FieldNotIn(FieldLength, vs...))
-}
-
-// LengthGT applies the GT predicate on the "length" field.
-func LengthGT(v int) predicate.MessageVoice {
-	return predicate.MessageVoice(sql.FieldGT(FieldLength, v))
-}
-
-// LengthGTE applies the GTE predicate on the "length" field.
-func LengthGTE(v int) predicate.MessageVoice {
-	return predicate.MessageVoice(sql.FieldGTE(FieldLength, v))
-}
-
-// LengthLT applies the LT predicate on the "length" field.
-func LengthLT(v int) predicate.MessageVoice {
-	return predicate.MessageVoice(sql.FieldLT(FieldLength, v))
-}
-
-// LengthLTE applies the LTE predicate on the "length" field.
-func LengthLTE(v int) predicate.MessageVoice {
-	return predicate.MessageVoice(sql.FieldLTE(FieldLength, v))
 }
 
 // AttachedAtEQ applies the EQ predicate on the "attached_at" field.

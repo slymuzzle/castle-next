@@ -374,12 +374,12 @@ func (mvq *MessageVoiceQuery) WithFile(opts ...func(*FileQuery)) *MessageVoiceQu
 // Example:
 //
 //	var v []struct {
-//		Length int `json:"length,omitempty"`
+//		AttachedAt time.Time `json:"attached_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.MessageVoice.Query().
-//		GroupBy(messagevoice.FieldLength).
+//		GroupBy(messagevoice.FieldAttachedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (mvq *MessageVoiceQuery) GroupBy(field string, fields ...string) *MessageVoiceGroupBy {
@@ -397,11 +397,11 @@ func (mvq *MessageVoiceQuery) GroupBy(field string, fields ...string) *MessageVo
 // Example:
 //
 //	var v []struct {
-//		Length int `json:"length,omitempty"`
+//		AttachedAt time.Time `json:"attached_at,omitempty"`
 //	}
 //
 //	client.MessageVoice.Query().
-//		Select(messagevoice.FieldLength).
+//		Select(messagevoice.FieldAttachedAt).
 //		Scan(ctx, &v)
 func (mvq *MessageVoiceQuery) Select(fields ...string) *MessageVoiceSelect {
 	mvq.ctx.Fields = append(mvq.ctx.Fields, fields...)

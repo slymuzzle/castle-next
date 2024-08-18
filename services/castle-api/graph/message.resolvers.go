@@ -23,7 +23,7 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMess
 		return nil, err
 	}
 
-	return r.chatService.SendMessage(ctx, user.ID, input.TargetUserID, *input.ReplyTo, input.Content)
+	return r.chatService.SendMessage(ctx, user.ID, input)
 }
 
 // UpdateMessage is the resolver for the updateMessage field.
@@ -33,7 +33,7 @@ func (r *mutationResolver) UpdateMessage(ctx context.Context, messageID pulid.ID
 		return nil, err
 	}
 
-	return r.chatService.UpdateMessage(ctx, messageID, input.Content)
+	return r.chatService.UpdateMessage(ctx, messageID, input)
 }
 
 // DeleteMessage is the resolver for the deleteMessage field.

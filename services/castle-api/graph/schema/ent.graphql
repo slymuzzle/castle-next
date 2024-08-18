@@ -8,9 +8,11 @@ scalar Cursor
 type File implements Node {
   id: ID!
   name: String!
-  mimeType: String!
-  disk: String!
+  contentType: String!
   size: Uint64!
+  location: String
+  bucket: String!
+  path: String!
   createdAt: Time!
   updatedAt: Time!
   messageAttachment: MessageAttachment
@@ -34,9 +36,11 @@ Properties by which File connections can be ordered.
 """
 enum FileOrderField {
   NAME
-  MIME_TYPE
-  DISK
+  CONTENT_TYPE
   SIZE
+  LOCATION
+  BUCKET
+  PATH
   CREATED_AT
   UPDATED_AT
 }
@@ -76,37 +80,21 @@ input FileWhereInput {
   nameEqualFold: String
   nameContainsFold: String
   """
-  mime_type field predicates
+  content_type field predicates
   """
-  mimeType: String
-  mimeTypeNEQ: String
-  mimeTypeIn: [String!]
-  mimeTypeNotIn: [String!]
-  mimeTypeGT: String
-  mimeTypeGTE: String
-  mimeTypeLT: String
-  mimeTypeLTE: String
-  mimeTypeContains: String
-  mimeTypeHasPrefix: String
-  mimeTypeHasSuffix: String
-  mimeTypeEqualFold: String
-  mimeTypeContainsFold: String
-  """
-  disk field predicates
-  """
-  disk: String
-  diskNEQ: String
-  diskIn: [String!]
-  diskNotIn: [String!]
-  diskGT: String
-  diskGTE: String
-  diskLT: String
-  diskLTE: String
-  diskContains: String
-  diskHasPrefix: String
-  diskHasSuffix: String
-  diskEqualFold: String
-  diskContainsFold: String
+  contentType: String
+  contentTypeNEQ: String
+  contentTypeIn: [String!]
+  contentTypeNotIn: [String!]
+  contentTypeGT: String
+  contentTypeGTE: String
+  contentTypeLT: String
+  contentTypeLTE: String
+  contentTypeContains: String
+  contentTypeHasPrefix: String
+  contentTypeHasSuffix: String
+  contentTypeEqualFold: String
+  contentTypeContainsFold: String
   """
   size field predicates
   """
@@ -118,6 +106,56 @@ input FileWhereInput {
   sizeGTE: Uint64
   sizeLT: Uint64
   sizeLTE: Uint64
+  """
+  location field predicates
+  """
+  location: String
+  locationNEQ: String
+  locationIn: [String!]
+  locationNotIn: [String!]
+  locationGT: String
+  locationGTE: String
+  locationLT: String
+  locationLTE: String
+  locationContains: String
+  locationHasPrefix: String
+  locationHasSuffix: String
+  locationIsNil: Boolean
+  locationNotNil: Boolean
+  locationEqualFold: String
+  locationContainsFold: String
+  """
+  bucket field predicates
+  """
+  bucket: String
+  bucketNEQ: String
+  bucketIn: [String!]
+  bucketNotIn: [String!]
+  bucketGT: String
+  bucketGTE: String
+  bucketLT: String
+  bucketLTE: String
+  bucketContains: String
+  bucketHasPrefix: String
+  bucketHasSuffix: String
+  bucketEqualFold: String
+  bucketContainsFold: String
+  """
+  path field predicates
+  """
+  path: String
+  pathNEQ: String
+  pathIn: [String!]
+  pathNotIn: [String!]
+  pathGT: String
+  pathGTE: String
+  pathLT: String
+  pathLTE: String
+  pathContains: String
+  pathHasPrefix: String
+  pathHasSuffix: String
+  pathEqualFold: String
+  pathContainsFold: String
   """
   created_at field predicates
   """
@@ -165,7 +203,6 @@ type Message implements Node {
 }
 type MessageAttachment implements Node {
   id: ID!
-  type: MessageAttachmentType!
   order: Uint!
   attachedAt: Time!
   room: Room!
@@ -219,17 +256,8 @@ input MessageAttachmentOrder {
 Properties by which MessageAttachment connections can be ordered.
 """
 enum MessageAttachmentOrderField {
-  TYPE
   ORDER
   ATTACHED_AT
-}
-"""
-MessageAttachmentType is enum for the field type
-"""
-enum MessageAttachmentType @goModel(model: "journeyhub/ent/messageattachment.Type") {
-  Image
-  Video
-  Document
 }
 """
 MessageAttachmentWhereInput is used for filtering MessageAttachment objects.
@@ -250,13 +278,6 @@ input MessageAttachmentWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """
-  type field predicates
-  """
-  type: MessageAttachmentType
-  typeNEQ: MessageAttachmentType
-  typeIn: [MessageAttachmentType!]
-  typeNotIn: [MessageAttachmentType!]
   """
   order field predicates
   """
@@ -474,7 +495,6 @@ enum MessageOrderField {
 }
 type MessageVoice implements Node {
   id: ID!
-  length: Int!
   attachedAt: Time!
   room: Room!
   message: Message!
@@ -527,7 +547,6 @@ input MessageVoiceOrder {
 Properties by which MessageVoice connections can be ordered.
 """
 enum MessageVoiceOrderField {
-  LENGTH
   ATTACHED_AT
 }
 """
@@ -549,17 +568,6 @@ input MessageVoiceWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """
-  length field predicates
-  """
-  length: Int
-  lengthNEQ: Int
-  lengthIn: [Int!]
-  lengthNotIn: [Int!]
-  lengthGT: Int
-  lengthGTE: Int
-  lengthLT: Int
-  lengthLTE: Int
   """
   attached_at field predicates
   """
@@ -1268,7 +1276,6 @@ type User implements Node {
   lastName: String!
   nickname: String!
   email: String
-  contactPin: String!
   createdAt: Time!
   updatedAt: Time!
   contacts(
@@ -1571,131 +1578,6 @@ enum UserOrderField {
   CREATED_AT
   UPDATED_AT
 }
-type UserPinCode implements Node {
-  id: ID!
-  userID: ID!
-  contactID: ID!
-  roomID: ID
-  createdAt: Time!
-  user: User!
-  contact: User!
-  room: Room
-}
-"""
-Ordering options for UserPinCode connections
-"""
-input UserPinCodeOrder {
-  """
-  The ordering direction.
-  """
-  direction: OrderDirection! = ASC
-  """
-  The field by which to order UserPinCodes.
-  """
-  field: UserPinCodeOrderField!
-}
-"""
-Properties by which UserPinCode connections can be ordered.
-"""
-enum UserPinCodeOrderField {
-  CREATED_AT
-}
-"""
-UserPinCodeWhereInput is used for filtering UserPinCode objects.
-Input was generated by ent.
-"""
-input UserPinCodeWhereInput {
-  not: UserPinCodeWhereInput
-  and: [UserPinCodeWhereInput!]
-  or: [UserPinCodeWhereInput!]
-  """
-  id field predicates
-  """
-  id: ID
-  idNEQ: ID
-  idIn: [ID!]
-  idNotIn: [ID!]
-  idGT: ID
-  idGTE: ID
-  idLT: ID
-  idLTE: ID
-  """
-  user_id field predicates
-  """
-  userID: ID
-  userIDNEQ: ID
-  userIDIn: [ID!]
-  userIDNotIn: [ID!]
-  userIDGT: ID
-  userIDGTE: ID
-  userIDLT: ID
-  userIDLTE: ID
-  userIDContains: ID
-  userIDHasPrefix: ID
-  userIDHasSuffix: ID
-  userIDEqualFold: ID
-  userIDContainsFold: ID
-  """
-  contact_id field predicates
-  """
-  contactID: ID
-  contactIDNEQ: ID
-  contactIDIn: [ID!]
-  contactIDNotIn: [ID!]
-  contactIDGT: ID
-  contactIDGTE: ID
-  contactIDLT: ID
-  contactIDLTE: ID
-  contactIDContains: ID
-  contactIDHasPrefix: ID
-  contactIDHasSuffix: ID
-  contactIDEqualFold: ID
-  contactIDContainsFold: ID
-  """
-  room_id field predicates
-  """
-  roomID: ID
-  roomIDNEQ: ID
-  roomIDIn: [ID!]
-  roomIDNotIn: [ID!]
-  roomIDGT: ID
-  roomIDGTE: ID
-  roomIDLT: ID
-  roomIDLTE: ID
-  roomIDContains: ID
-  roomIDHasPrefix: ID
-  roomIDHasSuffix: ID
-  roomIDIsNil: Boolean
-  roomIDNotNil: Boolean
-  roomIDEqualFold: ID
-  roomIDContainsFold: ID
-  """
-  created_at field predicates
-  """
-  createdAt: Time
-  createdAtNEQ: Time
-  createdAtIn: [Time!]
-  createdAtNotIn: [Time!]
-  createdAtGT: Time
-  createdAtGTE: Time
-  createdAtLT: Time
-  createdAtLTE: Time
-  """
-  user edge predicates
-  """
-  hasUser: Boolean
-  hasUserWith: [UserWhereInput!]
-  """
-  contact edge predicates
-  """
-  hasContact: Boolean
-  hasContactWith: [UserWhereInput!]
-  """
-  room edge predicates
-  """
-  hasRoom: Boolean
-  hasRoomWith: [RoomWhereInput!]
-}
 """
 UserWhereInput is used for filtering User objects.
 Input was generated by ent.
@@ -1781,22 +1663,6 @@ input UserWhereInput {
   emailNotNil: Boolean
   emailEqualFold: String
   emailContainsFold: String
-  """
-  contact_pin field predicates
-  """
-  contactPin: String
-  contactPinNEQ: String
-  contactPinIn: [String!]
-  contactPinNotIn: [String!]
-  contactPinGT: String
-  contactPinGTE: String
-  contactPinLT: String
-  contactPinLTE: String
-  contactPinContains: String
-  contactPinHasPrefix: String
-  contactPinHasSuffix: String
-  contactPinEqualFold: String
-  contactPinContainsFold: String
   """
   created_at field predicates
   """

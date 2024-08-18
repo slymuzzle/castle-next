@@ -26,10 +26,6 @@ func (MessageVoice) Mixin() []ent.Mixin {
 // Fields of the MessageAttachment.
 func (MessageVoice) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("length").
-			Annotations(
-				entgql.OrderField("LENGTH"),
-			),
 		field.Time("attached_at").
 			Immutable().
 			Default(time.Now).

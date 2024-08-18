@@ -17,12 +17,16 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// FieldMimeType holds the string denoting the mime_type field in the database.
-	FieldMimeType = "mime_type"
-	// FieldDisk holds the string denoting the disk field in the database.
-	FieldDisk = "disk"
+	// FieldContentType holds the string denoting the content_type field in the database.
+	FieldContentType = "content_type"
 	// FieldSize holds the string denoting the size field in the database.
 	FieldSize = "size"
+	// FieldLocation holds the string denoting the location field in the database.
+	FieldLocation = "location"
+	// FieldBucket holds the string denoting the bucket field in the database.
+	FieldBucket = "bucket"
+	// FieldPath holds the string denoting the path field in the database.
+	FieldPath = "path"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -53,9 +57,11 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
-	FieldMimeType,
-	FieldDisk,
+	FieldContentType,
 	FieldSize,
+	FieldLocation,
+	FieldBucket,
+	FieldPath,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -94,19 +100,29 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
-// ByMimeType orders the results by the mime_type field.
-func ByMimeType(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldMimeType, opts...).ToFunc()
-}
-
-// ByDisk orders the results by the disk field.
-func ByDisk(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldDisk, opts...).ToFunc()
+// ByContentType orders the results by the content_type field.
+func ByContentType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContentType, opts...).ToFunc()
 }
 
 // BySize orders the results by the size field.
 func BySize(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSize, opts...).ToFunc()
+}
+
+// ByLocation orders the results by the location field.
+func ByLocation(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLocation, opts...).ToFunc()
+}
+
+// ByBucket orders the results by the bucket field.
+func ByBucket(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBucket, opts...).ToFunc()
+}
+
+// ByPath orders the results by the path field.
+func ByPath(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPath, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

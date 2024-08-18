@@ -7,38 +7,45 @@ import (
 	"journeyhub/ent"
 	"journeyhub/ent/message"
 	"journeyhub/ent/room"
-	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/usercontact"
+	"journeyhub/internal/media"
 	"strings"
 	"unicode"
+)
+
+type (
+	UploadAttachmentsFn func(*ent.Message) ([]*media.UploadInfo, error)
+	UploadVoiceFn       func(*ent.Message) (*media.UploadInfo, error)
 )
 
 type Repository interface {
 	FindRoomByMessage(
 		ctx context.Context,
-		messageID pulid.ID,
-	) (*ent.Room, error)
+		messageID ID,
+	) (*Room, error)
 	FindOrCreatePersonalRoom(
 		ctx context.Context,
-		currentUserID pulid.ID,
-		targetUserID pulid.ID,
-	) (*ent.Room, error)
+		currentUserID ID,
+		targetUserID ID,
+	) (*Room, error)
 	CreateMessage(
 		ctx context.Context,
-		roomID pulid.ID,
-		currentUserID pulid.ID,
-		replyTo pulid.ID,
+		roomID ID,
+		currentUserID ID,
+		replyTo *ID,
 		content string,
-	) (*ent.Message, error)
+		uploadAttachmentsFn UploadAttachmentsFn,
+		uploadVoiceFn UploadVoiceFn,
+	) (*Message, error)
 	UpdateMessage(
 		ctx context.Context,
-		messageID pulid.ID,
+		messageID ID,
 		content string,
-	) (*ent.Message, error)
+	) (*Message, error)
 	DeleteMessage(
 		ctx context.Context,
-		messageID pulid.ID,
-	) (*ent.Message, error)
+		messageID ID,
+	) (*Message, error)
 }
 
 type repository struct {
@@ -51,7 +58,10 @@ func NewRepository(entClient *ent.Client) Repository {
 	}
 }
 
-func (r *repository) FindRoomByMessage(ctx context.Context, messageID pulid.ID) (*ent.Room, error) {
+func (r *repository) FindRoomByMessage(
+	ctx context.Context,
+	messageID ID,
+) (*Room, error) {
 	return r.entClient.Room.
 		Query().
 		Where(
@@ -64,9 +74,9 @@ func (r *repository) FindRoomByMessage(ctx context.Context, messageID pulid.ID) 
 
 func (r *repository) FindOrCreatePersonalRoom(
 	ctx context.Context,
-	currentUserID pulid.ID,
-	targetUserID pulid.ID,
-) (*ent.Room, error) {
+	currentUserID ID,
+	targetUserID ID,
+) (*Room, error) {
 	uc, err := r.entClient.UserContact.
 		Query().
 		Where(
@@ -143,20 +153,99 @@ func (r *repository) FindOrCreatePersonalRoom(
 
 func (r *repository) CreateMessage(
 	ctx context.Context,
-	roomID pulid.ID,
-	currentUserID pulid.ID,
-	replyTo pulid.ID,
+	roomID ID,
+	currentUserID ID,
+	replyTo *ID,
 	content string,
-) (*ent.Message, error) {
-	msg, err := r.entClient.Message.
+	uploadAttachmentsFn UploadAttachmentsFn,
+	uploadVoiceFn UploadVoiceFn,
+) (*Message, error) {
+	tx, txErr := r.entClient.Tx(ctx)
+	if txErr != nil {
+		return nil, txErr
+	}
+
+	msg, msgFilesErr := tx.Message.
 		Create().
 		SetRoomID(roomID).
 		SetUserID(currentUserID).
-		SetReplyToID(replyTo).
+		SetNillableReplyToID(replyTo).
 		SetContent(content).
 		Save(ctx)
-	if err != nil {
-		return nil, err
+	if msgFilesErr != nil {
+		return nil, errors.Join(tx.Rollback(), txErr)
+	}
+
+	if uploadAttachmentsFn != nil {
+		uAtchInfo, uAtchErr := uploadAttachmentsFn(msg)
+		if uAtchErr != nil {
+			return nil, errors.Join(tx.Rollback(), uAtchErr)
+		}
+
+		msgFiles, msgFilesErr := tx.File.MapCreateBulk(
+			uAtchInfo,
+			func(a *ent.FileCreate, i int) {
+				a.SetID(uAtchInfo[i].ID).
+					SetName(uAtchInfo[i].Filename).
+					SetContentType(uAtchInfo[i].ContentType).
+					SetSize(uint64(uAtchInfo[i].Size)).
+					SetLocation(uAtchInfo[i].Location).
+					SetBucket(uAtchInfo[i].Bucket).
+					SetPath(uAtchInfo[i].Path)
+			},
+		).Save(ctx)
+		if msgFilesErr != nil {
+			return nil, errors.Join(tx.Rollback(), msgFilesErr)
+		}
+
+		msgAtchErr := tx.MessageAttachment.MapCreateBulk(
+			msgFiles,
+			func(a *ent.MessageAttachmentCreate, i int) {
+				a.SetMessage(msg).
+					SetRoomID(roomID).
+					SetFile(msgFiles[i]).
+					SetOrder(uint(i))
+			},
+		).Exec(ctx)
+		if msgAtchErr != nil {
+			return nil, errors.Join(tx.Rollback(), msgAtchErr)
+		}
+	}
+
+	if uploadVoiceFn != nil {
+		uVoiceInfo, uVoiceErr := uploadVoiceFn(msg)
+		if uVoiceErr != nil {
+			return nil, errors.Join(tx.Rollback(), uVoiceErr)
+		}
+
+		voiceFile, voiceFileErr := tx.File.
+			Create().
+			SetID(uVoiceInfo.ID).
+			SetName(uVoiceInfo.Filename).
+			SetContentType(uVoiceInfo.ContentType).
+			SetSize(uint64(uVoiceInfo.Size)).
+			SetLocation(uVoiceInfo.Location).
+			SetBucket(uVoiceInfo.Bucket).
+			SetPath(uVoiceInfo.Path).
+			Save(ctx)
+		if voiceFileErr != nil {
+			return nil, errors.Join(tx.Rollback(), voiceFileErr)
+		}
+
+		msgVoiceErr := tx.MessageVoice.
+			Create().
+			SetMessage(msg).
+			SetRoomID(roomID).
+			SetFile(voiceFile).
+			Exec(ctx)
+		if msgVoiceErr != nil {
+			return nil, errors.Join(tx.Rollback(), msgVoiceErr)
+		}
+	}
+
+	txcErr := tx.Commit()
+	if txcErr != nil {
+		return nil, txcErr
 	}
 
 	return msg, nil
@@ -164,9 +253,9 @@ func (r *repository) CreateMessage(
 
 func (r *repository) UpdateMessage(
 	ctx context.Context,
-	messageID pulid.ID,
+	messageID ID,
 	content string,
-) (*ent.Message, error) {
+) (*Message, error) {
 	msg, err := r.entClient.Message.
 		UpdateOneID(messageID).
 		SetContent(content).
@@ -180,8 +269,8 @@ func (r *repository) UpdateMessage(
 
 func (r *repository) DeleteMessage(
 	ctx context.Context,
-	messageID pulid.ID,
-) (*ent.Message, error) {
+	messageID ID,
+) (*Message, error) {
 	msg, err := r.entClient.Message.Get(ctx, messageID)
 	if err != nil {
 		return nil, err

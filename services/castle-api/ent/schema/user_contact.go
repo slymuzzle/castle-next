@@ -6,6 +6,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -47,14 +48,23 @@ func (UserContact) Edges() []ent.Edge {
 		edge.To("user", User.Type).
 			Required().
 			Unique().
-			Field("user_id"),
+			Field("user_id").
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+			),
 		edge.To("contact", User.Type).
 			Required().
 			Unique().
-			Field("contact_id"),
+			Field("contact_id").
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+			),
 		edge.To("room", Room.Type).
 			Unique().
-			Field("room_id"),
+			Field("room_id").
+			Annotations(
+				entsql.OnDelete(entsql.SetNull),
+			),
 	}
 }
 
