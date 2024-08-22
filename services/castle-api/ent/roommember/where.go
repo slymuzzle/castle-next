@@ -56,6 +56,11 @@ func IDLTE(id pulid.ID) predicate.RoomMember {
 	return predicate.RoomMember(sql.FieldLTE(FieldID, id))
 }
 
+// UnreadMessagesCount applies equality check predicate on the "unread_messages_count" field. It's identical to UnreadMessagesCountEQ.
+func UnreadMessagesCount(v int) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldEQ(FieldUnreadMessagesCount, v))
+}
+
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v pulid.ID) predicate.RoomMember {
 	return predicate.RoomMember(sql.FieldEQ(FieldUserID, v))
@@ -69,6 +74,46 @@ func RoomID(v pulid.ID) predicate.RoomMember {
 // JoinedAt applies equality check predicate on the "joined_at" field. It's identical to JoinedAtEQ.
 func JoinedAt(v time.Time) predicate.RoomMember {
 	return predicate.RoomMember(sql.FieldEQ(FieldJoinedAt, v))
+}
+
+// UnreadMessagesCountEQ applies the EQ predicate on the "unread_messages_count" field.
+func UnreadMessagesCountEQ(v int) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldEQ(FieldUnreadMessagesCount, v))
+}
+
+// UnreadMessagesCountNEQ applies the NEQ predicate on the "unread_messages_count" field.
+func UnreadMessagesCountNEQ(v int) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldNEQ(FieldUnreadMessagesCount, v))
+}
+
+// UnreadMessagesCountIn applies the In predicate on the "unread_messages_count" field.
+func UnreadMessagesCountIn(vs ...int) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldIn(FieldUnreadMessagesCount, vs...))
+}
+
+// UnreadMessagesCountNotIn applies the NotIn predicate on the "unread_messages_count" field.
+func UnreadMessagesCountNotIn(vs ...int) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldNotIn(FieldUnreadMessagesCount, vs...))
+}
+
+// UnreadMessagesCountGT applies the GT predicate on the "unread_messages_count" field.
+func UnreadMessagesCountGT(v int) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldGT(FieldUnreadMessagesCount, v))
+}
+
+// UnreadMessagesCountGTE applies the GTE predicate on the "unread_messages_count" field.
+func UnreadMessagesCountGTE(v int) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldGTE(FieldUnreadMessagesCount, v))
+}
+
+// UnreadMessagesCountLT applies the LT predicate on the "unread_messages_count" field.
+func UnreadMessagesCountLT(v int) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldLT(FieldUnreadMessagesCount, v))
+}
+
+// UnreadMessagesCountLTE applies the LTE predicate on the "unread_messages_count" field.
+func UnreadMessagesCountLTE(v int) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldLTE(FieldUnreadMessagesCount, v))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.

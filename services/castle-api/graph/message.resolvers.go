@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+
 	"journeyhub/ent"
 	"journeyhub/ent/message"
 	"journeyhub/ent/room"
@@ -17,32 +18,21 @@ import (
 )
 
 // SendMessage is the resolver for the sendMessage field.
-func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMessageInput) (*ent.Message, error) {
-	user, err := r.authService.Auth(ctx)
-	if err != nil {
-		return nil, err
+func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMessageInput) (*ent.MessageEdge, error) {
+	if validationErrors := r.validationService.ValidateGqlStruct(input); len(validationErrors) > 0 {
+		return nil, validationErrors
 	}
 
-	return r.chatService.SendMessage(ctx, user.ID, input)
+	return r.chatService.SendMessage(ctx, input)
 }
 
 // UpdateMessage is the resolver for the updateMessage field.
-func (r *mutationResolver) UpdateMessage(ctx context.Context, messageID pulid.ID, input model.UpdateMessageInput) (*ent.Message, error) {
-	_, err := r.authService.Auth(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func (r *mutationResolver) UpdateMessage(ctx context.Context, messageID pulid.ID, input model.UpdateMessageInput) (*ent.MessageEdge, error) {
 	return r.chatService.UpdateMessage(ctx, messageID, input)
 }
 
 // DeleteMessage is the resolver for the deleteMessage field.
-func (r *mutationResolver) DeleteMessage(ctx context.Context, messageID pulid.ID) (*ent.Message, error) {
-	_, err := r.authService.Auth(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func (r *mutationResolver) DeleteMessage(ctx context.Context, messageID pulid.ID) (*ent.MessageEdge, error) {
 	return r.chatService.DeleteMessage(ctx, messageID)
 }
 
@@ -71,18 +61,18 @@ func (r *queryResolver) MessagesByRoom(ctx context.Context, roomID pulid.ID, aft
 }
 
 // MessageAdded is the resolver for the messageAdded field.
-func (r *subscriptionResolver) MessageAdded(ctx context.Context, roomID pulid.ID) (<-chan *ent.Message, error) {
-	return r.chatService.SubscribeToMessageAddedEvent(roomID)
+func (r *subscriptionResolver) MessageAdded(ctx context.Context, roomID pulid.ID) (<-chan *ent.MessageEdge, error) {
+	return r.chatService.SubscribeToMessageAddedEvent(ctx, roomID)
 }
 
 // MessageUpdated is the resolver for the messageUpdated field.
-func (r *subscriptionResolver) MessageUpdated(ctx context.Context, roomID pulid.ID) (<-chan *ent.Message, error) {
-	return r.chatService.SubscribeToMessageUpdatedEvent(roomID)
+func (r *subscriptionResolver) MessageUpdated(ctx context.Context, roomID pulid.ID) (<-chan *ent.MessageEdge, error) {
+	return r.chatService.SubscribeToMessageUpdatedEvent(ctx, roomID)
 }
 
 // MessageDeleted is the resolver for the messageDeleted field.
-func (r *subscriptionResolver) MessageDeleted(ctx context.Context, roomID pulid.ID) (<-chan *ent.Message, error) {
-	return r.chatService.SubscribeToMessageDeletedEvent(roomID)
+func (r *subscriptionResolver) MessageDeleted(ctx context.Context, roomID pulid.ID) (<-chan *ent.MessageEdge, error) {
+	return r.chatService.SubscribeToMessageDeletedEvent(ctx, roomID)
 }
 
 // Mutation returns generated.MutationResolver implementation.
@@ -91,5 +81,7 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
-type mutationResolver struct{ *Resolver }
-type subscriptionResolver struct{ *Resolver }
+type (
+	mutationResolver     struct{ *Resolver }
+	subscriptionResolver struct{ *Resolver }
+)

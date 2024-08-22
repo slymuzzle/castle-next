@@ -15,6 +15,8 @@ const (
 	Label = "room_member"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldUnreadMessagesCount holds the string denoting the unread_messages_count field in the database.
+	FieldUnreadMessagesCount = "unread_messages_count"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
 	// FieldRoomID holds the string denoting the room_id field in the database.
@@ -46,6 +48,7 @@ const (
 // Columns holds all SQL columns for roommember fields.
 var Columns = []string{
 	FieldID,
+	FieldUnreadMessagesCount,
 	FieldUserID,
 	FieldRoomID,
 	FieldJoinedAt,
@@ -62,6 +65,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultUnreadMessagesCount holds the default value on creation for the "unread_messages_count" field.
+	DefaultUnreadMessagesCount int
 	// DefaultJoinedAt holds the default value on creation for the "joined_at" field.
 	DefaultJoinedAt func() time.Time
 	// DefaultID holds the default value on creation for the "id" field.
@@ -74,6 +79,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByUnreadMessagesCount orders the results by the unread_messages_count field.
+func ByUnreadMessagesCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUnreadMessagesCount, opts...).ToFunc()
 }
 
 // ByUserID orders the results by the user_id field.

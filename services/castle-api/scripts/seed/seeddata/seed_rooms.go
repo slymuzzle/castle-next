@@ -2,8 +2,9 @@ package seeddata
 
 import (
 	"context"
+
 	"journeyhub/ent/room"
-	"journeyhub/internal/db"
+	"journeyhub/internal/platform/db"
 )
 
 func SeedRooms(dbService db.Service) error {

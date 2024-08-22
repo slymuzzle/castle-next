@@ -30,6 +30,27 @@ func (rmu *RoomMemberUpdate) Where(ps ...predicate.RoomMember) *RoomMemberUpdate
 	return rmu
 }
 
+// SetUnreadMessagesCount sets the "unread_messages_count" field.
+func (rmu *RoomMemberUpdate) SetUnreadMessagesCount(i int) *RoomMemberUpdate {
+	rmu.mutation.ResetUnreadMessagesCount()
+	rmu.mutation.SetUnreadMessagesCount(i)
+	return rmu
+}
+
+// SetNillableUnreadMessagesCount sets the "unread_messages_count" field if the given value is not nil.
+func (rmu *RoomMemberUpdate) SetNillableUnreadMessagesCount(i *int) *RoomMemberUpdate {
+	if i != nil {
+		rmu.SetUnreadMessagesCount(*i)
+	}
+	return rmu
+}
+
+// AddUnreadMessagesCount adds i to the "unread_messages_count" field.
+func (rmu *RoomMemberUpdate) AddUnreadMessagesCount(i int) *RoomMemberUpdate {
+	rmu.mutation.AddUnreadMessagesCount(i)
+	return rmu
+}
+
 // SetUserID sets the "user_id" field.
 func (rmu *RoomMemberUpdate) SetUserID(pu pulid.ID) *RoomMemberUpdate {
 	rmu.mutation.SetUserID(pu)
@@ -135,6 +156,12 @@ func (rmu *RoomMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := rmu.mutation.UnreadMessagesCount(); ok {
+		_spec.SetField(roommember.FieldUnreadMessagesCount, field.TypeInt, value)
+	}
+	if value, ok := rmu.mutation.AddedUnreadMessagesCount(); ok {
+		_spec.AddField(roommember.FieldUnreadMessagesCount, field.TypeInt, value)
+	}
 	if rmu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -211,6 +238,27 @@ type RoomMemberUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *RoomMemberMutation
+}
+
+// SetUnreadMessagesCount sets the "unread_messages_count" field.
+func (rmuo *RoomMemberUpdateOne) SetUnreadMessagesCount(i int) *RoomMemberUpdateOne {
+	rmuo.mutation.ResetUnreadMessagesCount()
+	rmuo.mutation.SetUnreadMessagesCount(i)
+	return rmuo
+}
+
+// SetNillableUnreadMessagesCount sets the "unread_messages_count" field if the given value is not nil.
+func (rmuo *RoomMemberUpdateOne) SetNillableUnreadMessagesCount(i *int) *RoomMemberUpdateOne {
+	if i != nil {
+		rmuo.SetUnreadMessagesCount(*i)
+	}
+	return rmuo
+}
+
+// AddUnreadMessagesCount adds i to the "unread_messages_count" field.
+func (rmuo *RoomMemberUpdateOne) AddUnreadMessagesCount(i int) *RoomMemberUpdateOne {
+	rmuo.mutation.AddUnreadMessagesCount(i)
+	return rmuo
 }
 
 // SetUserID sets the "user_id" field.
@@ -347,6 +395,12 @@ func (rmuo *RoomMemberUpdateOne) sqlSave(ctx context.Context) (_node *RoomMember
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := rmuo.mutation.UnreadMessagesCount(); ok {
+		_spec.SetField(roommember.FieldUnreadMessagesCount, field.TypeInt, value)
+	}
+	if value, ok := rmuo.mutation.AddedUnreadMessagesCount(); ok {
+		_spec.AddField(roommember.FieldUnreadMessagesCount, field.TypeInt, value)
 	}
 	if rmuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

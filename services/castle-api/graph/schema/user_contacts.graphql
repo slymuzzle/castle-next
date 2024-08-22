@@ -1,0 +1,4 @@
+extend type Mutation {
+  generatePinCode: String
+  addContact(pincode: String!): UserContact
+}

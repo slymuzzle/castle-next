@@ -4,6 +4,7 @@ package generated
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"journeyhub/ent"
@@ -19,33 +20,50 @@ import (
 // region    ************************** generated!.gotpl **************************
 
 type MutationResolver interface {
-	SendMessage(ctx context.Context, input model.SendMessageInput) (*ent.Message, error)
-	UpdateMessage(ctx context.Context, messageID pulid.ID, input model.UpdateMessageInput) (*ent.Message, error)
-	DeleteMessage(ctx context.Context, messageID pulid.ID) (*ent.Message, error)
-	CreateRoom(ctx context.Context, input model.CreateRoomInput) (*ent.Room, error)
-	UpdateRoom(ctx context.Context, roomID pulid.ID, input model.UpdateRoomInput) (*ent.Room, error)
-	DeleteRoom(ctx context.Context, roomID pulid.ID) (*ent.Room, error)
+	SendMessage(ctx context.Context, input model.SendMessageInput) (*ent.MessageEdge, error)
+	UpdateMessage(ctx context.Context, messageID pulid.ID, input model.UpdateMessageInput) (*ent.MessageEdge, error)
+	DeleteMessage(ctx context.Context, messageID pulid.ID) (*ent.MessageEdge, error)
+	CreateRoom(ctx context.Context, input ent.CreateRoomInput) (*ent.RoomEdge, error)
+	UpdateRoom(ctx context.Context, roomID pulid.ID, input ent.UpdateRoomInput) (*ent.RoomEdge, error)
+	DeleteRoom(ctx context.Context, roomID pulid.ID) (*ent.RoomEdge, error)
 	Register(ctx context.Context, input model.UserRegisterInput) (*ent.User, error)
 	Login(ctx context.Context, input model.UserLoginInput) (*model.LoginUser, error)
+	GeneratePinCode(ctx context.Context) (*string, error)
+	AddContact(ctx context.Context, pincode string) (*ent.UserContact, error)
 }
 type SubscriptionResolver interface {
-	MessageAdded(ctx context.Context, roomID pulid.ID) (<-chan *ent.Message, error)
-	MessageUpdated(ctx context.Context, roomID pulid.ID) (<-chan *ent.Message, error)
-	MessageDeleted(ctx context.Context, roomID pulid.ID) (<-chan *ent.Message, error)
-	RoomChanged(ctx context.Context) (<-chan *ent.Message, error)
+	MessageAdded(ctx context.Context, roomID pulid.ID) (<-chan *ent.MessageEdge, error)
+	MessageUpdated(ctx context.Context, roomID pulid.ID) (<-chan *ent.MessageEdge, error)
+	MessageDeleted(ctx context.Context, roomID pulid.ID) (<-chan *ent.MessageEdge, error)
+	RoomsChanged(ctx context.Context) (<-chan *ent.RoomEdge, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_Mutation_addContact_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["pincode"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pincode"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pincode"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createRoom_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.CreateRoomInput
+	var arg0 ent.CreateRoomInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCreateRoomInput2journeyhubᚋgraphᚋmodelᚐCreateRoomInput(ctx, tmp)
+		arg0, err = ec.unmarshalNCreateRoomInput2journeyhubᚋentᚐCreateRoomInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -165,10 +183,10 @@ func (ec *executionContext) field_Mutation_updateRoom_args(ctx context.Context, 
 		}
 	}
 	args["roomID"] = arg0
-	var arg1 model.UpdateRoomInput
+	var arg1 ent.UpdateRoomInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNUpdateRoomInput2journeyhubᚋgraphᚋmodelᚐUpdateRoomInput(ctx, tmp)
+		arg1, err = ec.unmarshalNUpdateRoomInput2journeyhubᚋentᚐUpdateRoomInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -253,9 +271,9 @@ func (ec *executionContext) _Mutation_sendMessage(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*ent.Message)
+	res := resTmp.(*ent.MessageEdge)
 	fc.Result = res
-	return ec.marshalOMessage2ᚖjourneyhubᚋentᚐMessage(ctx, field.Selections, res)
+	return ec.marshalOMessageEdge2ᚖjourneyhubᚋentᚐMessageEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_sendMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -266,28 +284,12 @@ func (ec *executionContext) fieldContext_Mutation_sendMessage(ctx context.Contex
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Message_id(ctx, field)
-			case "content":
-				return ec.fieldContext_Message_content(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Message_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Message_updatedAt(ctx, field)
-			case "voice":
-				return ec.fieldContext_Message_voice(ctx, field)
-			case "replyTo":
-				return ec.fieldContext_Message_replyTo(ctx, field)
-			case "attachments":
-				return ec.fieldContext_Message_attachments(ctx, field)
-			case "links":
-				return ec.fieldContext_Message_links(ctx, field)
-			case "user":
-				return ec.fieldContext_Message_user(ctx, field)
-			case "room":
-				return ec.fieldContext_Message_room(ctx, field)
+			case "node":
+				return ec.fieldContext_MessageEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_MessageEdge_cursor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type MessageEdge", field.Name)
 		},
 	}
 	defer func() {
@@ -327,9 +329,9 @@ func (ec *executionContext) _Mutation_updateMessage(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*ent.Message)
+	res := resTmp.(*ent.MessageEdge)
 	fc.Result = res
-	return ec.marshalOMessage2ᚖjourneyhubᚋentᚐMessage(ctx, field.Selections, res)
+	return ec.marshalOMessageEdge2ᚖjourneyhubᚋentᚐMessageEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -340,28 +342,12 @@ func (ec *executionContext) fieldContext_Mutation_updateMessage(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Message_id(ctx, field)
-			case "content":
-				return ec.fieldContext_Message_content(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Message_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Message_updatedAt(ctx, field)
-			case "voice":
-				return ec.fieldContext_Message_voice(ctx, field)
-			case "replyTo":
-				return ec.fieldContext_Message_replyTo(ctx, field)
-			case "attachments":
-				return ec.fieldContext_Message_attachments(ctx, field)
-			case "links":
-				return ec.fieldContext_Message_links(ctx, field)
-			case "user":
-				return ec.fieldContext_Message_user(ctx, field)
-			case "room":
-				return ec.fieldContext_Message_room(ctx, field)
+			case "node":
+				return ec.fieldContext_MessageEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_MessageEdge_cursor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type MessageEdge", field.Name)
 		},
 	}
 	defer func() {
@@ -401,9 +387,9 @@ func (ec *executionContext) _Mutation_deleteMessage(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*ent.Message)
+	res := resTmp.(*ent.MessageEdge)
 	fc.Result = res
-	return ec.marshalOMessage2ᚖjourneyhubᚋentᚐMessage(ctx, field.Selections, res)
+	return ec.marshalOMessageEdge2ᚖjourneyhubᚋentᚐMessageEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deleteMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -414,28 +400,12 @@ func (ec *executionContext) fieldContext_Mutation_deleteMessage(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Message_id(ctx, field)
-			case "content":
-				return ec.fieldContext_Message_content(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Message_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Message_updatedAt(ctx, field)
-			case "voice":
-				return ec.fieldContext_Message_voice(ctx, field)
-			case "replyTo":
-				return ec.fieldContext_Message_replyTo(ctx, field)
-			case "attachments":
-				return ec.fieldContext_Message_attachments(ctx, field)
-			case "links":
-				return ec.fieldContext_Message_links(ctx, field)
-			case "user":
-				return ec.fieldContext_Message_user(ctx, field)
-			case "room":
-				return ec.fieldContext_Message_room(ctx, field)
+			case "node":
+				return ec.fieldContext_MessageEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_MessageEdge_cursor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type MessageEdge", field.Name)
 		},
 	}
 	defer func() {
@@ -466,7 +436,7 @@ func (ec *executionContext) _Mutation_createRoom(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateRoom(rctx, fc.Args["input"].(model.CreateRoomInput))
+		return ec.resolvers.Mutation().CreateRoom(rctx, fc.Args["input"].(ent.CreateRoomInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -475,9 +445,9 @@ func (ec *executionContext) _Mutation_createRoom(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*ent.Room)
+	res := resTmp.(*ent.RoomEdge)
 	fc.Result = res
-	return ec.marshalORoom2ᚖjourneyhubᚋentᚐRoom(ctx, field.Selections, res)
+	return ec.marshalORoomEdge2ᚖjourneyhubᚋentᚐRoomEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createRoom(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -488,32 +458,12 @@ func (ec *executionContext) fieldContext_Mutation_createRoom(ctx context.Context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Room_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Room_name(ctx, field)
-			case "version":
-				return ec.fieldContext_Room_version(ctx, field)
-			case "type":
-				return ec.fieldContext_Room_type(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Room_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Room_updatedAt(ctx, field)
-			case "users":
-				return ec.fieldContext_Room_users(ctx, field)
-			case "messages":
-				return ec.fieldContext_Room_messages(ctx, field)
-			case "messageVoices":
-				return ec.fieldContext_Room_messageVoices(ctx, field)
-			case "messageAttachments":
-				return ec.fieldContext_Room_messageAttachments(ctx, field)
-			case "messageLinks":
-				return ec.fieldContext_Room_messageLinks(ctx, field)
-			case "roomMembers":
-				return ec.fieldContext_Room_roomMembers(ctx, field)
+			case "node":
+				return ec.fieldContext_RoomEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_RoomEdge_cursor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Room", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type RoomEdge", field.Name)
 		},
 	}
 	defer func() {
@@ -544,7 +494,7 @@ func (ec *executionContext) _Mutation_updateRoom(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateRoom(rctx, fc.Args["roomID"].(pulid.ID), fc.Args["input"].(model.UpdateRoomInput))
+		return ec.resolvers.Mutation().UpdateRoom(rctx, fc.Args["roomID"].(pulid.ID), fc.Args["input"].(ent.UpdateRoomInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -553,9 +503,9 @@ func (ec *executionContext) _Mutation_updateRoom(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*ent.Room)
+	res := resTmp.(*ent.RoomEdge)
 	fc.Result = res
-	return ec.marshalORoom2ᚖjourneyhubᚋentᚐRoom(ctx, field.Selections, res)
+	return ec.marshalORoomEdge2ᚖjourneyhubᚋentᚐRoomEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateRoom(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -566,32 +516,12 @@ func (ec *executionContext) fieldContext_Mutation_updateRoom(ctx context.Context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Room_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Room_name(ctx, field)
-			case "version":
-				return ec.fieldContext_Room_version(ctx, field)
-			case "type":
-				return ec.fieldContext_Room_type(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Room_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Room_updatedAt(ctx, field)
-			case "users":
-				return ec.fieldContext_Room_users(ctx, field)
-			case "messages":
-				return ec.fieldContext_Room_messages(ctx, field)
-			case "messageVoices":
-				return ec.fieldContext_Room_messageVoices(ctx, field)
-			case "messageAttachments":
-				return ec.fieldContext_Room_messageAttachments(ctx, field)
-			case "messageLinks":
-				return ec.fieldContext_Room_messageLinks(ctx, field)
-			case "roomMembers":
-				return ec.fieldContext_Room_roomMembers(ctx, field)
+			case "node":
+				return ec.fieldContext_RoomEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_RoomEdge_cursor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Room", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type RoomEdge", field.Name)
 		},
 	}
 	defer func() {
@@ -631,9 +561,9 @@ func (ec *executionContext) _Mutation_deleteRoom(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*ent.Room)
+	res := resTmp.(*ent.RoomEdge)
 	fc.Result = res
-	return ec.marshalORoom2ᚖjourneyhubᚋentᚐRoom(ctx, field.Selections, res)
+	return ec.marshalORoomEdge2ᚖjourneyhubᚋentᚐRoomEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deleteRoom(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -644,32 +574,12 @@ func (ec *executionContext) fieldContext_Mutation_deleteRoom(ctx context.Context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Room_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Room_name(ctx, field)
-			case "version":
-				return ec.fieldContext_Room_version(ctx, field)
-			case "type":
-				return ec.fieldContext_Room_type(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Room_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Room_updatedAt(ctx, field)
-			case "users":
-				return ec.fieldContext_Room_users(ctx, field)
-			case "messages":
-				return ec.fieldContext_Room_messages(ctx, field)
-			case "messageVoices":
-				return ec.fieldContext_Room_messageVoices(ctx, field)
-			case "messageAttachments":
-				return ec.fieldContext_Room_messageAttachments(ctx, field)
-			case "messageLinks":
-				return ec.fieldContext_Room_messageLinks(ctx, field)
-			case "roomMembers":
-				return ec.fieldContext_Room_roomMembers(ctx, field)
+			case "node":
+				return ec.fieldContext_RoomEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_RoomEdge_cursor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Room", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type RoomEdge", field.Name)
 		},
 	}
 	defer func() {
@@ -732,6 +642,8 @@ func (ec *executionContext) fieldContext_Mutation_register(ctx context.Context, 
 				return ec.fieldContext_User_nickname(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
+			case "contactPin":
+				return ec.fieldContext_User_contactPin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -822,6 +734,117 @@ func (ec *executionContext) fieldContext_Mutation_login(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_generatePinCode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_generatePinCode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().GeneratePinCode(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_generatePinCode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addContact(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addContact(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddContact(rctx, fc.Args["pincode"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.UserContact)
+	fc.Result = res
+	return ec.marshalOUserContact2ᚖjourneyhubᚋentᚐUserContact(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addContact(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_UserContact_id(ctx, field)
+			case "userID":
+				return ec.fieldContext_UserContact_userID(ctx, field)
+			case "contactID":
+				return ec.fieldContext_UserContact_contactID(ctx, field)
+			case "roomID":
+				return ec.fieldContext_UserContact_roomID(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_UserContact_createdAt(ctx, field)
+			case "user":
+				return ec.fieldContext_UserContact_user(ctx, field)
+			case "contact":
+				return ec.fieldContext_UserContact_contact(ctx, field)
+			case "room":
+				return ec.fieldContext_UserContact_room(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UserContact", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addContact_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Subscription_messageAdded(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
 	fc, err := ec.fieldContext_Subscription_messageAdded(ctx, field)
 	if err != nil {
@@ -850,7 +873,7 @@ func (ec *executionContext) _Subscription_messageAdded(ctx context.Context, fiel
 	}
 	return func(ctx context.Context) graphql.Marshaler {
 		select {
-		case res, ok := <-resTmp.(<-chan *ent.Message):
+		case res, ok := <-resTmp.(<-chan *ent.MessageEdge):
 			if !ok {
 				return nil
 			}
@@ -858,7 +881,7 @@ func (ec *executionContext) _Subscription_messageAdded(ctx context.Context, fiel
 				w.Write([]byte{'{'})
 				graphql.MarshalString(field.Alias).MarshalGQL(w)
 				w.Write([]byte{':'})
-				ec.marshalNMessage2ᚖjourneyhubᚋentᚐMessage(ctx, field.Selections, res).MarshalGQL(w)
+				ec.marshalNMessageEdge2ᚖjourneyhubᚋentᚐMessageEdge(ctx, field.Selections, res).MarshalGQL(w)
 				w.Write([]byte{'}'})
 			})
 		case <-ctx.Done():
@@ -875,28 +898,12 @@ func (ec *executionContext) fieldContext_Subscription_messageAdded(ctx context.C
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Message_id(ctx, field)
-			case "content":
-				return ec.fieldContext_Message_content(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Message_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Message_updatedAt(ctx, field)
-			case "voice":
-				return ec.fieldContext_Message_voice(ctx, field)
-			case "replyTo":
-				return ec.fieldContext_Message_replyTo(ctx, field)
-			case "attachments":
-				return ec.fieldContext_Message_attachments(ctx, field)
-			case "links":
-				return ec.fieldContext_Message_links(ctx, field)
-			case "user":
-				return ec.fieldContext_Message_user(ctx, field)
-			case "room":
-				return ec.fieldContext_Message_room(ctx, field)
+			case "node":
+				return ec.fieldContext_MessageEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_MessageEdge_cursor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type MessageEdge", field.Name)
 		},
 	}
 	defer func() {
@@ -941,7 +948,7 @@ func (ec *executionContext) _Subscription_messageUpdated(ctx context.Context, fi
 	}
 	return func(ctx context.Context) graphql.Marshaler {
 		select {
-		case res, ok := <-resTmp.(<-chan *ent.Message):
+		case res, ok := <-resTmp.(<-chan *ent.MessageEdge):
 			if !ok {
 				return nil
 			}
@@ -949,7 +956,7 @@ func (ec *executionContext) _Subscription_messageUpdated(ctx context.Context, fi
 				w.Write([]byte{'{'})
 				graphql.MarshalString(field.Alias).MarshalGQL(w)
 				w.Write([]byte{':'})
-				ec.marshalNMessage2ᚖjourneyhubᚋentᚐMessage(ctx, field.Selections, res).MarshalGQL(w)
+				ec.marshalNMessageEdge2ᚖjourneyhubᚋentᚐMessageEdge(ctx, field.Selections, res).MarshalGQL(w)
 				w.Write([]byte{'}'})
 			})
 		case <-ctx.Done():
@@ -966,28 +973,12 @@ func (ec *executionContext) fieldContext_Subscription_messageUpdated(ctx context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Message_id(ctx, field)
-			case "content":
-				return ec.fieldContext_Message_content(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Message_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Message_updatedAt(ctx, field)
-			case "voice":
-				return ec.fieldContext_Message_voice(ctx, field)
-			case "replyTo":
-				return ec.fieldContext_Message_replyTo(ctx, field)
-			case "attachments":
-				return ec.fieldContext_Message_attachments(ctx, field)
-			case "links":
-				return ec.fieldContext_Message_links(ctx, field)
-			case "user":
-				return ec.fieldContext_Message_user(ctx, field)
-			case "room":
-				return ec.fieldContext_Message_room(ctx, field)
+			case "node":
+				return ec.fieldContext_MessageEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_MessageEdge_cursor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type MessageEdge", field.Name)
 		},
 	}
 	defer func() {
@@ -1032,7 +1023,7 @@ func (ec *executionContext) _Subscription_messageDeleted(ctx context.Context, fi
 	}
 	return func(ctx context.Context) graphql.Marshaler {
 		select {
-		case res, ok := <-resTmp.(<-chan *ent.Message):
+		case res, ok := <-resTmp.(<-chan *ent.MessageEdge):
 			if !ok {
 				return nil
 			}
@@ -1040,7 +1031,7 @@ func (ec *executionContext) _Subscription_messageDeleted(ctx context.Context, fi
 				w.Write([]byte{'{'})
 				graphql.MarshalString(field.Alias).MarshalGQL(w)
 				w.Write([]byte{':'})
-				ec.marshalNMessage2ᚖjourneyhubᚋentᚐMessage(ctx, field.Selections, res).MarshalGQL(w)
+				ec.marshalNMessageEdge2ᚖjourneyhubᚋentᚐMessageEdge(ctx, field.Selections, res).MarshalGQL(w)
 				w.Write([]byte{'}'})
 			})
 		case <-ctx.Done():
@@ -1057,28 +1048,12 @@ func (ec *executionContext) fieldContext_Subscription_messageDeleted(ctx context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Message_id(ctx, field)
-			case "content":
-				return ec.fieldContext_Message_content(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Message_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Message_updatedAt(ctx, field)
-			case "voice":
-				return ec.fieldContext_Message_voice(ctx, field)
-			case "replyTo":
-				return ec.fieldContext_Message_replyTo(ctx, field)
-			case "attachments":
-				return ec.fieldContext_Message_attachments(ctx, field)
-			case "links":
-				return ec.fieldContext_Message_links(ctx, field)
-			case "user":
-				return ec.fieldContext_Message_user(ctx, field)
-			case "room":
-				return ec.fieldContext_Message_room(ctx, field)
+			case "node":
+				return ec.fieldContext_MessageEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_MessageEdge_cursor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type MessageEdge", field.Name)
 		},
 	}
 	defer func() {
@@ -1095,8 +1070,8 @@ func (ec *executionContext) fieldContext_Subscription_messageDeleted(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _Subscription_roomChanged(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
-	fc, err := ec.fieldContext_Subscription_roomChanged(ctx, field)
+func (ec *executionContext) _Subscription_roomsChanged(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	fc, err := ec.fieldContext_Subscription_roomsChanged(ctx, field)
 	if err != nil {
 		return nil
 	}
@@ -1109,7 +1084,7 @@ func (ec *executionContext) _Subscription_roomChanged(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().RoomChanged(rctx)
+		return ec.resolvers.Subscription().RoomsChanged(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1123,7 +1098,7 @@ func (ec *executionContext) _Subscription_roomChanged(ctx context.Context, field
 	}
 	return func(ctx context.Context) graphql.Marshaler {
 		select {
-		case res, ok := <-resTmp.(<-chan *ent.Message):
+		case res, ok := <-resTmp.(<-chan *ent.RoomEdge):
 			if !ok {
 				return nil
 			}
@@ -1131,7 +1106,7 @@ func (ec *executionContext) _Subscription_roomChanged(ctx context.Context, field
 				w.Write([]byte{'{'})
 				graphql.MarshalString(field.Alias).MarshalGQL(w)
 				w.Write([]byte{':'})
-				ec.marshalNMessage2ᚖjourneyhubᚋentᚐMessage(ctx, field.Selections, res).MarshalGQL(w)
+				ec.marshalNRoomEdge2ᚖjourneyhubᚋentᚐRoomEdge(ctx, field.Selections, res).MarshalGQL(w)
 				w.Write([]byte{'}'})
 			})
 		case <-ctx.Done():
@@ -1140,7 +1115,7 @@ func (ec *executionContext) _Subscription_roomChanged(ctx context.Context, field
 	}
 }
 
-func (ec *executionContext) fieldContext_Subscription_roomChanged(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Subscription_roomsChanged(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Subscription",
 		Field:      field,
@@ -1148,28 +1123,12 @@ func (ec *executionContext) fieldContext_Subscription_roomChanged(_ context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Message_id(ctx, field)
-			case "content":
-				return ec.fieldContext_Message_content(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Message_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Message_updatedAt(ctx, field)
-			case "voice":
-				return ec.fieldContext_Message_voice(ctx, field)
-			case "replyTo":
-				return ec.fieldContext_Message_replyTo(ctx, field)
-			case "attachments":
-				return ec.fieldContext_Message_attachments(ctx, field)
-			case "links":
-				return ec.fieldContext_Message_links(ctx, field)
-			case "user":
-				return ec.fieldContext_Message_user(ctx, field)
-			case "room":
-				return ec.fieldContext_Message_room(ctx, field)
+			case "node":
+				return ec.fieldContext_RoomEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_RoomEdge_cursor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type RoomEdge", field.Name)
 		},
 	}
 	return fc, nil
@@ -1320,6 +1279,14 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_login(ctx, field)
 			})
+		case "generatePinCode":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_generatePinCode(ctx, field)
+			})
+		case "addContact":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addContact(ctx, field)
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -1362,8 +1329,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 		return ec._Subscription_messageUpdated(ctx, fields[0])
 	case "messageDeleted":
 		return ec._Subscription_messageDeleted(ctx, fields[0])
-	case "roomChanged":
-		return ec._Subscription_roomChanged(ctx, fields[0])
+	case "roomsChanged":
+		return ec._Subscription_roomsChanged(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}

@@ -46,8 +46,9 @@ func (User) Fields() []ent.Field {
 			Annotations(
 				entgql.OrderField("EMAIL"),
 			),
-		// field.String("contact_pin").
-		// 	Unique(),
+		field.String("contact_pin").
+			Optional().
+			Unique(),
 		field.String("password").
 			Sensitive().
 			Annotations(

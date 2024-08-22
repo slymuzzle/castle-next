@@ -1789,6 +1789,10 @@ type RoomWhereInput struct {
 	HasUsers     *bool             `json:"hasUsers,omitempty"`
 	HasUsersWith []*UserWhereInput `json:"hasUsersWith,omitempty"`
 
+	// "last_message" edge predicates.
+	HasLastMessage     *bool                `json:"hasLastMessage,omitempty"`
+	HasLastMessageWith []*MessageWhereInput `json:"hasLastMessageWith,omitempty"`
+
 	// "messages" edge predicates.
 	HasMessages     *bool                `json:"hasMessages,omitempty"`
 	HasMessagesWith []*MessageWhereInput `json:"hasMessagesWith,omitempty"`
@@ -2047,6 +2051,24 @@ func (i *RoomWhereInput) P() (predicate.Room, error) {
 		}
 		predicates = append(predicates, room.HasUsersWith(with...))
 	}
+	if i.HasLastMessage != nil {
+		p := room.HasLastMessage()
+		if !*i.HasLastMessage {
+			p = room.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasLastMessageWith) > 0 {
+		with := make([]predicate.Message, 0, len(i.HasLastMessageWith))
+		for _, w := range i.HasLastMessageWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasLastMessageWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, room.HasLastMessageWith(with...))
+	}
 	if i.HasMessages != nil {
 		p := room.HasMessages()
 		if !*i.HasMessages {
@@ -2163,6 +2185,16 @@ type RoomMemberWhereInput struct {
 	IDGTE   *pulid.ID  `json:"idGTE,omitempty"`
 	IDLT    *pulid.ID  `json:"idLT,omitempty"`
 	IDLTE   *pulid.ID  `json:"idLTE,omitempty"`
+
+	// "unread_messages_count" field predicates.
+	UnreadMessagesCount      *int  `json:"unreadMessagesCount,omitempty"`
+	UnreadMessagesCountNEQ   *int  `json:"unreadMessagesCountNEQ,omitempty"`
+	UnreadMessagesCountIn    []int `json:"unreadMessagesCountIn,omitempty"`
+	UnreadMessagesCountNotIn []int `json:"unreadMessagesCountNotIn,omitempty"`
+	UnreadMessagesCountGT    *int  `json:"unreadMessagesCountGT,omitempty"`
+	UnreadMessagesCountGTE   *int  `json:"unreadMessagesCountGTE,omitempty"`
+	UnreadMessagesCountLT    *int  `json:"unreadMessagesCountLT,omitempty"`
+	UnreadMessagesCountLTE   *int  `json:"unreadMessagesCountLTE,omitempty"`
 
 	// "user_id" field predicates.
 	UserID             *pulid.ID  `json:"userID,omitempty"`
@@ -2307,6 +2339,30 @@ func (i *RoomMemberWhereInput) P() (predicate.RoomMember, error) {
 	}
 	if i.IDLTE != nil {
 		predicates = append(predicates, roommember.IDLTE(*i.IDLTE))
+	}
+	if i.UnreadMessagesCount != nil {
+		predicates = append(predicates, roommember.UnreadMessagesCountEQ(*i.UnreadMessagesCount))
+	}
+	if i.UnreadMessagesCountNEQ != nil {
+		predicates = append(predicates, roommember.UnreadMessagesCountNEQ(*i.UnreadMessagesCountNEQ))
+	}
+	if len(i.UnreadMessagesCountIn) > 0 {
+		predicates = append(predicates, roommember.UnreadMessagesCountIn(i.UnreadMessagesCountIn...))
+	}
+	if len(i.UnreadMessagesCountNotIn) > 0 {
+		predicates = append(predicates, roommember.UnreadMessagesCountNotIn(i.UnreadMessagesCountNotIn...))
+	}
+	if i.UnreadMessagesCountGT != nil {
+		predicates = append(predicates, roommember.UnreadMessagesCountGT(*i.UnreadMessagesCountGT))
+	}
+	if i.UnreadMessagesCountGTE != nil {
+		predicates = append(predicates, roommember.UnreadMessagesCountGTE(*i.UnreadMessagesCountGTE))
+	}
+	if i.UnreadMessagesCountLT != nil {
+		predicates = append(predicates, roommember.UnreadMessagesCountLT(*i.UnreadMessagesCountLT))
+	}
+	if i.UnreadMessagesCountLTE != nil {
+		predicates = append(predicates, roommember.UnreadMessagesCountLTE(*i.UnreadMessagesCountLTE))
 	}
 	if i.UserID != nil {
 		predicates = append(predicates, roommember.UserIDEQ(*i.UserID))
@@ -2535,6 +2591,23 @@ type UserWhereInput struct {
 	EmailNotNil       bool     `json:"emailNotNil,omitempty"`
 	EmailEqualFold    *string  `json:"emailEqualFold,omitempty"`
 	EmailContainsFold *string  `json:"emailContainsFold,omitempty"`
+
+	// "contact_pin" field predicates.
+	ContactPin             *string  `json:"contactPin,omitempty"`
+	ContactPinNEQ          *string  `json:"contactPinNEQ,omitempty"`
+	ContactPinIn           []string `json:"contactPinIn,omitempty"`
+	ContactPinNotIn        []string `json:"contactPinNotIn,omitempty"`
+	ContactPinGT           *string  `json:"contactPinGT,omitempty"`
+	ContactPinGTE          *string  `json:"contactPinGTE,omitempty"`
+	ContactPinLT           *string  `json:"contactPinLT,omitempty"`
+	ContactPinLTE          *string  `json:"contactPinLTE,omitempty"`
+	ContactPinContains     *string  `json:"contactPinContains,omitempty"`
+	ContactPinHasPrefix    *string  `json:"contactPinHasPrefix,omitempty"`
+	ContactPinHasSuffix    *string  `json:"contactPinHasSuffix,omitempty"`
+	ContactPinIsNil        bool     `json:"contactPinIsNil,omitempty"`
+	ContactPinNotNil       bool     `json:"contactPinNotNil,omitempty"`
+	ContactPinEqualFold    *string  `json:"contactPinEqualFold,omitempty"`
+	ContactPinContainsFold *string  `json:"contactPinContainsFold,omitempty"`
 
 	// "created_at" field predicates.
 	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
@@ -2833,6 +2906,51 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 	}
 	if i.EmailContainsFold != nil {
 		predicates = append(predicates, user.EmailContainsFold(*i.EmailContainsFold))
+	}
+	if i.ContactPin != nil {
+		predicates = append(predicates, user.ContactPinEQ(*i.ContactPin))
+	}
+	if i.ContactPinNEQ != nil {
+		predicates = append(predicates, user.ContactPinNEQ(*i.ContactPinNEQ))
+	}
+	if len(i.ContactPinIn) > 0 {
+		predicates = append(predicates, user.ContactPinIn(i.ContactPinIn...))
+	}
+	if len(i.ContactPinNotIn) > 0 {
+		predicates = append(predicates, user.ContactPinNotIn(i.ContactPinNotIn...))
+	}
+	if i.ContactPinGT != nil {
+		predicates = append(predicates, user.ContactPinGT(*i.ContactPinGT))
+	}
+	if i.ContactPinGTE != nil {
+		predicates = append(predicates, user.ContactPinGTE(*i.ContactPinGTE))
+	}
+	if i.ContactPinLT != nil {
+		predicates = append(predicates, user.ContactPinLT(*i.ContactPinLT))
+	}
+	if i.ContactPinLTE != nil {
+		predicates = append(predicates, user.ContactPinLTE(*i.ContactPinLTE))
+	}
+	if i.ContactPinContains != nil {
+		predicates = append(predicates, user.ContactPinContains(*i.ContactPinContains))
+	}
+	if i.ContactPinHasPrefix != nil {
+		predicates = append(predicates, user.ContactPinHasPrefix(*i.ContactPinHasPrefix))
+	}
+	if i.ContactPinHasSuffix != nil {
+		predicates = append(predicates, user.ContactPinHasSuffix(*i.ContactPinHasSuffix))
+	}
+	if i.ContactPinIsNil {
+		predicates = append(predicates, user.ContactPinIsNil())
+	}
+	if i.ContactPinNotNil {
+		predicates = append(predicates, user.ContactPinNotNil())
+	}
+	if i.ContactPinEqualFold != nil {
+		predicates = append(predicates, user.ContactPinEqualFold(*i.ContactPinEqualFold))
+	}
+	if i.ContactPinContainsFold != nil {
+		predicates = append(predicates, user.ContactPinContainsFold(*i.ContactPinContainsFold))
 	}
 	if i.CreatedAt != nil {
 		predicates = append(predicates, user.CreatedAtEQ(*i.CreatedAt))

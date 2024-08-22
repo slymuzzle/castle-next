@@ -2,9 +2,13 @@ package server
 
 import (
 	"context"
-	"journeyhub/internal/auth/jwtauth"
 	"net/http"
 	"time"
+
+	"journeyhub/internal/modules/auth/jwtauth"
+
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -23,7 +27,7 @@ func webSocketInit(ctx context.Context, ja *jwtauth.JWTAuth, initPayload transpo
 	return ctxNew, &initPayload, err
 }
 
-func NewDefaultServer(es graphql.ExecutableSchema, ja *jwtauth.JWTAuth) *handler.Server {
+func NewDefaultServer(es graphql.ExecutableSchema, logger log.Logger, ja *jwtauth.JWTAuth) *handler.Server {
 	srv := handler.New(es)
 
 	srv.AddTransport(&transport.Websocket{
@@ -37,7 +41,15 @@ func NewDefaultServer(es graphql.ExecutableSchema, ja *jwtauth.JWTAuth) *handler
 			ctx context.Context,
 			initPayload transport.InitPayload,
 		) (context.Context, *transport.InitPayload, error) {
-			return webSocketInit(ctx, ja, initPayload)
+			ctx, payload, err := webSocketInit(ctx, ja, initPayload)
+			level.Debug(logger).Log("method", "InitFunc", "auth", payload.Authorization())
+			return ctx, payload, err
+		},
+		CloseFunc: func(ctx context.Context, closeCode int) {
+			level.Error(logger).Log("method", "CloseFunc", "code", closeCode)
+		},
+		ErrorFunc: func(ctx context.Context, err error) {
+			level.Error(logger).Log("method", "ErrorFunc", "err", err)
 		},
 	})
 	srv.AddTransport(transport.Options{})

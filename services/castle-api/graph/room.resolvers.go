@@ -9,25 +9,58 @@ import (
 	"fmt"
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
-	"journeyhub/graph/model"
+	"journeyhub/graph/generated"
 )
 
 // CreateRoom is the resolver for the createRoom field.
-func (r *mutationResolver) CreateRoom(ctx context.Context, input model.CreateRoomInput) (*ent.Room, error) {
+func (r *mutationResolver) CreateRoom(ctx context.Context, input ent.CreateRoomInput) (*ent.RoomEdge, error) {
 	panic(fmt.Errorf("not implemented: CreateRoom - createRoom"))
 }
 
 // UpdateRoom is the resolver for the updateRoom field.
-func (r *mutationResolver) UpdateRoom(ctx context.Context, roomID pulid.ID, input model.UpdateRoomInput) (*ent.Room, error) {
+func (r *mutationResolver) UpdateRoom(ctx context.Context, roomID pulid.ID, input ent.UpdateRoomInput) (*ent.RoomEdge, error) {
 	panic(fmt.Errorf("not implemented: UpdateRoom - updateRoom"))
 }
 
 // DeleteRoom is the resolver for the deleteRoom field.
-func (r *mutationResolver) DeleteRoom(ctx context.Context, roomID pulid.ID) (*ent.Room, error) {
+func (r *mutationResolver) DeleteRoom(ctx context.Context, roomID pulid.ID) (*ent.RoomEdge, error) {
 	panic(fmt.Errorf("not implemented: DeleteRoom - deleteRoom"))
 }
 
-// RoomChanged is the resolver for the roomChanged field.
-func (r *subscriptionResolver) RoomChanged(ctx context.Context) (<-chan *ent.Message, error) {
-	panic(fmt.Errorf("not implemented: RoomChanged - roomChanged"))
+// RoomsChanged is the resolver for the roomsChanged field.
+func (r *subscriptionResolver) RoomsChanged(ctx context.Context) (<-chan *ent.RoomEdge, error) {
+	return r.roomsService.SubscribeToRoomsUpdatedEvent(ctx)
 }
+
+// UserIDs is the resolver for the userIDs field.
+func (r *createRoomInputResolver) UserIDs(ctx context.Context, obj *ent.CreateRoomInput, data []pulid.ID) error {
+	panic(fmt.Errorf("not implemented: UserIDs - userIDs"))
+}
+
+// AddUserIDs is the resolver for the addUserIDs field.
+func (r *updateRoomInputResolver) AddUserIDs(ctx context.Context, obj *ent.UpdateRoomInput, data []pulid.ID) error {
+	panic(fmt.Errorf("not implemented: AddUserIDs - addUserIDs"))
+}
+
+// RemoveUserIDs is the resolver for the removeUserIDs field.
+func (r *updateRoomInputResolver) RemoveUserIDs(ctx context.Context, obj *ent.UpdateRoomInput, data []pulid.ID) error {
+	panic(fmt.Errorf("not implemented: RemoveUserIDs - removeUserIDs"))
+}
+
+// ClearUsers is the resolver for the clearUsers field.
+func (r *updateRoomInputResolver) ClearUsers(ctx context.Context, obj *ent.UpdateRoomInput, data *bool) error {
+	panic(fmt.Errorf("not implemented: ClearUsers - clearUsers"))
+}
+
+// CreateRoomInput returns generated.CreateRoomInputResolver implementation.
+func (r *Resolver) CreateRoomInput() generated.CreateRoomInputResolver {
+	return &createRoomInputResolver{r}
+}
+
+// UpdateRoomInput returns generated.UpdateRoomInputResolver implementation.
+func (r *Resolver) UpdateRoomInput() generated.UpdateRoomInputResolver {
+	return &updateRoomInputResolver{r}
+}
+
+type createRoomInputResolver struct{ *Resolver }
+type updateRoomInputResolver struct{ *Resolver }

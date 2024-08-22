@@ -27,6 +27,11 @@ func (RoomMember) Mixin() []ent.Mixin {
 // Fields of the RoomMember.
 func (RoomMember) Fields() []ent.Field {
 	return []ent.Field{
+		field.Int("unread_messages_count").
+			Default(0).
+			Annotations(
+				entgql.OrderField("UNREAD_MESSAGES_COUNT"),
+			),
 		field.String("user_id").
 			GoType(pulid.ID("")),
 		field.String("room_id").

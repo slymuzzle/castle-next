@@ -28,7 +28,7 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []pulid.ID) ([]ent.Noder,
 
 // Rooms is the resolver for the rooms field.
 func (r *queryResolver) Rooms(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomOrder, where *ent.RoomWhereInput) (*ent.RoomConnection, error) {
-	usr, err := r.authService.Auth(ctx)
+	currentUserID, err := r.authService.Auth(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (r *queryResolver) Rooms(ctx context.Context, after *entgql.Cursor[pulid.ID
 	return r.dbService.Client().Room.Query().
 		Where(
 			room.HasUsersWith(
-				user.ID(usr.ID),
+				user.ID(currentUserID),
 			),
 		).
 		Paginate(
@@ -52,14 +52,14 @@ func (r *queryResolver) Rooms(ctx context.Context, after *entgql.Cursor[pulid.ID
 
 // UserContacts is the resolver for the userContacts field.
 func (r *queryResolver) UserContacts(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserContactOrder, where *ent.UserContactWhereInput) (*ent.UserContactConnection, error) {
-	usr, err := r.authService.Auth(ctx)
+	currentUserID, err := r.authService.Auth(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	return r.dbService.Client().UserContact.Query().
 		Where(
-			usercontact.UserID(usr.ID),
+			usercontact.UserID(currentUserID),
 		).
 		Paginate(
 			ctx,
@@ -76,26 +76,3 @@ func (r *queryResolver) UserContacts(ctx context.Context, after *entgql.Cursor[p
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 type queryResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *queryResolver) RoomMembers(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) (*ent.RoomMemberConnection, error) {
-	_, err := r.authService.Auth(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return r.dbService.Client().RoomMember.Query().
-		Paginate(
-			ctx,
-			after,
-			first,
-			before,
-			last,
-			ent.WithRoomMemberFilter(where.Filter),
-		)
-}

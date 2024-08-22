@@ -76,6 +76,11 @@ func Email(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldEmail, v))
 }
 
+// ContactPin applies equality check predicate on the "contact_pin" field. It's identical to ContactPinEQ.
+func ContactPin(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldContactPin, v))
+}
+
 // Password applies equality check predicate on the "password" field. It's identical to PasswordEQ.
 func Password(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldPassword, v))
@@ -359,6 +364,81 @@ func EmailEqualFold(v string) predicate.User {
 // EmailContainsFold applies the ContainsFold predicate on the "email" field.
 func EmailContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldEmail, v))
+}
+
+// ContactPinEQ applies the EQ predicate on the "contact_pin" field.
+func ContactPinEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldContactPin, v))
+}
+
+// ContactPinNEQ applies the NEQ predicate on the "contact_pin" field.
+func ContactPinNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldContactPin, v))
+}
+
+// ContactPinIn applies the In predicate on the "contact_pin" field.
+func ContactPinIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldContactPin, vs...))
+}
+
+// ContactPinNotIn applies the NotIn predicate on the "contact_pin" field.
+func ContactPinNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldContactPin, vs...))
+}
+
+// ContactPinGT applies the GT predicate on the "contact_pin" field.
+func ContactPinGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldContactPin, v))
+}
+
+// ContactPinGTE applies the GTE predicate on the "contact_pin" field.
+func ContactPinGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldContactPin, v))
+}
+
+// ContactPinLT applies the LT predicate on the "contact_pin" field.
+func ContactPinLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldContactPin, v))
+}
+
+// ContactPinLTE applies the LTE predicate on the "contact_pin" field.
+func ContactPinLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldContactPin, v))
+}
+
+// ContactPinContains applies the Contains predicate on the "contact_pin" field.
+func ContactPinContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldContactPin, v))
+}
+
+// ContactPinHasPrefix applies the HasPrefix predicate on the "contact_pin" field.
+func ContactPinHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldContactPin, v))
+}
+
+// ContactPinHasSuffix applies the HasSuffix predicate on the "contact_pin" field.
+func ContactPinHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldContactPin, v))
+}
+
+// ContactPinIsNil applies the IsNil predicate on the "contact_pin" field.
+func ContactPinIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldContactPin))
+}
+
+// ContactPinNotNil applies the NotNil predicate on the "contact_pin" field.
+func ContactPinNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldContactPin))
+}
+
+// ContactPinEqualFold applies the EqualFold predicate on the "contact_pin" field.
+func ContactPinEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldContactPin, v))
+}
+
+// ContactPinContainsFold applies the ContainsFold predicate on the "contact_pin" field.
+func ContactPinContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldContactPin, v))
 }
 
 // PasswordEQ applies the EQ predicate on the "password" field.

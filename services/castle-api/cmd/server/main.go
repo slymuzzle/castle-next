@@ -2,19 +2,22 @@ package main
 
 import (
 	"fmt"
-	"journeyhub/graph"
-	"journeyhub/graph/server"
-	"journeyhub/internal/auth"
-	"journeyhub/internal/auth/jwtauth"
-	"journeyhub/internal/chat"
-	"journeyhub/internal/config"
-	"journeyhub/internal/db"
-	"journeyhub/internal/media"
-	"journeyhub/internal/nats"
-	"journeyhub/internal/validation"
 	"net/http"
 	"os"
 	"time"
+
+	"journeyhub/graph"
+	"journeyhub/graph/server"
+	"journeyhub/internal/modules/auth"
+	"journeyhub/internal/modules/auth/jwtauth"
+	"journeyhub/internal/modules/chat"
+	"journeyhub/internal/modules/contacts"
+	"journeyhub/internal/modules/rooms"
+	"journeyhub/internal/platform/config"
+	"journeyhub/internal/platform/db"
+	"journeyhub/internal/platform/media"
+	"journeyhub/internal/platform/nats"
+	"journeyhub/internal/platform/validation"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -59,6 +62,8 @@ func main() {
 	}
 	defer dbService.Close()
 
+	entClient := dbService.Client()
+
 	var mediaService media.Service
 	mediaService, mErr := media.NewService(config.S3)
 	if mErr != nil {
@@ -91,20 +96,32 @@ func main() {
 	)
 
 	var authService auth.Service
-	authRepository := auth.NewRepository(dbService.Client())
+	authRepository := auth.NewRepository(entClient)
 	authService = auth.NewService(config.Auth, authRepository)
 	authService = auth.NewLoggingService(
 		log.With(logger, "component", "auth"),
 		authService,
 	)
 
+	var roomsService rooms.Service
+	roomsRepository := rooms.NewRepository(entClient)
+	roomsService = rooms.NewService(roomsRepository, authService, natsService)
+	roomsService = rooms.NewLoggingService(
+		log.With(logger, "component", "rooms"),
+		roomsService,
+	)
+
 	var chatService chat.Service
-	chatRepository := chat.NewRepository(dbService.Client())
-	chatService = chat.NewService(chatRepository, natsService, mediaService)
+	chatRepository := chat.NewRepository(entClient)
+	chatService = chat.NewService(chatRepository, authService, roomsService, natsService, mediaService)
 	chatService = chat.NewLoggingService(
 		log.With(logger, "component", "chat"),
 		chatService,
 	)
+
+	var contactsService contacts.Service
+	contactsRepository := contacts.NewRepository(entClient)
+	contactsService = contacts.NewService(contactsRepository, authService)
 
 	httpLogger := log.With(logger, "component", "http")
 
@@ -128,13 +145,17 @@ func main() {
 	// processing should be stopped.
 	router.Use(middleware.Timeout(60 * time.Second))
 
+	wsLogger := log.With(logger, "ws", log.DefaultTimestampUTC)
 	graphqlQueryHandler := server.NewDefaultServer(
 		graph.NewSchema(
 			dbService,
 			validationService,
 			authService,
+			roomsService,
 			chatService,
+			contactsService,
 		),
+		wsLogger,
 		jwtAuth,
 	)
 	router.Handle("/query", graphqlQueryHandler)

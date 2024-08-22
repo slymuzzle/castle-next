@@ -168,16 +168,26 @@ var (
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"Personal", "Group"}},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "room_last_message", Type: field.TypeString, Nullable: true},
 	}
 	// RoomsTable holds the schema information for the "rooms" table.
 	RoomsTable = &schema.Table{
 		Name:       "rooms",
 		Columns:    RoomsColumns,
 		PrimaryKey: []*schema.Column{RoomsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "rooms_messages_last_message",
+				Columns:    []*schema.Column{RoomsColumns[6]},
+				RefColumns: []*schema.Column{MessagesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// RoomMembersColumns holds the columns for the "room_members" table.
 	RoomMembersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
+		{Name: "unread_messages_count", Type: field.TypeInt, Default: 0},
 		{Name: "joined_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeString},
 		{Name: "room_id", Type: field.TypeString},
@@ -190,13 +200,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "room_members_users_user",
-				Columns:    []*schema.Column{RoomMembersColumns[2]},
+				Columns:    []*schema.Column{RoomMembersColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "room_members_rooms_room",
-				Columns:    []*schema.Column{RoomMembersColumns[3]},
+				Columns:    []*schema.Column{RoomMembersColumns[4]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -205,7 +215,7 @@ var (
 			{
 				Name:    "roommember_room_id_user_id",
 				Unique:  true,
-				Columns: []*schema.Column{RoomMembersColumns[3], RoomMembersColumns[2]},
+				Columns: []*schema.Column{RoomMembersColumns[4], RoomMembersColumns[3]},
 			},
 		},
 	}
@@ -216,6 +226,7 @@ var (
 		{Name: "last_name", Type: field.TypeString},
 		{Name: "nickname", Type: field.TypeString, Unique: true},
 		{Name: "email", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "contact_pin", Type: field.TypeString, Unique: true, Nullable: true},
 		{Name: "password", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -293,6 +304,7 @@ func init() {
 	MessageVoicesTable.ForeignKeys[0].RefTable = FilesTable
 	MessageVoicesTable.ForeignKeys[1].RefTable = MessagesTable
 	MessageVoicesTable.ForeignKeys[2].RefTable = RoomsTable
+	RoomsTable.ForeignKeys[0].RefTable = MessagesTable
 	RoomMembersTable.ForeignKeys[0].RefTable = UsersTable
 	RoomMembersTable.ForeignKeys[1].RefTable = RoomsTable
 	UserContactsTable.ForeignKeys[0].RefTable = UsersTable

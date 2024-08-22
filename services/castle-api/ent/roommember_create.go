@@ -26,6 +26,20 @@ type RoomMemberCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetUnreadMessagesCount sets the "unread_messages_count" field.
+func (rmc *RoomMemberCreate) SetUnreadMessagesCount(i int) *RoomMemberCreate {
+	rmc.mutation.SetUnreadMessagesCount(i)
+	return rmc
+}
+
+// SetNillableUnreadMessagesCount sets the "unread_messages_count" field if the given value is not nil.
+func (rmc *RoomMemberCreate) SetNillableUnreadMessagesCount(i *int) *RoomMemberCreate {
+	if i != nil {
+		rmc.SetUnreadMessagesCount(*i)
+	}
+	return rmc
+}
+
 // SetUserID sets the "user_id" field.
 func (rmc *RoomMemberCreate) SetUserID(pu pulid.ID) *RoomMemberCreate {
 	rmc.mutation.SetUserID(pu)
@@ -111,6 +125,10 @@ func (rmc *RoomMemberCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (rmc *RoomMemberCreate) defaults() {
+	if _, ok := rmc.mutation.UnreadMessagesCount(); !ok {
+		v := roommember.DefaultUnreadMessagesCount
+		rmc.mutation.SetUnreadMessagesCount(v)
+	}
 	if _, ok := rmc.mutation.JoinedAt(); !ok {
 		v := roommember.DefaultJoinedAt()
 		rmc.mutation.SetJoinedAt(v)
@@ -123,6 +141,9 @@ func (rmc *RoomMemberCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (rmc *RoomMemberCreate) check() error {
+	if _, ok := rmc.mutation.UnreadMessagesCount(); !ok {
+		return &ValidationError{Name: "unread_messages_count", err: errors.New(`ent: missing required field "RoomMember.unread_messages_count"`)}
+	}
 	if _, ok := rmc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "RoomMember.user_id"`)}
 	}
@@ -174,6 +195,10 @@ func (rmc *RoomMemberCreate) createSpec() (*RoomMember, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := rmc.mutation.UnreadMessagesCount(); ok {
+		_spec.SetField(roommember.FieldUnreadMessagesCount, field.TypeInt, value)
+		_node.UnreadMessagesCount = value
+	}
 	if value, ok := rmc.mutation.JoinedAt(); ok {
 		_spec.SetField(roommember.FieldJoinedAt, field.TypeTime, value)
 		_node.JoinedAt = value
@@ -219,7 +244,7 @@ func (rmc *RoomMemberCreate) createSpec() (*RoomMember, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.RoomMember.Create().
-//		SetUserID(v).
+//		SetUnreadMessagesCount(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -228,7 +253,7 @@ func (rmc *RoomMemberCreate) createSpec() (*RoomMember, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.RoomMemberUpsert) {
-//			SetUserID(v+v).
+//			SetUnreadMessagesCount(v+v).
 //		}).
 //		Exec(ctx)
 func (rmc *RoomMemberCreate) OnConflict(opts ...sql.ConflictOption) *RoomMemberUpsertOne {
@@ -263,6 +288,24 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetUnreadMessagesCount sets the "unread_messages_count" field.
+func (u *RoomMemberUpsert) SetUnreadMessagesCount(v int) *RoomMemberUpsert {
+	u.Set(roommember.FieldUnreadMessagesCount, v)
+	return u
+}
+
+// UpdateUnreadMessagesCount sets the "unread_messages_count" field to the value that was provided on create.
+func (u *RoomMemberUpsert) UpdateUnreadMessagesCount() *RoomMemberUpsert {
+	u.SetExcluded(roommember.FieldUnreadMessagesCount)
+	return u
+}
+
+// AddUnreadMessagesCount adds v to the "unread_messages_count" field.
+func (u *RoomMemberUpsert) AddUnreadMessagesCount(v int) *RoomMemberUpsert {
+	u.Add(roommember.FieldUnreadMessagesCount, v)
+	return u
+}
 
 // SetUserID sets the "user_id" field.
 func (u *RoomMemberUpsert) SetUserID(v pulid.ID) *RoomMemberUpsert {
@@ -337,6 +380,27 @@ func (u *RoomMemberUpsertOne) Update(set func(*RoomMemberUpsert)) *RoomMemberUps
 		set(&RoomMemberUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetUnreadMessagesCount sets the "unread_messages_count" field.
+func (u *RoomMemberUpsertOne) SetUnreadMessagesCount(v int) *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.SetUnreadMessagesCount(v)
+	})
+}
+
+// AddUnreadMessagesCount adds v to the "unread_messages_count" field.
+func (u *RoomMemberUpsertOne) AddUnreadMessagesCount(v int) *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.AddUnreadMessagesCount(v)
+	})
+}
+
+// UpdateUnreadMessagesCount sets the "unread_messages_count" field to the value that was provided on create.
+func (u *RoomMemberUpsertOne) UpdateUnreadMessagesCount() *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.UpdateUnreadMessagesCount()
+	})
 }
 
 // SetUserID sets the "user_id" field.
@@ -503,7 +567,7 @@ func (rmcb *RoomMemberCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.RoomMemberUpsert) {
-//			SetUserID(v+v).
+//			SetUnreadMessagesCount(v+v).
 //		}).
 //		Exec(ctx)
 func (rmcb *RoomMemberCreateBulk) OnConflict(opts ...sql.ConflictOption) *RoomMemberUpsertBulk {
@@ -583,6 +647,27 @@ func (u *RoomMemberUpsertBulk) Update(set func(*RoomMemberUpsert)) *RoomMemberUp
 		set(&RoomMemberUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetUnreadMessagesCount sets the "unread_messages_count" field.
+func (u *RoomMemberUpsertBulk) SetUnreadMessagesCount(v int) *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.SetUnreadMessagesCount(v)
+	})
+}
+
+// AddUnreadMessagesCount adds v to the "unread_messages_count" field.
+func (u *RoomMemberUpsertBulk) AddUnreadMessagesCount(v int) *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.AddUnreadMessagesCount(v)
+	})
+}
+
+// UpdateUnreadMessagesCount sets the "unread_messages_count" field to the value that was provided on create.
+func (u *RoomMemberUpsertBulk) UpdateUnreadMessagesCount() *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.UpdateUnreadMessagesCount()
+	})
 }
 
 // SetUserID sets the "user_id" field.

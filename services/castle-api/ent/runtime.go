@@ -134,8 +134,12 @@ func init() {
 	_ = roommemberMixinFields0
 	roommemberFields := schema.RoomMember{}.Fields()
 	_ = roommemberFields
+	// roommemberDescUnreadMessagesCount is the schema descriptor for unread_messages_count field.
+	roommemberDescUnreadMessagesCount := roommemberFields[0].Descriptor()
+	// roommember.DefaultUnreadMessagesCount holds the default value on creation for the unread_messages_count field.
+	roommember.DefaultUnreadMessagesCount = roommemberDescUnreadMessagesCount.Default.(int)
 	// roommemberDescJoinedAt is the schema descriptor for joined_at field.
-	roommemberDescJoinedAt := roommemberFields[2].Descriptor()
+	roommemberDescJoinedAt := roommemberFields[3].Descriptor()
 	// roommember.DefaultJoinedAt holds the default value on creation for the joined_at field.
 	roommember.DefaultJoinedAt = roommemberDescJoinedAt.Default.(func() time.Time)
 	// roommemberDescID is the schema descriptor for id field.
@@ -148,11 +152,11 @@ func init() {
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[5].Descriptor()
+	userDescCreatedAt := userFields[6].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[6].Descriptor()
+	userDescUpdatedAt := userFields[7].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

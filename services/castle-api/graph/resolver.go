@@ -6,10 +6,12 @@ package graph
 
 import (
 	"journeyhub/graph/generated"
-	"journeyhub/internal/auth"
-	"journeyhub/internal/chat"
-	"journeyhub/internal/db"
-	"journeyhub/internal/validation"
+	"journeyhub/internal/modules/auth"
+	"journeyhub/internal/modules/chat"
+	"journeyhub/internal/modules/contacts"
+	"journeyhub/internal/modules/rooms"
+	"journeyhub/internal/platform/db"
+	"journeyhub/internal/platform/validation"
 
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -19,7 +21,9 @@ type Resolver struct {
 	dbService         db.Service
 	validationService validation.Service
 	authService       auth.Service
+	roomsService      rooms.Service
 	chatService       chat.Service
+	contactsService   contacts.Service
 }
 
 // NewSchema creates a graphql executable schema.
@@ -27,14 +31,18 @@ func NewSchema(
 	dbService db.Service,
 	validationService validation.Service,
 	authService auth.Service,
+	roomsService rooms.Service,
 	chatService chat.Service,
+	contactsService contacts.Service,
 ) graphql.ExecutableSchema {
 	return generated.NewExecutableSchema(generated.Config{
 		Resolvers: &Resolver{
 			dbService,
 			validationService,
 			authService,
+			roomsService,
 			chatService,
+			contactsService,
 		},
 	})
 }

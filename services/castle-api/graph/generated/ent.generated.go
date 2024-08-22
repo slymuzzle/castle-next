@@ -2166,6 +2166,8 @@ func (ec *executionContext) fieldContext_Message_user(_ context.Context, field g
 				return ec.fieldContext_User_nickname(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
+			case "contactPin":
+				return ec.fieldContext_User_contactPin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -2237,6 +2239,8 @@ func (ec *executionContext) fieldContext_Message_room(_ context.Context, field g
 				return ec.fieldContext_Room_updatedAt(ctx, field)
 			case "users":
 				return ec.fieldContext_Room_users(ctx, field)
+			case "lastMessage":
+				return ec.fieldContext_Room_lastMessage(ctx, field)
 			case "messages":
 				return ec.fieldContext_Room_messages(ctx, field)
 			case "messageVoices":
@@ -2439,6 +2443,8 @@ func (ec *executionContext) fieldContext_MessageAttachment_room(_ context.Contex
 				return ec.fieldContext_Room_updatedAt(ctx, field)
 			case "users":
 				return ec.fieldContext_Room_users(ctx, field)
+			case "lastMessage":
+				return ec.fieldContext_Room_lastMessage(ctx, field)
 			case "messages":
 				return ec.fieldContext_Room_messages(ctx, field)
 			case "messageVoices":
@@ -3315,6 +3321,8 @@ func (ec *executionContext) fieldContext_MessageLink_room(_ context.Context, fie
 				return ec.fieldContext_Room_updatedAt(ctx, field)
 			case "users":
 				return ec.fieldContext_Room_users(ctx, field)
+			case "lastMessage":
+				return ec.fieldContext_Room_lastMessage(ctx, field)
 			case "messages":
 				return ec.fieldContext_Room_messages(ctx, field)
 			case "messageVoices":
@@ -3783,6 +3791,8 @@ func (ec *executionContext) fieldContext_MessageVoice_room(_ context.Context, fi
 				return ec.fieldContext_Room_updatedAt(ctx, field)
 			case "users":
 				return ec.fieldContext_Room_users(ctx, field)
+			case "lastMessage":
+				return ec.fieldContext_Room_lastMessage(ctx, field)
 			case "messages":
 				return ec.fieldContext_Room_messages(ctx, field)
 			case "messageVoices":
@@ -4940,6 +4950,8 @@ func (ec *executionContext) fieldContext_Query_self(_ context.Context, field gra
 				return ec.fieldContext_User_nickname(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
+			case "contactPin":
+				return ec.fieldContext_User_contactPin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -5413,6 +5425,69 @@ func (ec *executionContext) fieldContext_Room_users(ctx context.Context, field g
 	if fc.Args, err = ec.field_Room_users_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Room_lastMessage(ctx context.Context, field graphql.CollectedField, obj *ent.Room) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Room_lastMessage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastMessage(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Message)
+	fc.Result = res
+	return ec.marshalOMessage2ᚖjourneyhubᚋentᚐMessage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Room_lastMessage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Room",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Message_id(ctx, field)
+			case "content":
+				return ec.fieldContext_Message_content(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Message_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Message_updatedAt(ctx, field)
+			case "voice":
+				return ec.fieldContext_Message_voice(ctx, field)
+			case "replyTo":
+				return ec.fieldContext_Message_replyTo(ctx, field)
+			case "attachments":
+				return ec.fieldContext_Message_attachments(ctx, field)
+			case "links":
+				return ec.fieldContext_Message_links(ctx, field)
+			case "user":
+				return ec.fieldContext_Message_user(ctx, field)
+			case "room":
+				return ec.fieldContext_Message_room(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -5927,6 +6002,8 @@ func (ec *executionContext) fieldContext_RoomEdge_node(_ context.Context, field 
 				return ec.fieldContext_Room_updatedAt(ctx, field)
 			case "users":
 				return ec.fieldContext_Room_users(ctx, field)
+			case "lastMessage":
+				return ec.fieldContext_Room_lastMessage(ctx, field)
 			case "messages":
 				return ec.fieldContext_Room_messages(ctx, field)
 			case "messageVoices":
@@ -6027,6 +6104,50 @@ func (ec *executionContext) fieldContext_RoomMember_id(_ context.Context, field 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoomMember_unreadMessagesCount(ctx context.Context, field graphql.CollectedField, obj *ent.RoomMember) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoomMember_unreadMessagesCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UnreadMessagesCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoomMember_unreadMessagesCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoomMember",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6213,6 +6334,8 @@ func (ec *executionContext) fieldContext_RoomMember_user(_ context.Context, fiel
 				return ec.fieldContext_User_nickname(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
+			case "contactPin":
+				return ec.fieldContext_User_contactPin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -6287,6 +6410,8 @@ func (ec *executionContext) fieldContext_RoomMember_room(_ context.Context, fiel
 				return ec.fieldContext_Room_updatedAt(ctx, field)
 			case "users":
 				return ec.fieldContext_Room_users(ctx, field)
+			case "lastMessage":
+				return ec.fieldContext_Room_lastMessage(ctx, field)
 			case "messages":
 				return ec.fieldContext_Room_messages(ctx, field)
 			case "messageVoices":
@@ -6487,6 +6612,8 @@ func (ec *executionContext) fieldContext_RoomMemberEdge_node(_ context.Context, 
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_RoomMember_id(ctx, field)
+			case "unreadMessagesCount":
+				return ec.fieldContext_RoomMember_unreadMessagesCount(ctx, field)
 			case "userID":
 				return ec.fieldContext_RoomMember_userID(ctx, field)
 			case "roomID":
@@ -6753,6 +6880,47 @@ func (ec *executionContext) _User_email(ctx context.Context, field graphql.Colle
 }
 
 func (ec *executionContext) fieldContext_User_email(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_contactPin(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_contactPin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContactPin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_contactPin(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -7579,6 +7747,8 @@ func (ec *executionContext) fieldContext_UserContact_user(_ context.Context, fie
 				return ec.fieldContext_User_nickname(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
+			case "contactPin":
+				return ec.fieldContext_User_contactPin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -7649,6 +7819,8 @@ func (ec *executionContext) fieldContext_UserContact_contact(_ context.Context, 
 				return ec.fieldContext_User_nickname(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
+			case "contactPin":
+				return ec.fieldContext_User_contactPin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -7720,6 +7892,8 @@ func (ec *executionContext) fieldContext_UserContact_room(_ context.Context, fie
 				return ec.fieldContext_Room_updatedAt(ctx, field)
 			case "users":
 				return ec.fieldContext_Room_users(ctx, field)
+			case "lastMessage":
+				return ec.fieldContext_Room_lastMessage(ctx, field)
 			case "messages":
 				return ec.fieldContext_Room_messages(ctx, field)
 			case "messageVoices":
@@ -8031,6 +8205,8 @@ func (ec *executionContext) fieldContext_UserEdge_node(_ context.Context, field 
 				return ec.fieldContext_User_nickname(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
+			case "contactPin":
+				return ec.fieldContext_User_contactPin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -10255,7 +10431,7 @@ func (ec *executionContext) unmarshalInputRoomMemberWhereInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "joinedAt", "joinedAtNEQ", "joinedAtIn", "joinedAtNotIn", "joinedAtGT", "joinedAtGTE", "joinedAtLT", "joinedAtLTE"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "unreadMessagesCount", "unreadMessagesCountNEQ", "unreadMessagesCountIn", "unreadMessagesCountNotIn", "unreadMessagesCountGT", "unreadMessagesCountGTE", "unreadMessagesCountLT", "unreadMessagesCountLTE", "joinedAt", "joinedAtNEQ", "joinedAtIn", "joinedAtNotIn", "joinedAtGT", "joinedAtGTE", "joinedAtLT", "joinedAtLTE"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10339,6 +10515,62 @@ func (ec *executionContext) unmarshalInputRoomMemberWhereInput(ctx context.Conte
 				return it, err
 			}
 			it.IDLTE = data
+		case "unreadMessagesCount":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("unreadMessagesCount"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UnreadMessagesCount = data
+		case "unreadMessagesCountNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("unreadMessagesCountNEQ"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UnreadMessagesCountNEQ = data
+		case "unreadMessagesCountIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("unreadMessagesCountIn"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UnreadMessagesCountIn = data
+		case "unreadMessagesCountNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("unreadMessagesCountNotIn"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UnreadMessagesCountNotIn = data
+		case "unreadMessagesCountGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("unreadMessagesCountGT"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UnreadMessagesCountGT = data
+		case "unreadMessagesCountGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("unreadMessagesCountGTE"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UnreadMessagesCountGTE = data
+		case "unreadMessagesCountLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("unreadMessagesCountLT"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UnreadMessagesCountLT = data
+		case "unreadMessagesCountLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("unreadMessagesCountLTE"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UnreadMessagesCountLTE = data
 		case "joinedAt":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("joinedAt"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
@@ -10446,7 +10678,7 @@ func (ec *executionContext) unmarshalInputRoomWhereInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameEqualFold", "nameContainsFold", "version", "versionNEQ", "versionIn", "versionNotIn", "versionGT", "versionGTE", "versionLT", "versionLTE", "type", "typeNEQ", "typeIn", "typeNotIn", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "hasUsers", "hasUsersWith", "hasMessages", "hasMessagesWith", "hasMessageVoices", "hasMessageVoicesWith", "hasMessageAttachments", "hasMessageAttachmentsWith", "hasMessageLinks", "hasMessageLinksWith", "hasRoomMembers", "hasRoomMembersWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameEqualFold", "nameContainsFold", "version", "versionNEQ", "versionIn", "versionNotIn", "versionGT", "versionGTE", "versionLT", "versionLTE", "type", "typeNEQ", "typeIn", "typeNotIn", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "hasUsers", "hasUsersWith", "hasLastMessage", "hasLastMessageWith", "hasMessages", "hasMessagesWith", "hasMessageVoices", "hasMessageVoicesWith", "hasMessageAttachments", "hasMessageAttachmentsWith", "hasMessageLinks", "hasMessageLinksWith", "hasRoomMembers", "hasRoomMembersWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10831,6 +11063,20 @@ func (ec *executionContext) unmarshalInputRoomWhereInput(ctx context.Context, ob
 				return it, err
 			}
 			it.HasUsersWith = data
+		case "hasLastMessage":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasLastMessage"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasLastMessage = data
+		case "hasLastMessageWith":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasLastMessageWith"))
+			data, err := ec.unmarshalOMessageWhereInput2ᚕᚖjourneyhubᚋentᚐMessageWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasLastMessageWith = data
 		case "hasMessages":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasMessages"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
@@ -11143,7 +11389,7 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "firstName", "firstNameNEQ", "firstNameIn", "firstNameNotIn", "firstNameGT", "firstNameGTE", "firstNameLT", "firstNameLTE", "firstNameContains", "firstNameHasPrefix", "firstNameHasSuffix", "firstNameEqualFold", "firstNameContainsFold", "lastName", "lastNameNEQ", "lastNameIn", "lastNameNotIn", "lastNameGT", "lastNameGTE", "lastNameLT", "lastNameLTE", "lastNameContains", "lastNameHasPrefix", "lastNameHasSuffix", "lastNameEqualFold", "lastNameContainsFold", "nickname", "nicknameNEQ", "nicknameIn", "nicknameNotIn", "nicknameGT", "nicknameGTE", "nicknameLT", "nicknameLTE", "nicknameContains", "nicknameHasPrefix", "nicknameHasSuffix", "nicknameEqualFold", "nicknameContainsFold", "email", "emailNEQ", "emailIn", "emailNotIn", "emailGT", "emailGTE", "emailLT", "emailLTE", "emailContains", "emailHasPrefix", "emailHasSuffix", "emailIsNil", "emailNotNil", "emailEqualFold", "emailContainsFold", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "hasContacts", "hasContactsWith", "hasRooms", "hasRoomsWith", "hasMessages", "hasMessagesWith", "hasUserContacts", "hasUserContactsWith", "hasMemberships", "hasMembershipsWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "firstName", "firstNameNEQ", "firstNameIn", "firstNameNotIn", "firstNameGT", "firstNameGTE", "firstNameLT", "firstNameLTE", "firstNameContains", "firstNameHasPrefix", "firstNameHasSuffix", "firstNameEqualFold", "firstNameContainsFold", "lastName", "lastNameNEQ", "lastNameIn", "lastNameNotIn", "lastNameGT", "lastNameGTE", "lastNameLT", "lastNameLTE", "lastNameContains", "lastNameHasPrefix", "lastNameHasSuffix", "lastNameEqualFold", "lastNameContainsFold", "nickname", "nicknameNEQ", "nicknameIn", "nicknameNotIn", "nicknameGT", "nicknameGTE", "nicknameLT", "nicknameLTE", "nicknameContains", "nicknameHasPrefix", "nicknameHasSuffix", "nicknameEqualFold", "nicknameContainsFold", "email", "emailNEQ", "emailIn", "emailNotIn", "emailGT", "emailGTE", "emailLT", "emailLTE", "emailContains", "emailHasPrefix", "emailHasSuffix", "emailIsNil", "emailNotNil", "emailEqualFold", "emailContainsFold", "contactPin", "contactPinNEQ", "contactPinIn", "contactPinNotIn", "contactPinGT", "contactPinGTE", "contactPinLT", "contactPinLTE", "contactPinContains", "contactPinHasPrefix", "contactPinHasSuffix", "contactPinIsNil", "contactPinNotNil", "contactPinEqualFold", "contactPinContainsFold", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "hasContacts", "hasContactsWith", "hasRooms", "hasRoomsWith", "hasMessages", "hasMessagesWith", "hasUserContacts", "hasUserContactsWith", "hasMemberships", "hasMembershipsWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -11605,6 +11851,111 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 				return it, err
 			}
 			it.EmailContainsFold = data
+		case "contactPin":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPin"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPin = data
+		case "contactPinNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPinNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPinNEQ = data
+		case "contactPinIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPinIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPinIn = data
+		case "contactPinNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPinNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPinNotIn = data
+		case "contactPinGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPinGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPinGT = data
+		case "contactPinGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPinGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPinGTE = data
+		case "contactPinLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPinLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPinLT = data
+		case "contactPinLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPinLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPinLTE = data
+		case "contactPinContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPinContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPinContains = data
+		case "contactPinHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPinHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPinHasPrefix = data
+		case "contactPinHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPinHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPinHasSuffix = data
+		case "contactPinIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPinIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPinIsNil = data
+		case "contactPinNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPinNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPinNotNil = data
+		case "contactPinEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPinEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPinEqualFold = data
+		case "contactPinContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactPinContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContactPinContainsFold = data
 		case "createdAt":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
@@ -13421,6 +13772,39 @@ func (ec *executionContext) _Room(ctx context.Context, sel ast.SelectionSet, obj
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "lastMessage":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Room_lastMessage(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "messages":
 			field := field
 
@@ -13727,6 +14111,11 @@ func (ec *executionContext) _RoomMember(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "unreadMessagesCount":
+			out.Values[i] = ec._RoomMember_unreadMessagesCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "userID":
 			out.Values[i] = ec._RoomMember_userID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -13957,6 +14346,8 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "email":
 			out.Values[i] = ec._User_email(ctx, field, obj)
+		case "contactPin":
+			out.Values[i] = ec._User_contactPin(ctx, field, obj)
 		case "createdAt":
 			out.Values[i] = ec._User_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -14550,10 +14941,6 @@ func (ec *executionContext) unmarshalNFileWhereInput2ᚖjourneyhubᚋentᚐFileW
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNMessage2journeyhubᚋentᚐMessage(ctx context.Context, sel ast.SelectionSet, v ent.Message) graphql.Marshaler {
-	return ec._Message(ctx, sel, &v)
-}
-
 func (ec *executionContext) marshalNMessage2ᚖjourneyhubᚋentᚐMessage(ctx context.Context, sel ast.SelectionSet, v *ent.Message) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -14621,6 +15008,20 @@ func (ec *executionContext) marshalNMessageConnection2ᚖjourneyhubᚋentᚐMess
 		return graphql.Null
 	}
 	return ec._MessageConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNMessageEdge2journeyhubᚋentᚐMessageEdge(ctx context.Context, sel ast.SelectionSet, v ent.MessageEdge) graphql.Marshaler {
+	return ec._MessageEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMessageEdge2ᚖjourneyhubᚋentᚐMessageEdge(ctx context.Context, sel ast.SelectionSet, v *ent.MessageEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MessageEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNMessageLink2ᚖjourneyhubᚋentᚐMessageLink(ctx context.Context, sel ast.SelectionSet, v *ent.MessageLink) graphql.Marshaler {
@@ -14803,6 +15204,20 @@ func (ec *executionContext) marshalNRoomConnection2ᚖjourneyhubᚋentᚐRoomCon
 		return graphql.Null
 	}
 	return ec._RoomConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRoomEdge2journeyhubᚋentᚐRoomEdge(ctx context.Context, sel ast.SelectionSet, v ent.RoomEdge) graphql.Marshaler {
+	return ec._RoomEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRoomEdge2ᚖjourneyhubᚋentᚐRoomEdge(ctx context.Context, sel ast.SelectionSet, v *ent.RoomEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RoomEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNRoomMemberConnection2journeyhubᚋentᚐRoomMemberConnection(ctx context.Context, sel ast.SelectionSet, v ent.RoomMemberConnection) graphql.Marshaler {

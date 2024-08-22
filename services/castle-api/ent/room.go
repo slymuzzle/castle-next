@@ -4,6 +4,7 @@ package ent
 
 import (
 	"fmt"
+	"journeyhub/ent/message"
 	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"strings"
@@ -30,14 +31,17 @@ type Room struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RoomQuery when eager-loading is set.
-	Edges        RoomEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges             RoomEdges `json:"edges"`
+	room_last_message *pulid.ID
+	selectValues      sql.SelectValues
 }
 
 // RoomEdges holds the relations/edges for other nodes in the graph.
 type RoomEdges struct {
 	// Users holds the value of the users edge.
 	Users []*User `json:"users,omitempty"`
+	// LastMessage holds the value of the last_message edge.
+	LastMessage *Message `json:"last_message,omitempty"`
 	// Messages holds the value of the messages edge.
 	Messages []*Message `json:"messages,omitempty"`
 	// MessageVoices holds the value of the message_voices edge.
@@ -50,9 +54,9 @@ type RoomEdges struct {
 	RoomMembers []*RoomMember `json:"room_members,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 	// totalCount holds the count of the edges above.
-	totalCount [6]map[string]int
+	totalCount [7]map[string]int
 
 	namedUsers              map[string][]*User
 	namedMessages           map[string][]*Message
@@ -71,10 +75,21 @@ func (e RoomEdges) UsersOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "users"}
 }
 
+// LastMessageOrErr returns the LastMessage value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e RoomEdges) LastMessageOrErr() (*Message, error) {
+	if e.LastMessage != nil {
+		return e.LastMessage, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: message.Label}
+	}
+	return nil, &NotLoadedError{edge: "last_message"}
+}
+
 // MessagesOrErr returns the Messages value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoomEdges) MessagesOrErr() ([]*Message, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Messages, nil
 	}
 	return nil, &NotLoadedError{edge: "messages"}
@@ -83,7 +98,7 @@ func (e RoomEdges) MessagesOrErr() ([]*Message, error) {
 // MessageVoicesOrErr returns the MessageVoices value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoomEdges) MessageVoicesOrErr() ([]*MessageVoice, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.MessageVoices, nil
 	}
 	return nil, &NotLoadedError{edge: "message_voices"}
@@ -92,7 +107,7 @@ func (e RoomEdges) MessageVoicesOrErr() ([]*MessageVoice, error) {
 // MessageAttachmentsOrErr returns the MessageAttachments value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoomEdges) MessageAttachmentsOrErr() ([]*MessageAttachment, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.MessageAttachments, nil
 	}
 	return nil, &NotLoadedError{edge: "message_attachments"}
@@ -101,7 +116,7 @@ func (e RoomEdges) MessageAttachmentsOrErr() ([]*MessageAttachment, error) {
 // MessageLinksOrErr returns the MessageLinks value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoomEdges) MessageLinksOrErr() ([]*MessageLink, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.MessageLinks, nil
 	}
 	return nil, &NotLoadedError{edge: "message_links"}
@@ -110,7 +125,7 @@ func (e RoomEdges) MessageLinksOrErr() ([]*MessageLink, error) {
 // RoomMembersOrErr returns the RoomMembers value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoomEdges) RoomMembersOrErr() ([]*RoomMember, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.RoomMembers, nil
 	}
 	return nil, &NotLoadedError{edge: "room_members"}
@@ -129,6 +144,8 @@ func (*Room) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case room.FieldCreatedAt, room.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
+		case room.ForeignKeys[0]: // room_last_message
+			values[i] = &sql.NullScanner{S: new(pulid.ID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -180,6 +197,13 @@ func (r *Room) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				r.UpdatedAt = value.Time
 			}
+		case room.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field room_last_message", values[i])
+			} else if value.Valid {
+				r.room_last_message = new(pulid.ID)
+				*r.room_last_message = *value.S.(*pulid.ID)
+			}
 		default:
 			r.selectValues.Set(columns[i], values[i])
 		}
@@ -196,6 +220,11 @@ func (r *Room) Value(name string) (ent.Value, error) {
 // QueryUsers queries the "users" edge of the Room entity.
 func (r *Room) QueryUsers() *UserQuery {
 	return NewRoomClient(r.config).QueryUsers(r)
+}
+
+// QueryLastMessage queries the "last_message" edge of the Room entity.
+func (r *Room) QueryLastMessage() *MessageQuery {
+	return NewRoomClient(r.config).QueryLastMessage(r)
 }
 
 // QueryMessages queries the "messages" edge of the Room entity.

@@ -4,12 +4,22 @@ package generated
 
 import (
 	"context"
-	"journeyhub/graph/model"
+	"journeyhub/ent"
+	"journeyhub/ent/schema/pulid"
 
 	"github.com/99designs/gqlgen/graphql"
 )
 
 // region    ************************** generated!.gotpl **************************
+
+type CreateRoomInputResolver interface {
+	UserIDs(ctx context.Context, obj *ent.CreateRoomInput, data []pulid.ID) error
+}
+type UpdateRoomInputResolver interface {
+	AddUserIDs(ctx context.Context, obj *ent.UpdateRoomInput, data []pulid.ID) error
+	RemoveUserIDs(ctx context.Context, obj *ent.UpdateRoomInput, data []pulid.ID) error
+	ClearUsers(ctx context.Context, obj *ent.UpdateRoomInput, data *bool) error
+}
 
 // endregion ************************** generated!.gotpl **************************
 
@@ -27,8 +37,8 @@ import (
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputCreateRoomInput(ctx context.Context, obj interface{}) (model.CreateRoomInput, error) {
-	var it model.CreateRoomInput
+func (ec *executionContext) unmarshalInputCreateRoomInput(ctx context.Context, obj interface{}) (ent.CreateRoomInput, error) {
+	var it ent.CreateRoomInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -54,15 +64,17 @@ func (ec *executionContext) unmarshalInputCreateRoomInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-			it.UserIDs = data
+			if err = ec.resolvers.CreateRoomInput().UserIDs(ctx, &it, data); err != nil {
+				return it, err
+			}
 		}
 	}
 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUpdateRoomInput(ctx context.Context, obj interface{}) (model.UpdateRoomInput, error) {
-	var it model.UpdateRoomInput
+func (ec *executionContext) unmarshalInputUpdateRoomInput(ctx context.Context, obj interface{}) (ent.UpdateRoomInput, error) {
+	var it ent.UpdateRoomInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -88,21 +100,27 @@ func (ec *executionContext) unmarshalInputUpdateRoomInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-			it.AddUserIDs = data
+			if err = ec.resolvers.UpdateRoomInput().AddUserIDs(ctx, &it, data); err != nil {
+				return it, err
+			}
 		case "removeUserIDs":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeUserIDs"))
 			data, err := ec.unmarshalOID2ᚕjourneyhubᚋentᚋschemaᚋpulidᚐIDᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.RemoveUserIDs = data
+			if err = ec.resolvers.UpdateRoomInput().RemoveUserIDs(ctx, &it, data); err != nil {
+				return it, err
+			}
 		case "clearUsers":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearUsers"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ClearUsers = data
+			if err = ec.resolvers.UpdateRoomInput().ClearUsers(ctx, &it, data); err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -121,12 +139,12 @@ func (ec *executionContext) unmarshalInputUpdateRoomInput(ctx context.Context, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNCreateRoomInput2journeyhubᚋgraphᚋmodelᚐCreateRoomInput(ctx context.Context, v interface{}) (model.CreateRoomInput, error) {
+func (ec *executionContext) unmarshalNCreateRoomInput2journeyhubᚋentᚐCreateRoomInput(ctx context.Context, v interface{}) (ent.CreateRoomInput, error) {
 	res, err := ec.unmarshalInputCreateRoomInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUpdateRoomInput2journeyhubᚋgraphᚋmodelᚐUpdateRoomInput(ctx context.Context, v interface{}) (model.UpdateRoomInput, error) {
+func (ec *executionContext) unmarshalNUpdateRoomInput2journeyhubᚋentᚐUpdateRoomInput(ctx context.Context, v interface{}) (ent.UpdateRoomInput, error) {
 	res, err := ec.unmarshalInputUpdateRoomInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }

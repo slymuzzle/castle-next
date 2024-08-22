@@ -1318,6 +1318,22 @@ func (c *RoomClient) QueryUsers(r *Room) *UserQuery {
 	return query
 }
 
+// QueryLastMessage queries the last_message edge of a Room.
+func (c *RoomClient) QueryLastMessage(r *Room) *MessageQuery {
+	query := (&MessageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, id),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, room.LastMessageTable, room.LastMessageColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryMessages queries the messages edge of a Room.
 func (c *RoomClient) QueryMessages(r *Room) *MessageQuery {
 	query := (&MessageClient{config: c.config}).Query()

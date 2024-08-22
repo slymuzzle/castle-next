@@ -2,7 +2,8 @@ package seeddata
 
 import (
 	"context"
-	"journeyhub/internal/db"
+
+	"journeyhub/internal/platform/db"
 
 	"golang.org/x/crypto/bcrypt"
 )

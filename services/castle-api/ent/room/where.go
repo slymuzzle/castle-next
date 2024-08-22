@@ -304,6 +304,29 @@ func HasUsersWith(preds ...predicate.User) predicate.Room {
 	})
 }
 
+// HasLastMessage applies the HasEdge predicate on the "last_message" edge.
+func HasLastMessage() predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, LastMessageTable, LastMessageColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLastMessageWith applies the HasEdge predicate on the "last_message" edge with a given conditions (other predicates).
+func HasLastMessageWith(preds ...predicate.Message) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := newLastMessageStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasMessages applies the HasEdge predicate on the "messages" edge.
 func HasMessages() predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {

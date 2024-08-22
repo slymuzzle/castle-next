@@ -31,11 +31,13 @@ type RoomQuery struct {
 	inters                      []Interceptor
 	predicates                  []predicate.Room
 	withUsers                   *UserQuery
+	withLastMessage             *MessageQuery
 	withMessages                *MessageQuery
 	withMessageVoices           *MessageVoiceQuery
 	withMessageAttachments      *MessageAttachmentQuery
 	withMessageLinks            *MessageLinkQuery
 	withRoomMembers             *RoomMemberQuery
+	withFKs                     bool
 	modifiers                   []func(*sql.Selector)
 	loadTotal                   []func(context.Context, []*Room) error
 	withNamedUsers              map[string]*UserQuery
@@ -95,6 +97,28 @@ func (rq *RoomQuery) QueryUsers() *UserQuery {
 			sqlgraph.From(room.Table, room.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, room.UsersTable, room.UsersPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLastMessage chains the current query on the "last_message" edge.
+func (rq *RoomQuery) QueryLastMessage() *MessageQuery {
+	query := (&MessageClient{config: rq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, selector),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, room.LastMessageTable, room.LastMessageColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
 		return fromU, nil
@@ -405,6 +429,7 @@ func (rq *RoomQuery) Clone() *RoomQuery {
 		inters:                 append([]Interceptor{}, rq.inters...),
 		predicates:             append([]predicate.Room{}, rq.predicates...),
 		withUsers:              rq.withUsers.Clone(),
+		withLastMessage:        rq.withLastMessage.Clone(),
 		withMessages:           rq.withMessages.Clone(),
 		withMessageVoices:      rq.withMessageVoices.Clone(),
 		withMessageAttachments: rq.withMessageAttachments.Clone(),
@@ -424,6 +449,17 @@ func (rq *RoomQuery) WithUsers(opts ...func(*UserQuery)) *RoomQuery {
 		opt(query)
 	}
 	rq.withUsers = query
+	return rq
+}
+
+// WithLastMessage tells the query-builder to eager-load the nodes that are connected to
+// the "last_message" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithLastMessage(opts ...func(*MessageQuery)) *RoomQuery {
+	query := (&MessageClient{config: rq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withLastMessage = query
 	return rq
 }
 
@@ -559,9 +595,11 @@ func (rq *RoomQuery) prepareQuery(ctx context.Context) error {
 func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, error) {
 	var (
 		nodes       = []*Room{}
+		withFKs     = rq.withFKs
 		_spec       = rq.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			rq.withUsers != nil,
+			rq.withLastMessage != nil,
 			rq.withMessages != nil,
 			rq.withMessageVoices != nil,
 			rq.withMessageAttachments != nil,
@@ -569,6 +607,12 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 			rq.withRoomMembers != nil,
 		}
 	)
+	if rq.withLastMessage != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, room.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Room).scanValues(nil, columns)
 	}
@@ -594,6 +638,12 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 		if err := rq.loadUsers(ctx, query, nodes,
 			func(n *Room) { n.Edges.Users = []*User{} },
 			func(n *Room, e *User) { n.Edges.Users = append(n.Edges.Users, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rq.withLastMessage; query != nil {
+		if err := rq.loadLastMessage(ctx, query, nodes, nil,
+			func(n *Room, e *Message) { n.Edges.LastMessage = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -741,6 +791,38 @@ func (rq *RoomQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*R
 		}
 		for kn := range nodes {
 			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (rq *RoomQuery) loadLastMessage(ctx context.Context, query *MessageQuery, nodes []*Room, init func(*Room), assign func(*Room, *Message)) error {
+	ids := make([]pulid.ID, 0, len(nodes))
+	nodeids := make(map[pulid.ID][]*Room)
+	for i := range nodes {
+		if nodes[i].room_last_message == nil {
+			continue
+		}
+		fk := *nodes[i].room_last_message
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(message.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "room_last_message" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil

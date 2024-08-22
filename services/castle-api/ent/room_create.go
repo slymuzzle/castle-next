@@ -113,6 +113,25 @@ func (rc *RoomCreate) AddUsers(u ...*User) *RoomCreate {
 	return rc.AddUserIDs(ids...)
 }
 
+// SetLastMessageID sets the "last_message" edge to the Message entity by ID.
+func (rc *RoomCreate) SetLastMessageID(id pulid.ID) *RoomCreate {
+	rc.mutation.SetLastMessageID(id)
+	return rc
+}
+
+// SetNillableLastMessageID sets the "last_message" edge to the Message entity by ID if the given value is not nil.
+func (rc *RoomCreate) SetNillableLastMessageID(id *pulid.ID) *RoomCreate {
+	if id != nil {
+		rc = rc.SetLastMessageID(*id)
+	}
+	return rc
+}
+
+// SetLastMessage sets the "last_message" edge to the Message entity.
+func (rc *RoomCreate) SetLastMessage(m *Message) *RoomCreate {
+	return rc.SetLastMessageID(m.ID)
+}
+
 // AddMessageIDs adds the "messages" edge to the Message entity by IDs.
 func (rc *RoomCreate) AddMessageIDs(ids ...pulid.ID) *RoomCreate {
 	rc.mutation.AddMessageIDs(ids...)
@@ -345,6 +364,23 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 		if specE.ID.Value != nil {
 			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.LastMessageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   room.LastMessageTable,
+			Columns: []string{room.LastMessageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.room_last_message = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := rc.mutation.MessagesIDs(); len(nodes) > 0 {

@@ -17,11 +17,24 @@ input UpdateRoomInput {
 }
 
 extend type Mutation {
-  createRoom(input: CreateRoomInput!): Room
-  updateRoom(roomID: ID!, input: UpdateRoomInput!): Room
-  deleteRoom(roomID: ID!): Room
+  createRoom(input: CreateRoomInput!): RoomEdge
+  updateRoom(roomID: ID!, input: UpdateRoomInput!): RoomEdge
+  deleteRoom(roomID: ID!): RoomEdge
+}
+
+"""
+RoomsUpdatedPayload is used for roomsUpdated subscription payload.
+"""
+input RoomsUpdatedPayload {
+  id: ID!
+  name: String!
+  version: Uint64!
+  type: RoomType!
+  lastMessage: Message
+  createdAt: Time!
+  updatedAt: Time!
 }
 
 extend type Subscription {
-  roomChanged: Message!
+  roomsUpdated: RoomsUpdatedPayload!
 }

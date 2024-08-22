@@ -828,6 +828,17 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 				*wq = *query
 			})
 
+		case "lastMessage":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&MessageClient{config: r.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, messageImplementors)...); err != nil {
+				return err
+			}
+			r.withLastMessage = query
+
 		case "messages":
 			var (
 				alias = field.Alias
@@ -871,10 +882,10 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[1] == nil {
-								nodes[i].Edges.totalCount[1] = make(map[string]int)
+							if nodes[i].Edges.totalCount[2] == nil {
+								nodes[i].Edges.totalCount[2] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[1][alias] = n
+							nodes[i].Edges.totalCount[2][alias] = n
 						}
 						return nil
 					})
@@ -882,10 +893,10 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 					r.loadTotal = append(r.loadTotal, func(_ context.Context, nodes []*Room) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Messages)
-							if nodes[i].Edges.totalCount[1] == nil {
-								nodes[i].Edges.totalCount[1] = make(map[string]int)
+							if nodes[i].Edges.totalCount[2] == nil {
+								nodes[i].Edges.totalCount[2] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[1][alias] = n
+							nodes[i].Edges.totalCount[2][alias] = n
 						}
 						return nil
 					})
@@ -960,10 +971,10 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[2] == nil {
-								nodes[i].Edges.totalCount[2] = make(map[string]int)
+							if nodes[i].Edges.totalCount[3] == nil {
+								nodes[i].Edges.totalCount[3] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[2][alias] = n
+							nodes[i].Edges.totalCount[3][alias] = n
 						}
 						return nil
 					})
@@ -971,10 +982,10 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 					r.loadTotal = append(r.loadTotal, func(_ context.Context, nodes []*Room) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.MessageVoices)
-							if nodes[i].Edges.totalCount[2] == nil {
-								nodes[i].Edges.totalCount[2] = make(map[string]int)
+							if nodes[i].Edges.totalCount[3] == nil {
+								nodes[i].Edges.totalCount[3] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[2][alias] = n
+							nodes[i].Edges.totalCount[3][alias] = n
 						}
 						return nil
 					})
@@ -1049,10 +1060,10 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[3] == nil {
-								nodes[i].Edges.totalCount[3] = make(map[string]int)
+							if nodes[i].Edges.totalCount[4] == nil {
+								nodes[i].Edges.totalCount[4] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[3][alias] = n
+							nodes[i].Edges.totalCount[4][alias] = n
 						}
 						return nil
 					})
@@ -1060,10 +1071,10 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 					r.loadTotal = append(r.loadTotal, func(_ context.Context, nodes []*Room) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.MessageAttachments)
-							if nodes[i].Edges.totalCount[3] == nil {
-								nodes[i].Edges.totalCount[3] = make(map[string]int)
+							if nodes[i].Edges.totalCount[4] == nil {
+								nodes[i].Edges.totalCount[4] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[3][alias] = n
+							nodes[i].Edges.totalCount[4][alias] = n
 						}
 						return nil
 					})
@@ -1138,10 +1149,10 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[4] == nil {
-								nodes[i].Edges.totalCount[4] = make(map[string]int)
+							if nodes[i].Edges.totalCount[5] == nil {
+								nodes[i].Edges.totalCount[5] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[4][alias] = n
+							nodes[i].Edges.totalCount[5][alias] = n
 						}
 						return nil
 					})
@@ -1149,10 +1160,10 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 					r.loadTotal = append(r.loadTotal, func(_ context.Context, nodes []*Room) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.MessageLinks)
-							if nodes[i].Edges.totalCount[4] == nil {
-								nodes[i].Edges.totalCount[4] = make(map[string]int)
+							if nodes[i].Edges.totalCount[5] == nil {
+								nodes[i].Edges.totalCount[5] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[4][alias] = n
+							nodes[i].Edges.totalCount[5][alias] = n
 						}
 						return nil
 					})
@@ -1227,10 +1238,10 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[5] == nil {
-								nodes[i].Edges.totalCount[5] = make(map[string]int)
+							if nodes[i].Edges.totalCount[6] == nil {
+								nodes[i].Edges.totalCount[6] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[5][alias] = n
+							nodes[i].Edges.totalCount[6][alias] = n
 						}
 						return nil
 					})
@@ -1238,10 +1249,10 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 					r.loadTotal = append(r.loadTotal, func(_ context.Context, nodes []*Room) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.RoomMembers)
-							if nodes[i].Edges.totalCount[5] == nil {
-								nodes[i].Edges.totalCount[5] = make(map[string]int)
+							if nodes[i].Edges.totalCount[6] == nil {
+								nodes[i].Edges.totalCount[6] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[5][alias] = n
+							nodes[i].Edges.totalCount[6][alias] = n
 						}
 						return nil
 					})
@@ -1416,6 +1427,11 @@ func (rm *RoomMemberQuery) collectField(ctx context.Context, oneNode bool, opCtx
 			if _, ok := fieldSeen[roommember.FieldRoomID]; !ok {
 				selectedFields = append(selectedFields, roommember.FieldRoomID)
 				fieldSeen[roommember.FieldRoomID] = struct{}{}
+			}
+		case "unreadMessagesCount":
+			if _, ok := fieldSeen[roommember.FieldUnreadMessagesCount]; !ok {
+				selectedFields = append(selectedFields, roommember.FieldUnreadMessagesCount)
+				fieldSeen[roommember.FieldUnreadMessagesCount] = struct{}{}
 			}
 		case "userID":
 			if _, ok := fieldSeen[roommember.FieldUserID]; !ok {
@@ -1994,6 +2010,11 @@ func (u *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 			if _, ok := fieldSeen[user.FieldEmail]; !ok {
 				selectedFields = append(selectedFields, user.FieldEmail)
 				fieldSeen[user.FieldEmail] = struct{}{}
+			}
+		case "contactPin":
+			if _, ok := fieldSeen[user.FieldContactPin]; !ok {
+				selectedFields = append(selectedFields, user.FieldContactPin)
+				fieldSeen[user.FieldContactPin] = struct{}{}
 			}
 		case "createdAt":
 			if _, ok := fieldSeen[user.FieldCreatedAt]; !ok {

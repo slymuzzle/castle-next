@@ -848,6 +848,7 @@ type Room implements Node {
     """
     where: UserWhereInput
   ): UserConnection!
+  lastMessage: Message
   messages(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -1036,6 +1037,7 @@ type RoomEdge {
 }
 type RoomMember implements Node {
   id: ID!
+  unreadMessagesCount: Int!
   userID: ID!
   roomID: ID!
   joinedAt: Time!
@@ -1089,6 +1091,7 @@ input RoomMemberOrder {
 Properties by which RoomMember connections can be ordered.
 """
 enum RoomMemberOrderField {
+  UNREAD_MESSAGES_COUNT
   JOINED_AT
 }
 """
@@ -1110,6 +1113,17 @@ input RoomMemberWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
+  """
+  unread_messages_count field predicates
+  """
+  unreadMessagesCount: Int
+  unreadMessagesCountNEQ: Int
+  unreadMessagesCountIn: [Int!]
+  unreadMessagesCountNotIn: [Int!]
+  unreadMessagesCountGT: Int
+  unreadMessagesCountGTE: Int
+  unreadMessagesCountLT: Int
+  unreadMessagesCountLTE: Int
   """
   joined_at field predicates
   """
@@ -1233,6 +1247,11 @@ input RoomWhereInput {
   hasUsers: Boolean
   hasUsersWith: [UserWhereInput!]
   """
+  last_message edge predicates
+  """
+  hasLastMessage: Boolean
+  hasLastMessageWith: [MessageWhereInput!]
+  """
   messages edge predicates
   """
   hasMessages: Boolean
@@ -1276,6 +1295,7 @@ type User implements Node {
   lastName: String!
   nickname: String!
   email: String
+  contactPin: String
   createdAt: Time!
   updatedAt: Time!
   contacts(
@@ -1663,6 +1683,24 @@ input UserWhereInput {
   emailNotNil: Boolean
   emailEqualFold: String
   emailContainsFold: String
+  """
+  contact_pin field predicates
+  """
+  contactPin: String
+  contactPinNEQ: String
+  contactPinIn: [String!]
+  contactPinNotIn: [String!]
+  contactPinGT: String
+  contactPinGTE: String
+  contactPinLT: String
+  contactPinLTE: String
+  contactPinContains: String
+  contactPinHasPrefix: String
+  contactPinHasSuffix: String
+  contactPinIsNil: Boolean
+  contactPinNotNil: Boolean
+  contactPinEqualFold: String
+  contactPinContainsFold: String
   """
   created_at field predicates
   """

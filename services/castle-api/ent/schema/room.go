@@ -1,8 +1,9 @@
 package schema
 
 import (
-	"journeyhub/ent/schema/pulid"
 	"time"
+
+	"journeyhub/ent/schema/pulid"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
@@ -65,6 +66,11 @@ func (Room) Edges() []ent.Edge {
 			Through("room_members", RoomMember.Type).
 			Annotations(
 				entgql.RelayConnection(),
+			),
+		edge.To("last_message", Message.Type).
+			Unique().
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
 			),
 		edge.To("messages", Message.Type).
 			Annotations(

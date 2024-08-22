@@ -20,6 +20,8 @@ type RoomMember struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID pulid.ID `json:"id,omitempty"`
+	// UnreadMessagesCount holds the value of the "unread_messages_count" field.
+	UnreadMessagesCount int `json:"unread_messages_count,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID pulid.ID `json:"user_id,omitempty"`
 	// RoomID holds the value of the "room_id" field.
@@ -74,6 +76,8 @@ func (*RoomMember) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case roommember.FieldID, roommember.FieldUserID, roommember.FieldRoomID:
 			values[i] = new(pulid.ID)
+		case roommember.FieldUnreadMessagesCount:
+			values[i] = new(sql.NullInt64)
 		case roommember.FieldJoinedAt:
 			values[i] = new(sql.NullTime)
 		default:
@@ -96,6 +100,12 @@ func (rm *RoomMember) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				rm.ID = *value
+			}
+		case roommember.FieldUnreadMessagesCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field unread_messages_count", values[i])
+			} else if value.Valid {
+				rm.UnreadMessagesCount = int(value.Int64)
 			}
 		case roommember.FieldUserID:
 			if value, ok := values[i].(*pulid.ID); !ok {
@@ -161,6 +171,9 @@ func (rm *RoomMember) String() string {
 	var builder strings.Builder
 	builder.WriteString("RoomMember(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", rm.ID))
+	builder.WriteString("unread_messages_count=")
+	builder.WriteString(fmt.Sprintf("%v", rm.UnreadMessagesCount))
+	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", rm.UserID))
 	builder.WriteString(", ")

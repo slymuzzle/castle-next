@@ -105,6 +105,25 @@ func (ru *RoomUpdate) AddUsers(u ...*User) *RoomUpdate {
 	return ru.AddUserIDs(ids...)
 }
 
+// SetLastMessageID sets the "last_message" edge to the Message entity by ID.
+func (ru *RoomUpdate) SetLastMessageID(id pulid.ID) *RoomUpdate {
+	ru.mutation.SetLastMessageID(id)
+	return ru
+}
+
+// SetNillableLastMessageID sets the "last_message" edge to the Message entity by ID if the given value is not nil.
+func (ru *RoomUpdate) SetNillableLastMessageID(id *pulid.ID) *RoomUpdate {
+	if id != nil {
+		ru = ru.SetLastMessageID(*id)
+	}
+	return ru
+}
+
+// SetLastMessage sets the "last_message" edge to the Message entity.
+func (ru *RoomUpdate) SetLastMessage(m *Message) *RoomUpdate {
+	return ru.SetLastMessageID(m.ID)
+}
+
 // AddMessageIDs adds the "messages" edge to the Message entity by IDs.
 func (ru *RoomUpdate) AddMessageIDs(ids ...pulid.ID) *RoomUpdate {
 	ru.mutation.AddMessageIDs(ids...)
@@ -204,6 +223,12 @@ func (ru *RoomUpdate) RemoveUsers(u ...*User) *RoomUpdate {
 		ids[i] = u[i].ID
 	}
 	return ru.RemoveUserIDs(ids...)
+}
+
+// ClearLastMessage clears the "last_message" edge to the Message entity.
+func (ru *RoomUpdate) ClearLastMessage() *RoomUpdate {
+	ru.mutation.ClearLastMessage()
+	return ru
 }
 
 // ClearMessages clears all "messages" edges to the Message entity.
@@ -452,6 +477,35 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
 			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ru.mutation.LastMessageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   room.LastMessageTable,
+			Columns: []string{room.LastMessageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.LastMessageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   room.LastMessageTable,
+			Columns: []string{room.LastMessageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
@@ -770,6 +824,25 @@ func (ruo *RoomUpdateOne) AddUsers(u ...*User) *RoomUpdateOne {
 	return ruo.AddUserIDs(ids...)
 }
 
+// SetLastMessageID sets the "last_message" edge to the Message entity by ID.
+func (ruo *RoomUpdateOne) SetLastMessageID(id pulid.ID) *RoomUpdateOne {
+	ruo.mutation.SetLastMessageID(id)
+	return ruo
+}
+
+// SetNillableLastMessageID sets the "last_message" edge to the Message entity by ID if the given value is not nil.
+func (ruo *RoomUpdateOne) SetNillableLastMessageID(id *pulid.ID) *RoomUpdateOne {
+	if id != nil {
+		ruo = ruo.SetLastMessageID(*id)
+	}
+	return ruo
+}
+
+// SetLastMessage sets the "last_message" edge to the Message entity.
+func (ruo *RoomUpdateOne) SetLastMessage(m *Message) *RoomUpdateOne {
+	return ruo.SetLastMessageID(m.ID)
+}
+
 // AddMessageIDs adds the "messages" edge to the Message entity by IDs.
 func (ruo *RoomUpdateOne) AddMessageIDs(ids ...pulid.ID) *RoomUpdateOne {
 	ruo.mutation.AddMessageIDs(ids...)
@@ -869,6 +942,12 @@ func (ruo *RoomUpdateOne) RemoveUsers(u ...*User) *RoomUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return ruo.RemoveUserIDs(ids...)
+}
+
+// ClearLastMessage clears the "last_message" edge to the Message entity.
+func (ruo *RoomUpdateOne) ClearLastMessage() *RoomUpdateOne {
+	ruo.mutation.ClearLastMessage()
+	return ruo
 }
 
 // ClearMessages clears all "messages" edges to the Message entity.
@@ -1147,6 +1226,35 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
 			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ruo.mutation.LastMessageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   room.LastMessageTable,
+			Columns: []string{room.LastMessageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.LastMessageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   room.LastMessageTable,
+			Columns: []string{room.LastMessageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}

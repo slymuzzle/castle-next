@@ -30,6 +30,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
 	EdgeUsers = "users"
+	// EdgeLastMessage holds the string denoting the last_message edge name in mutations.
+	EdgeLastMessage = "last_message"
 	// EdgeMessages holds the string denoting the messages edge name in mutations.
 	EdgeMessages = "messages"
 	// EdgeMessageVoices holds the string denoting the message_voices edge name in mutations.
@@ -47,6 +49,13 @@ const (
 	// UsersInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UsersInverseTable = "users"
+	// LastMessageTable is the table that holds the last_message relation/edge.
+	LastMessageTable = "rooms"
+	// LastMessageInverseTable is the table name for the Message entity.
+	// It exists in this package in order to avoid circular dependency with the "message" package.
+	LastMessageInverseTable = "messages"
+	// LastMessageColumn is the table column denoting the last_message relation/edge.
+	LastMessageColumn = "room_last_message"
 	// MessagesTable is the table that holds the messages relation/edge.
 	MessagesTable = "messages"
 	// MessagesInverseTable is the table name for the Message entity.
@@ -94,6 +103,12 @@ var Columns = []string{
 	FieldUpdatedAt,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "rooms"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"room_last_message",
+}
+
 var (
 	// UsersPrimaryKey and UsersColumn2 are the table columns denoting the
 	// primary key for the users relation (M2M).
@@ -104,6 +119,11 @@ var (
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -195,6 +215,13 @@ func ByUsers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByLastMessageField orders the results by last_message field.
+func ByLastMessageField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLastMessageStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByMessagesCount orders the results by messages count.
 func ByMessagesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -269,6 +296,13 @@ func newUsersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UsersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, UsersTable, UsersPrimaryKey...),
+	)
+}
+func newLastMessageStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LastMessageInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, LastMessageTable, LastMessageColumn),
 	)
 }
 func newMessagesStep() *sqlgraph.Step {
