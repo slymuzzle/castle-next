@@ -6,6 +6,7 @@ import (
 
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
+	"journeyhub/graph/model"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -50,38 +51,26 @@ func (s *loggingService) FindRoomByMessage(
 	return s.Service.FindRoomByMessage(ctx, messageID)
 }
 
-func (s *loggingService) CreateRoom(
+func (s *loggingService) IncrementRoomVersion(
 	ctx context.Context,
-	input CreateRoomInput,
+	ID pulid.ID,
+	lastMessage *ent.Message,
 ) (room *ent.Room, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
-			"method", "CreateRoom",
+			"method", "FindRoomByMessage",
+			"ID", ID,
+			"lastMessage", lastMessage.ID,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.CreateRoom(ctx, input)
-}
-
-func (s *loggingService) UpdateRoom(
-	ctx context.Context,
-	ID pulid.ID,
-	input UpdateRoomInput,
-) (room *ent.RoomEdge, err error) {
-	defer func(begin time.Time) {
-		level.Debug(s.logger).Log(
-			"method", "UpdateRoom",
-			"took", time.Since(begin),
-			"err", err,
-		)
-	}(time.Now())
-	return s.Service.UpdateRoom(ctx, ID, input)
+	return s.Service.IncrementRoomVersion(ctx, ID, lastMessage)
 }
 
 func (s *loggingService) SubscribeToRoomsUpdatedEvent(
 	ctx context.Context,
-) (ch <-chan *ent.RoomEdge, err error) {
+) (ch <-chan *model.RoomUpdatedEvent, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "SubscribeToRoomsUpdatedEvent",
@@ -90,6 +79,21 @@ func (s *loggingService) SubscribeToRoomsUpdatedEvent(
 		)
 	}(time.Now())
 	return s.Service.SubscribeToRoomsUpdatedEvent(ctx)
+}
+
+func (s *loggingService) DeleteRoomMember(
+	ctx context.Context,
+	roomMemberID pulid.ID,
+) (roomMember *ent.RoomMember, err error) {
+	defer func(begin time.Time) {
+		level.Debug(s.logger).Log(
+			"method", "DeleteRoomMember",
+			"roomMemberID", roomMemberID,
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.DeleteRoomMember(ctx, roomMemberID)
 }
 
 func (s *loggingService) DeleteRoom(

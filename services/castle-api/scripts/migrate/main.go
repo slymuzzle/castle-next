@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 	"journeyhub/ent/migrate"
-	"journeyhub/internal/config"
+	"journeyhub/internal/platform/config"
 	"os"
 
 	"github.com/go-kit/log"
@@ -15,6 +15,8 @@ import (
 	atlas "ariga.io/atlas/sql/migrate"
 
 	"entgo.io/ent/dialect/sql/schema"
+
+	_ "journeyhub/ent/runtime"
 
 	_ "github.com/lib/pq"
 )

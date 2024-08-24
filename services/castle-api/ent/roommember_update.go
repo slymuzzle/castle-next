@@ -11,6 +11,7 @@ import (
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -27,6 +28,26 @@ type RoomMemberUpdate struct {
 // Where appends a list predicates to the RoomMemberUpdate builder.
 func (rmu *RoomMemberUpdate) Where(ps ...predicate.RoomMember) *RoomMemberUpdate {
 	rmu.mutation.Where(ps...)
+	return rmu
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (rmu *RoomMemberUpdate) SetDeletedAt(t time.Time) *RoomMemberUpdate {
+	rmu.mutation.SetDeletedAt(t)
+	return rmu
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (rmu *RoomMemberUpdate) SetNillableDeletedAt(t *time.Time) *RoomMemberUpdate {
+	if t != nil {
+		rmu.SetDeletedAt(*t)
+	}
+	return rmu
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (rmu *RoomMemberUpdate) ClearDeletedAt() *RoomMemberUpdate {
+	rmu.mutation.ClearDeletedAt()
 	return rmu
 }
 
@@ -156,6 +177,12 @@ func (rmu *RoomMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := rmu.mutation.DeletedAt(); ok {
+		_spec.SetField(roommember.FieldDeletedAt, field.TypeTime, value)
+	}
+	if rmu.mutation.DeletedAtCleared() {
+		_spec.ClearField(roommember.FieldDeletedAt, field.TypeTime)
+	}
 	if value, ok := rmu.mutation.UnreadMessagesCount(); ok {
 		_spec.SetField(roommember.FieldUnreadMessagesCount, field.TypeInt, value)
 	}
@@ -238,6 +265,26 @@ type RoomMemberUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *RoomMemberMutation
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (rmuo *RoomMemberUpdateOne) SetDeletedAt(t time.Time) *RoomMemberUpdateOne {
+	rmuo.mutation.SetDeletedAt(t)
+	return rmuo
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (rmuo *RoomMemberUpdateOne) SetNillableDeletedAt(t *time.Time) *RoomMemberUpdateOne {
+	if t != nil {
+		rmuo.SetDeletedAt(*t)
+	}
+	return rmuo
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (rmuo *RoomMemberUpdateOne) ClearDeletedAt() *RoomMemberUpdateOne {
+	rmuo.mutation.ClearDeletedAt()
+	return rmuo
 }
 
 // SetUnreadMessagesCount sets the "unread_messages_count" field.
@@ -395,6 +442,12 @@ func (rmuo *RoomMemberUpdateOne) sqlSave(ctx context.Context) (_node *RoomMember
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := rmuo.mutation.DeletedAt(); ok {
+		_spec.SetField(roommember.FieldDeletedAt, field.TypeTime, value)
+	}
+	if rmuo.mutation.DeletedAtCleared() {
+		_spec.ClearField(roommember.FieldDeletedAt, field.TypeTime)
 	}
 	if value, ok := rmuo.mutation.UnreadMessagesCount(); ok {
 		_spec.SetField(roommember.FieldUnreadMessagesCount, field.TypeInt, value)

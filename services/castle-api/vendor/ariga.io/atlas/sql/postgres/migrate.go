@@ -77,10 +77,13 @@ func (s *state) plan(changes []schema.Change) error {
 	if err != nil {
 		return err
 	}
-	if planned, err = detachCycles(planned); err != nil {
-		return err
+	if s.PlanOptions.Mode != migrate.PlanModeUnsortedDump {
+		if planned, err = s.detachCycles(planned); err != nil {
+			return err
+		}
+		planned = s.sortChanges(planned)
 	}
-	for _, c := range sqlx.SortChanges(planned) {
+	for _, c := range planned {
 		switch c := c.(type) {
 		case *schema.AddTable:
 			err = s.addTable(c)
@@ -284,6 +287,7 @@ func (s *state) addTable(add *schema.AddTable) error {
 		}
 	}
 	s.addComments(add, add.T)
+	s.addTableAttrs(add)
 	return nil
 }
 
@@ -336,11 +340,23 @@ func (s *state) modifyTable(modify *schema.ModifyTable) error {
 	)
 	for _, change := range skipAutoChanges(modify.Changes) {
 		switch change := change.(type) {
-		case *schema.AddAttr, *schema.ModifyAttr:
+		case *schema.ModifyAttr:
+			if _, ok := change.From.(*schema.Comment); !ok {
+				alter = append(alter, change)
+				continue
+			}
 			from, to, err := commentChange(change)
 			if err != nil {
 				return err
 			}
+			// Comments are not part of the ALTER command.
+			changes = append(changes, s.tableComment(modify, modify.T, to, from))
+		case *schema.AddAttr:
+			from, to, err := commentChange(change)
+			if err != nil {
+				return err
+			}
+			// Comments are not part of the ALTER command.
 			changes = append(changes, s.tableComment(modify, modify.T, to, from))
 		case *schema.DropAttr:
 			return fmt.Errorf("unsupported change type: %T", change)
@@ -610,6 +626,12 @@ func (s *state) alterTable(t *schema.Table, changes []schema.Change) error {
 					From: change.To,
 					To:   change.From,
 				})
+			case *schema.ModifyAttr:
+				s.alterTableAttr(b, change)
+				reverse = append(reverse, &schema.ModifyAttr{
+					From: change.To,
+					To:   change.From,
+				})
 			}
 			return nil
 		})
@@ -848,9 +870,8 @@ func (s *state) tableComment(src schema.Change, t *schema.Table, to, from string
 }
 
 func (s *state) columnComment(src schema.Change, t *schema.Table, c *schema.Column, to, from string) *migrate.Change {
-	b := s.Build("COMMENT ON COLUMN").Table(t)
-	b.WriteByte('.')
-	b.Ident(c.Name).P("IS")
+	b := s.Build("COMMENT ON COLUMN").TableResource(t, c)
+	b.P("IS")
 	return &migrate.Change{
 		Cmd:     b.Clone().P(quote(to)).String(),
 		Source:  src,
@@ -860,7 +881,7 @@ func (s *state) columnComment(src schema.Change, t *schema.Table, c *schema.Colu
 }
 
 func (s *state) indexComment(src schema.Change, t *schema.Table, idx *schema.Index, to, from string) *migrate.Change {
-	b := s.Build("COMMENT ON INDEX").Ident(idx.Name).P("IS")
+	b := s.Build("COMMENT ON INDEX").SchemaResource(t.Schema, idx.Name).P("IS")
 	return &migrate.Change{
 		Cmd:     b.Clone().P(quote(to)).String(),
 		Source:  src,

@@ -134,10 +134,11 @@ func (f StateReaderFunc) ReadState(ctx context.Context) (*schema.Realm, error) {
 
 // List of migration planning modes.
 const (
-	PlanModeUnset    PlanMode = iota // Driver default.
-	PlanModeInPlace                  // Changes are applied inplace (e.g., 'schema diff').
-	PlanModeDeferred                 // Changes are planned for future applying (e.g., 'migrate diff').
-	PlanModeDump                     // Schema creation dump (e.g., 'schema inspect').
+	PlanModeUnset        PlanMode = iota // Driver default.
+	PlanModeInPlace                      // Changes are applied in place (e.g. 'schema diff').
+	PlanModeDeferred                     // Changes are planned for future applying (e.g. 'migrate diff').
+	PlanModeDump                         // Schema creation dump (e.g. 'schema inspect').
+	PlanModeUnsortedDump                 // Schema creation demo without sorting dependencies.
 )
 
 // Is reports whether m is match the given mode.
@@ -782,7 +783,9 @@ func (e *Executor) Execute(ctx context.Context, m File) (err error) {
 	}
 	stmts, err := e.fileStmts(m)
 	if err != nil {
-		return fmt.Errorf("sql/migrate: scanning statements from %q: %w", m.Name(), err)
+		err = fmt.Errorf("sql/migrate: scanning statements from %q: %w", m.Name(), err)
+		e.log.Log(LogError{Error: err})
+		return err
 	}
 	// Create checksums for the statements.
 	var (
@@ -819,7 +822,7 @@ func (e *Executor) Execute(ctx context.Context, m File) (err error) {
 	// Make sure to store the Revision information.
 	defer func(ctx context.Context, e *Executor, r *Revision) {
 		if err2 := e.writeRevision(ctx, r); err2 != nil {
-			err = wrap(err2, err)
+			err = errors.Join(err, err2)
 		}
 	}(ctx, e, r)
 	if r.Applied > 0 {
@@ -916,18 +919,47 @@ func (e *Executor) ExecuteN(ctx context.Context, n int) (err error) {
 
 // ExecuteTo executes all pending migration files up to and including version.
 func (e *Executor) ExecuteTo(ctx context.Context, version string) (err error) {
-	pending, err := e.Pending(ctx)
+	files, err := e.dir.Files()
 	if err != nil {
-		return err
+		return fmt.Errorf("sql/migrate: read migration directory files: %w", err)
 	}
-	// Strip pending files greater given version.
-	switch idx := FilesLastIndex(pending, func(file File) bool {
-		return file.Version() == version
-	}); idx {
-	case -1:
+	idx := FilesLastIndex(files, func(f File) bool {
+		return f.Version() == version
+	})
+	if idx == -1 {
 		return fmt.Errorf("sql/migrate: migration with version %q not found", version)
+	}
+	var pending []File
+	switch beforeCk := slices.ContainsFunc(files[idx+1:], func(f File) bool {
+		c, ok := f.(CheckpointFile)
+		return ok && c.IsCheckpoint()
+	}); {
+	// If the version we want to migrate to is before a
+	// checkpoint, it will be skipped by Pending.
+	case beforeCk:
+		dir, mem := e.dir, &MemDir{}
+		if err := mem.CopyFiles(files[:idx+1]); err != nil {
+			return fmt.Errorf("sql/migrate: copy files to memory: %w", err)
+		}
+		e.dir = mem
+		pending, err = e.Pending(ctx)
+		e.dir = dir
+		if err != nil {
+			return err
+		}
 	default:
-		pending = pending[:idx+1]
+		if pending, err = e.Pending(ctx); err != nil {
+			return err
+		}
+		// Strip pending files greater given version.
+		switch idx := FilesLastIndex(pending, func(file File) bool {
+			return file.Version() == version
+		}); idx {
+		case -1:
+			return fmt.Errorf("sql/migrate: migration with version %q not found", version)
+		default:
+			pending = pending[:idx+1]
+		}
 	}
 	return e.exec(ctx, pending)
 }
@@ -975,7 +1007,7 @@ func (e *Executor) Replay(ctx context.Context, r StateReader, opts ...ReplayOpti
 	}
 	defer func() {
 		if err2 := restore(ctx); err2 != nil {
-			err = wrap(err2, err)
+			err = errors.Join(err, err2)
 		}
 	}()
 	// Replay the migration directory on the database.
@@ -1168,11 +1200,4 @@ func LogIntro(l Logger, revs []*Revision, files []File) {
 func LogNoPendingFiles(l Logger, revs []*Revision) {
 	LogIntro(l, revs, nil)
 	l.Log(LogDone{})
-}
-
-func wrap(err1, err2 error) error {
-	if err2 != nil {
-		return fmt.Errorf("sql/migrate: %w: %v", err2, err1)
-	}
-	return err1
 }

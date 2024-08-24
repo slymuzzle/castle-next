@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"ariga.io/atlas/sql/schema"
+
+	"github.com/hashicorp/hcl/v2"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"
 )
@@ -23,12 +25,14 @@ type (
 		Type      string
 		Attrs     []*Attr
 		Children  []*Resource
+		rang      *hcl.Range
 	}
 
 	// Attr is an attribute of a Resource.
 	Attr struct {
-		K string
-		V cty.Value
+		K    string
+		V    cty.Value
+		rang *hcl.Range
 	}
 
 	// Ref implements Value and represents a reference to another Resource.
@@ -379,6 +383,28 @@ func (a *Attr) Bools() (vs []bool, err error) {
 	return vs, nil
 }
 
+// SetRange sets the range of this attribute.
+func (a *Attr) SetRange(p *hcl.Range) {
+	a.rang = p
+}
+
+// Range returns the attribute range on the
+// file, or nil if it is not set.
+func (a *Attr) Range() *hcl.Range {
+	return a.rang
+}
+
+// SetRange sets the range of this resource.
+func (r *Resource) SetRange(p *hcl.Range) {
+	r.rang = p
+}
+
+// Range returns the resource range on the
+// file, or nil if it is not set.
+func (r *Resource) Range() *hcl.Range {
+	return r.rang
+}
+
 // Resource returns the first child Resource by its type and reports whether it was found.
 func (r *Resource) Resource(t string) (*Resource, bool) {
 	if r == nil {
@@ -551,4 +577,26 @@ func RawAttr(k string, x string) *Attr {
 // RawExprValue is a helper method for constructing a cty.Value that capsules a raw expression.
 func RawExprValue(x *RawExpr) cty.Value {
 	return cty.CapsuleVal(ctyRawExpr, x)
+}
+
+// ctyEnumString is a capsule type for EnumString.
+var ctyEnumString = cty.Capsule("enum_string", reflect.TypeOf(EnumString{}))
+
+// EnumString is a helper type that represents
+// either an enum or a string value.
+type EnumString struct {
+	E, S string // Enum or string value.
+}
+
+// StringEnumsAttr is a helper method for constructing *schemahcl.Attr instances
+// that contain list of elements that their values can be either enum or string.
+func StringEnumsAttr(k string, elems ...*EnumString) *Attr {
+	vv := make([]cty.Value, len(elems))
+	for i, e := range elems {
+		vv[i] = cty.CapsuleVal(ctyEnumString, e)
+	}
+	return &Attr{
+		K: k,
+		V: cty.ListVal(vv),
+	}
 }

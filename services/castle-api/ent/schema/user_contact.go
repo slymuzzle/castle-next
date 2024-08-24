@@ -1,8 +1,10 @@
 package schema
 
 import (
-	"journeyhub/ent/schema/pulid"
 	"time"
+
+	"journeyhub/ent/schema/mixin"
+	"journeyhub/ent/schema/pulid"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
@@ -21,6 +23,7 @@ type UserContact struct {
 func (UserContact) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		pulid.MixinWithPrefix("UC"),
+		mixin.SoftDeleteMixin{},
 	}
 }
 
@@ -66,11 +69,6 @@ func (UserContact) Edges() []ent.Edge {
 				entsql.OnDelete(entsql.SetNull),
 			),
 	}
-}
-
-// Indexes of the UserContact.
-func (UserContact) Indexes() []ent.Index {
-	return []ent.Index{}
 }
 
 // Annotations of the UserContact.

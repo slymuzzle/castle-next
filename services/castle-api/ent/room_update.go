@@ -35,6 +35,26 @@ func (ru *RoomUpdate) Where(ps ...predicate.Room) *RoomUpdate {
 	return ru
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (ru *RoomUpdate) SetDeletedAt(t time.Time) *RoomUpdate {
+	ru.mutation.SetDeletedAt(t)
+	return ru
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (ru *RoomUpdate) SetNillableDeletedAt(t *time.Time) *RoomUpdate {
+	if t != nil {
+		ru.SetDeletedAt(*t)
+	}
+	return ru
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (ru *RoomUpdate) ClearDeletedAt() *RoomUpdate {
+	ru.mutation.ClearDeletedAt()
+	return ru
+}
+
 // SetName sets the "name" field.
 func (ru *RoomUpdate) SetName(s string) *RoomUpdate {
 	ru.mutation.SetName(s)
@@ -338,7 +358,9 @@ func (ru *RoomUpdate) RemoveRoomMembers(r ...*RoomMember) *RoomUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ru *RoomUpdate) Save(ctx context.Context) (int, error) {
-	ru.defaults()
+	if err := ru.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, ru.sqlSave, ru.mutation, ru.hooks)
 }
 
@@ -365,11 +387,15 @@ func (ru *RoomUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (ru *RoomUpdate) defaults() {
+func (ru *RoomUpdate) defaults() error {
 	if _, ok := ru.mutation.UpdatedAt(); !ok {
+		if room.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized room.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := room.UpdateDefaultUpdatedAt()
 		ru.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -399,6 +425,12 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := ru.mutation.DeletedAt(); ok {
+		_spec.SetField(room.FieldDeletedAt, field.TypeTime, value)
+	}
+	if ru.mutation.DeletedAtCleared() {
+		_spec.ClearField(room.FieldDeletedAt, field.TypeTime)
+	}
 	if value, ok := ru.mutation.Name(); ok {
 		_spec.SetField(room.FieldName, field.TypeString, value)
 	}
@@ -426,7 +458,7 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			},
 		}
 		createE := &RoomMemberCreate{config: ru.config, mutation: newRoomMemberMutation(ru.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -449,7 +481,7 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		createE := &RoomMemberCreate{config: ru.config, mutation: newRoomMemberMutation(ru.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -472,7 +504,7 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		createE := &RoomMemberCreate{config: ru.config, mutation: newRoomMemberMutation(ru.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -752,6 +784,26 @@ type RoomUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *RoomMutation
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (ruo *RoomUpdateOne) SetDeletedAt(t time.Time) *RoomUpdateOne {
+	ruo.mutation.SetDeletedAt(t)
+	return ruo
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (ruo *RoomUpdateOne) SetNillableDeletedAt(t *time.Time) *RoomUpdateOne {
+	if t != nil {
+		ruo.SetDeletedAt(*t)
+	}
+	return ruo
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (ruo *RoomUpdateOne) ClearDeletedAt() *RoomUpdateOne {
+	ruo.mutation.ClearDeletedAt()
+	return ruo
 }
 
 // SetName sets the "name" field.
@@ -1070,7 +1122,9 @@ func (ruo *RoomUpdateOne) Select(field string, fields ...string) *RoomUpdateOne 
 
 // Save executes the query and returns the updated Room entity.
 func (ruo *RoomUpdateOne) Save(ctx context.Context) (*Room, error) {
-	ruo.defaults()
+	if err := ruo.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, ruo.sqlSave, ruo.mutation, ruo.hooks)
 }
 
@@ -1097,11 +1151,15 @@ func (ruo *RoomUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (ruo *RoomUpdateOne) defaults() {
+func (ruo *RoomUpdateOne) defaults() error {
 	if _, ok := ruo.mutation.UpdatedAt(); !ok {
+		if room.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized room.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := room.UpdateDefaultUpdatedAt()
 		ruo.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -1148,6 +1206,12 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 			}
 		}
 	}
+	if value, ok := ruo.mutation.DeletedAt(); ok {
+		_spec.SetField(room.FieldDeletedAt, field.TypeTime, value)
+	}
+	if ruo.mutation.DeletedAtCleared() {
+		_spec.ClearField(room.FieldDeletedAt, field.TypeTime)
+	}
 	if value, ok := ruo.mutation.Name(); ok {
 		_spec.SetField(room.FieldName, field.TypeString, value)
 	}
@@ -1175,7 +1239,7 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 			},
 		}
 		createE := &RoomMemberCreate{config: ruo.config, mutation: newRoomMemberMutation(ruo.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -1198,7 +1262,7 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		createE := &RoomMemberCreate{config: ruo.config, mutation: newRoomMemberMutation(ruo.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -1221,7 +1285,7 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		createE := &RoomMemberCreate{config: ruo.config, mutation: newRoomMemberMutation(ruo.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {

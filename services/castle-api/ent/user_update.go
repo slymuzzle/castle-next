@@ -404,7 +404,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			},
 		}
 		createE := &UserContactCreate{config: uu.config, mutation: newUserContactMutation(uu.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -427,7 +427,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		createE := &UserContactCreate{config: uu.config, mutation: newUserContactMutation(uu.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -450,7 +450,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		createE := &UserContactCreate{config: uu.config, mutation: newUserContactMutation(uu.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -470,7 +470,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			},
 		}
 		createE := &RoomMemberCreate{config: uu.config, mutation: newRoomMemberMutation(uu.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -493,7 +493,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		createE := &RoomMemberCreate{config: uu.config, mutation: newRoomMemberMutation(uu.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -516,7 +516,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		createE := &RoomMemberCreate{config: uu.config, mutation: newRoomMemberMutation(uu.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -1080,7 +1080,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			},
 		}
 		createE := &UserContactCreate{config: uuo.config, mutation: newUserContactMutation(uuo.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -1103,7 +1103,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		createE := &UserContactCreate{config: uuo.config, mutation: newUserContactMutation(uuo.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -1126,7 +1126,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		createE := &UserContactCreate{config: uuo.config, mutation: newUserContactMutation(uuo.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -1146,7 +1146,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			},
 		}
 		createE := &RoomMemberCreate{config: uuo.config, mutation: newRoomMemberMutation(uuo.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -1169,7 +1169,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		createE := &RoomMemberCreate{config: uuo.config, mutation: newRoomMemberMutation(uuo.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -1192,7 +1192,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		createE := &RoomMemberCreate{config: uuo.config, mutation: newRoomMemberMutation(uuo.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {

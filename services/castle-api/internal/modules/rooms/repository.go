@@ -10,6 +10,7 @@ import (
 	"journeyhub/ent"
 	"journeyhub/ent/message"
 	"journeyhub/ent/room"
+	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/usercontact"
 )
@@ -26,16 +27,22 @@ type Repository interface {
 		messageID pulid.ID,
 	) (*ent.Room, error)
 
-	Create(
-		ctx context.Context,
-		input CreateRoomInput,
-	) (*ent.Room, error)
-
-	Update(
+	IncrementVersion(
 		ctx context.Context,
 		ID pulid.ID,
-		input UpdateRoomInput,
+		lastMessageID *pulid.ID,
 	) (*ent.Room, error)
+
+	IncrementUnreadMessagesCount(
+		ctx context.Context,
+		ID pulid.ID,
+		currentUserID pulid.ID,
+	) error
+
+	DeleteRoomMember(
+		ctx context.Context,
+		roomMemberID pulid.ID,
+	) (*ent.RoomMember, error)
 
 	Delete(
 		ctx context.Context,
@@ -146,30 +153,64 @@ func (r *repository) FindByMessage(
 		Only(ctx)
 }
 
-func (r *repository) Create(
-	ctx context.Context,
-	input CreateRoomInput,
-) (*ent.Room, error) {
-	u := r.entClient.Room.Create()
-	input.Mutate(u.Mutation())
-	return u.Save(ctx)
-}
-
-func (r *repository) Update(
+func (r *repository) IncrementVersion(
 	ctx context.Context,
 	ID pulid.ID,
-	input UpdateRoomInput,
+	lastMessageID *pulid.ID,
 ) (*ent.Room, error) {
-	u := r.entClient.Room.UpdateOneID(ID)
-	input.Mutate(u.Mutation())
-	return u.Save(ctx)
+	room, err := r.entClient.Room.
+		UpdateOneID(ID).
+		AddVersion(1).
+		SetNillableLastMessageID(lastMessageID).
+		Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return room, nil
+}
+
+func (r *repository) IncrementUnreadMessagesCount(
+	ctx context.Context,
+	ID pulid.ID,
+	currentUserID pulid.ID,
+) error {
+	return r.entClient.RoomMember.
+		Update().
+		Where(
+			roommember.And(
+				roommember.RoomID(ID),
+				roommember.UserIDNEQ(currentUserID),
+			),
+		).
+		AddUnreadMessagesCount(1).
+		Exec(ctx)
+}
+
+func (r *repository) DeleteRoomMember(
+	ctx context.Context,
+	roomMemberID pulid.ID,
+) (*ent.RoomMember, error) {
+	roomMember, err := r.entClient.RoomMember.Get(ctx, roomMemberID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.entClient.RoomMember.
+		DeleteOneID(roomMemberID).
+		Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return roomMember, nil
 }
 
 func (r *repository) Delete(
 	ctx context.Context,
 	ID pulid.ID,
 ) (*ent.Room, error) {
-	rm, err := r.entClient.Room.Get(ctx, ID)
+	room, err := r.entClient.Room.Get(ctx, ID)
 	if err != nil {
 		return nil, err
 	}
@@ -181,5 +222,5 @@ func (r *repository) Delete(
 		return nil, err
 	}
 
-	return rm, nil
+	return room, nil
 }

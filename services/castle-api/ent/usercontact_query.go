@@ -372,12 +372,12 @@ func (ucq *UserContactQuery) WithRoom(opts ...func(*RoomQuery)) *UserContactQuer
 // Example:
 //
 //	var v []struct {
-//		UserID pulid.ID `json:"user_id,omitempty"`
+//		DeletedAt time.Time `json:"deleted_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.UserContact.Query().
-//		GroupBy(usercontact.FieldUserID).
+//		GroupBy(usercontact.FieldDeletedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (ucq *UserContactQuery) GroupBy(field string, fields ...string) *UserContactGroupBy {
@@ -395,11 +395,11 @@ func (ucq *UserContactQuery) GroupBy(field string, fields ...string) *UserContac
 // Example:
 //
 //	var v []struct {
-//		UserID pulid.ID `json:"user_id,omitempty"`
+//		DeletedAt time.Time `json:"deleted_at,omitempty"`
 //	}
 //
 //	client.UserContact.Query().
-//		Select(usercontact.FieldUserID).
+//		Select(usercontact.FieldDeletedAt).
 //		Scan(ctx, &v)
 func (ucq *UserContactQuery) Select(fields ...string) *UserContactSelect {
 	ucq.ctx.Fields = append(ucq.ctx.Fields, fields...)

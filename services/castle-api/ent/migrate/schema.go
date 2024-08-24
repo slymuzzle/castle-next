@@ -163,6 +163,7 @@ var (
 	// RoomsColumns holds the columns for the "rooms" table.
 	RoomsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"Personal", "Group"}},
@@ -178,7 +179,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "rooms_messages_last_message",
-				Columns:    []*schema.Column{RoomsColumns[6]},
+				Columns:    []*schema.Column{RoomsColumns[7]},
 				RefColumns: []*schema.Column{MessagesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -187,6 +188,7 @@ var (
 	// RoomMembersColumns holds the columns for the "room_members" table.
 	RoomMembersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "unread_messages_count", Type: field.TypeInt, Default: 0},
 		{Name: "joined_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeString},
@@ -200,13 +202,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "room_members_users_user",
-				Columns:    []*schema.Column{RoomMembersColumns[3]},
+				Columns:    []*schema.Column{RoomMembersColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "room_members_rooms_room",
-				Columns:    []*schema.Column{RoomMembersColumns[4]},
+				Columns:    []*schema.Column{RoomMembersColumns[5]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -215,7 +217,7 @@ var (
 			{
 				Name:    "roommember_room_id_user_id",
 				Unique:  true,
-				Columns: []*schema.Column{RoomMembersColumns[4], RoomMembersColumns[3]},
+				Columns: []*schema.Column{RoomMembersColumns[5], RoomMembersColumns[4]},
 			},
 		},
 	}
@@ -240,6 +242,7 @@ var (
 	// UserContactsColumns holds the columns for the "user_contacts" table.
 	UserContactsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeString},
 		{Name: "contact_id", Type: field.TypeString},
@@ -253,19 +256,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "user_contacts_users_user",
-				Columns:    []*schema.Column{UserContactsColumns[2]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "user_contacts_users_contact",
 				Columns:    []*schema.Column{UserContactsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
-				Symbol:     "user_contacts_rooms_room",
+				Symbol:     "user_contacts_users_contact",
 				Columns:    []*schema.Column{UserContactsColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_contacts_rooms_room",
+				Columns:    []*schema.Column{UserContactsColumns[5]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -274,7 +277,7 @@ var (
 			{
 				Name:    "usercontact_user_id_contact_id",
 				Unique:  true,
-				Columns: []*schema.Column{UserContactsColumns[2], UserContactsColumns[3]},
+				Columns: []*schema.Column{UserContactsColumns[3], UserContactsColumns[4]},
 			},
 		},
 	}

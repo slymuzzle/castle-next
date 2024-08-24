@@ -3,6 +3,7 @@ package schema
 import (
 	"time"
 
+	"journeyhub/ent/schema/mixin"
 	"journeyhub/ent/schema/pulid"
 
 	"entgo.io/contrib/entgql"
@@ -22,6 +23,7 @@ type Room struct {
 func (Room) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		pulid.MixinWithPrefix("RO"),
+		mixin.SoftDeleteMixin{},
 	}
 }
 
@@ -98,7 +100,6 @@ func (Room) Edges() []ent.Edge {
 // Annotations of the Room.
 func (Room) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entgql.QueryField(),
 		entgql.MultiOrder(),
 		entgql.RelayConnection(),
 	}

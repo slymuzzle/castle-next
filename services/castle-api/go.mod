@@ -1,10 +1,10 @@
 module journeyhub
 
-go 1.22.2
+go 1.22.5
 
 require (
-	ariga.io/atlas v0.22.0
-	entgo.io/contrib v0.5.0
+	ariga.io/atlas v0.25.1-0.20240717145915-af51d3945208
+	entgo.io/contrib v0.6.0
 	entgo.io/ent v0.14.0
 	github.com/99designs/gqlgen v0.17.49
 	github.com/go-chi/chi/v5 v5.1.0
@@ -73,7 +73,6 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/sosodev/duration v1.3.1 // indirect
-	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/urfave/cli/v2 v2.27.3 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect

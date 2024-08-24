@@ -82,7 +82,7 @@ type (
 	// If the DiffDriver implements the Normalizer interface, TableDiff normalizes its table
 	// inputs before starting the diff process.
 	Normalizer interface {
-		Normalize(from, to *schema.Table) error
+		Normalize(from, to *schema.Table, opts *schema.DiffOptions) error
 	}
 
 	// TableFinder wraps the FindTable method, providing more
@@ -211,10 +211,7 @@ func (d *Diff) schemaDiff(from, to *schema.Schema, opts *schema.DiffOptions) ([]
 			if change, err := d.tableDiff(t1, t2, opts); err != nil {
 				return nil, err
 			} else if len(change) > 0 {
-				changes = opts.AddOrSkip(changes, &schema.ModifyTable{
-					T:       t2,
-					Changes: change,
-				})
+				changes = opts.AddOrSkip(changes, &schema.ModifyTable{T: t2, Changes: change})
 			}
 			if change, err := d.triggerDiff(t1, t2, t1.Triggers, t2.Triggers, opts); err != nil {
 				return nil, err
@@ -223,6 +220,7 @@ func (d *Diff) schemaDiff(from, to *schema.Schema, opts *schema.DiffOptions) ([]
 			}
 		}
 	}
+	changes = d.fixRenames(changes)
 	// Add tables.
 	for _, t1 := range to.Tables {
 		switch _, err := d.findTable(from, t1.Name); {
@@ -299,7 +297,7 @@ func (d *Diff) tableDiff(from, to *schema.Table, opts *schema.DiffOptions) ([]sc
 	}
 	// Normalizing tables before starting the diff process.
 	if n, ok := d.DiffDriver.(Normalizer); ok {
-		if err := n.Normalize(from, to); err != nil {
+		if err := n.Normalize(from, to, opts); err != nil {
 			return nil, err
 		}
 	}
@@ -380,12 +378,12 @@ func addViewChange(v *schema.View) []schema.Change {
 
 // columnDiff returns the schema changes (if any) for migrating table columns.
 func (d *Diff) columnDiff(from, to *schema.Table, opts *schema.DiffOptions) ([]schema.Change, error) {
-	var changes []schema.Change
+	var all []schema.Change
 	// Drop or modify columns.
 	for _, c1 := range from.Columns {
 		c2, ok := to.Column(c1.Name)
 		if !ok {
-			changes = opts.AddOrSkip(changes, &schema.DropColumn{C: c1})
+			all = append(all, &schema.DropColumn{C: c1})
 			continue
 		}
 		change, err := d.ColumnChange(from, c1, c2)
@@ -393,7 +391,7 @@ func (d *Diff) columnDiff(from, to *schema.Table, opts *schema.DiffOptions) ([]s
 			return nil, err
 		}
 		if change != schema.NoChange {
-			changes = opts.AddOrSkip(changes, &schema.ModifyColumn{
+			all = append(all, &schema.ModifyColumn{
 				From:   c1,
 				To:     c2,
 				Change: change,
@@ -403,12 +401,22 @@ func (d *Diff) columnDiff(from, to *schema.Table, opts *schema.DiffOptions) ([]s
 	// Add columns.
 	for _, c1 := range to.Columns {
 		if _, ok := from.Column(c1.Name); !ok {
-			changes = opts.AddOrSkip(changes, &schema.AddColumn{
+			all = append(all, &schema.AddColumn{
 				C: c1,
 			})
 		}
 	}
-	return d.askForColumns(from, changes, opts)
+	var (
+		err     error
+		changes = make([]schema.Change, 0, len(all))
+	)
+	if all, err = d.askForColumns(from, all, opts); err != nil {
+		return nil, err
+	}
+	for _, c := range all {
+		changes = opts.AddOrSkip(changes, c)
+	}
+	return changes, nil
 }
 
 // pkDiff returns the schema changes (if any) for migrating table
@@ -437,8 +445,8 @@ func (d *Diff) pkDiff(from, to *schema.Table, opts *schema.DiffOptions) (changes
 // indexes from current state to the desired state.
 func (d *Diff) indexDiffT(from, to *schema.Table, opts *schema.DiffOptions) ([]schema.Change, error) {
 	var (
-		changes []schema.Change
-		exists  = make(map[*schema.Index]bool)
+		all    []schema.Change
+		exists = make(map[*schema.Index]bool)
 	)
 	// Drop or modify indexes.
 	for _, idx1 := range from.Indexes {
@@ -446,7 +454,7 @@ func (d *Diff) indexDiffT(from, to *schema.Table, opts *schema.DiffOptions) ([]s
 		// Found directly.
 		if ok {
 			if change := d.indexChange(idx1, idx2); change != schema.NoChange {
-				changes = opts.AddOrSkip(changes, &schema.ModifyIndex{
+				all = append(all, &schema.ModifyIndex{
 					From:   idx1,
 					To:     idx2,
 					Change: change,
@@ -463,7 +471,7 @@ func (d *Diff) indexDiffT(from, to *schema.Table, opts *schema.DiffOptions) ([]s
 			}
 		}
 		// Not found.
-		changes = opts.AddOrSkip(changes, &schema.DropIndex{I: idx1})
+		all = append(all, &schema.DropIndex{I: idx1})
 	}
 	// Add indexes.
 	for _, idx := range to.Indexes {
@@ -471,10 +479,20 @@ func (d *Diff) indexDiffT(from, to *schema.Table, opts *schema.DiffOptions) ([]s
 			continue
 		}
 		if _, ok := from.Index(idx.Name); !ok {
-			changes = opts.AddOrSkip(changes, &schema.AddIndex{I: idx})
+			all = append(all, &schema.AddIndex{I: idx})
 		}
 	}
-	return d.askForIndexes(from.Name, changes, opts)
+	var (
+		err     error
+		changes = make([]schema.Change, 0, len(all))
+	)
+	if all, err = d.askForIndexes(from.Name, all, opts); err != nil {
+		return nil, err
+	}
+	for _, c := range all {
+		changes = opts.AddOrSkip(changes, c)
+	}
+	return changes, nil
 }
 
 // viewDefChanged checks if the view definition has changed.
@@ -533,12 +551,12 @@ func (d *Diff) indexChange(from, to *schema.Index) schema.ChangeKind {
 	if d.IndexAttrChanged(from.Attrs, to.Attrs) {
 		change |= schema.ChangeAttr
 	}
-	change |= d.partsChange(from, to)
+	change |= d.partsChange(from, to, nil)
 	change |= CommentChange(from.Attrs, to.Attrs)
 	return change
 }
 
-func (d *Diff) partsChange(fromI, toI *schema.Index) schema.ChangeKind {
+func (d *Diff) partsChange(fromI, toI *schema.Index, renames map[string]string) schema.ChangeKind {
 	from, to := fromI.Parts, toI.Parts
 	if len(from) != len(to) {
 		return schema.ChangeParts
@@ -550,7 +568,7 @@ func (d *Diff) partsChange(fromI, toI *schema.Index) schema.ChangeKind {
 		case from[i].Desc != to[i].Desc || d.IndexPartAttrChanged(fromI, toI, i):
 			return schema.ChangeParts
 		case from[i].C != nil && to[i].C != nil:
-			if from[i].C.Name != to[i].C.Name {
+			if from[i].C.Name != to[i].C.Name && renames[from[i].C.Name] != to[i].C.Name {
 				return schema.ChangeParts
 			}
 		case from[i].X != nil && to[i].X != nil:
@@ -602,7 +620,7 @@ func (d *Diff) fkChange(from, to *schema.ForeignKey) schema.ChangeKind {
 // similarUnnamedIndex searches for an unnamed index with the same index-parts in the table.
 func (d *Diff) similarUnnamedIndex(t *schema.Table, idx1 *schema.Index) (*schema.Index, bool) {
 	match := func(idx1, idx2 *schema.Index) bool {
-		return idx1.Unique == idx2.Unique && d.partsChange(idx1, idx2) == schema.NoChange
+		return idx1.Unique == idx2.Unique && d.partsChange(idx1, idx2, nil) == schema.NoChange
 	}
 	if f, ok := d.DiffDriver.(interface {
 		FindGeneratedIndex(*schema.Table, *schema.Index) (*schema.Index, bool)

@@ -3,13 +3,15 @@
 package main
 
 import (
-	"journeyhub/internal/config"
-	"journeyhub/internal/db"
+	"journeyhub/internal/platform/config"
+	"journeyhub/internal/platform/db"
 	"journeyhub/scripts/seed/seeddata"
 	"os"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+
+	_ "journeyhub/ent/runtime"
 
 	_ "github.com/lib/pq"
 )

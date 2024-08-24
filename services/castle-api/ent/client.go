@@ -1416,12 +1416,14 @@ func (c *RoomClient) QueryRoomMembers(r *Room) *RoomMemberQuery {
 
 // Hooks returns the client hooks.
 func (c *RoomClient) Hooks() []Hook {
-	return c.hooks.Room
+	hooks := c.hooks.Room
+	return append(hooks[:len(hooks):len(hooks)], room.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
 func (c *RoomClient) Interceptors() []Interceptor {
-	return c.inters.Room
+	inters := c.inters.Room
+	return append(inters[:len(inters):len(inters)], room.Interceptors[:]...)
 }
 
 func (c *RoomClient) mutate(ctx context.Context, m *RoomMutation) (Value, error) {
@@ -1581,12 +1583,14 @@ func (c *RoomMemberClient) QueryRoom(rm *RoomMember) *RoomQuery {
 
 // Hooks returns the client hooks.
 func (c *RoomMemberClient) Hooks() []Hook {
-	return c.hooks.RoomMember
+	hooks := c.hooks.RoomMember
+	return append(hooks[:len(hooks):len(hooks)], roommember.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
 func (c *RoomMemberClient) Interceptors() []Interceptor {
-	return c.inters.RoomMember
+	inters := c.inters.RoomMember
+	return append(inters[:len(inters):len(inters)], roommember.Interceptors[:]...)
 }
 
 func (c *RoomMemberClient) mutate(ctx context.Context, m *RoomMemberMutation) (Value, error) {
@@ -1975,12 +1979,14 @@ func (c *UserContactClient) QueryRoom(uc *UserContact) *RoomQuery {
 
 // Hooks returns the client hooks.
 func (c *UserContactClient) Hooks() []Hook {
-	return c.hooks.UserContact
+	hooks := c.hooks.UserContact
+	return append(hooks[:len(hooks):len(hooks)], usercontact.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
 func (c *UserContactClient) Interceptors() []Interceptor {
-	return c.inters.UserContact
+	inters := c.inters.UserContact
+	return append(inters[:len(inters):len(inters)], usercontact.Interceptors[:]...)
 }
 
 func (c *UserContactClient) mutate(ctx context.Context, m *UserContactMutation) (Value, error) {

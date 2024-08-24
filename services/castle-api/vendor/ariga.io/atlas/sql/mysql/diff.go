@@ -83,6 +83,9 @@ func (d *diff) TableAttrDiff(from, to *schema.Table) ([]schema.Change, error) {
 	if change := d.engineChange(from.Attrs, to.Attrs); change != noChange {
 		changes = append(changes, change)
 	}
+	if change := d.systemVerChange(from.Attrs, to.Attrs); change != noChange {
+		changes = append(changes, change)
+	}
 	if !d.SupportsCheck() && sqlx.Has(to.Attrs, &schema.Check{}) {
 		return nil, fmt.Errorf("version %q does not support CHECK constraints", d.V)
 	}
@@ -210,7 +213,10 @@ func (*diff) ReferenceChanged(from, to schema.ReferenceOption) bool {
 }
 
 // Normalize implements the sqlx.Normalizer interface.
-func (d *diff) Normalize(from, to *schema.Table) error {
+func (d *diff) Normalize(from, to *schema.Table, opts *schema.DiffOptions) error {
+	if opts.Mode.Is(schema.DiffModeNormalized) {
+		return nil // already normalized
+	}
 	indexes := make([]*schema.Index, 0, len(from.Indexes))
 	for _, idx := range from.Indexes {
 		// MySQL requires that foreign key columns be indexed; Therefore, if the child
@@ -332,6 +338,19 @@ func (*diff) engineChange(from, to []schema.Attr) schema.Change {
 		}
 	}
 	return noChange
+}
+
+// systemVerChange returns the schema change for migrating the system versioning
+// attributes if it was changed.
+func (d *diff) systemVerChange(from, to []schema.Attr) schema.Change {
+	switch fromHas, toHas := sqlx.Has(from, &SystemVersioned{}), sqlx.Has(to, &SystemVersioned{}); {
+	case fromHas && !toHas:
+		return &schema.DropAttr{A: &SystemVersioned{}}
+	case !fromHas && toHas:
+		return &schema.AddAttr{A: &SystemVersioned{}}
+	default:
+		return noChange
+	}
 }
 
 // charsetChange returns the schema change for migrating the collation if
@@ -458,7 +477,7 @@ func (d *diff) typeChanged(from, to *schema.Column) (bool, error) {
 	var changed bool
 	switch fromT := fromT.(type) {
 	case *BitType, *schema.BinaryType, *schema.BoolType, *schema.DecimalType, *schema.FloatType,
-		*schema.JSONType, *schema.StringType, *schema.SpatialType, *schema.TimeType, *schema.UUIDType:
+		*schema.JSONType, *schema.StringType, *schema.SpatialType, *schema.TimeType, *schema.UUIDType, *NetworkType:
 		ft, err := FormatType(fromT)
 		if err != nil {
 			return false, err

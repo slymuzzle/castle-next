@@ -20,6 +20,8 @@ type UserContact struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID pulid.ID `json:"id,omitempty"`
+	// DeletedAt holds the value of the "deleted_at" field.
+	DeletedAt time.Time `json:"deleted_at,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID pulid.ID `json:"user_id,omitempty"`
 	// ContactID holds the value of the "contact_id" field.
@@ -89,7 +91,7 @@ func (*UserContact) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case usercontact.FieldID, usercontact.FieldUserID, usercontact.FieldContactID, usercontact.FieldRoomID:
 			values[i] = new(pulid.ID)
-		case usercontact.FieldCreatedAt:
+		case usercontact.FieldDeletedAt, usercontact.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -111,6 +113,12 @@ func (uc *UserContact) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				uc.ID = *value
+			}
+		case usercontact.FieldDeletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
+			} else if value.Valid {
+				uc.DeletedAt = value.Time
 			}
 		case usercontact.FieldUserID:
 			if value, ok := values[i].(*pulid.ID); !ok {
@@ -187,6 +195,9 @@ func (uc *UserContact) String() string {
 	var builder strings.Builder
 	builder.WriteString("UserContact(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", uc.ID))
+	builder.WriteString("deleted_at=")
+	builder.WriteString(uc.DeletedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", uc.UserID))
 	builder.WriteString(", ")

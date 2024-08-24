@@ -747,7 +747,7 @@ type Query {
     """
     ids: [ID!]!
   ): [Node]!
-  rooms(
+  roomMembers(
     """
     Returns the elements in the list that come after the specified cursor.
     """
@@ -769,15 +769,15 @@ type Query {
     last: Int
 
     """
-    Ordering options for Rooms returned from the connection.
+    Ordering options for RoomMembers returned from the connection.
     """
-    orderBy: [RoomOrder!]
+    orderBy: [RoomMemberOrder!]
 
     """
-    Filtering options for Rooms returned from the connection.
+    Filtering options for RoomMembers returned from the connection.
     """
-    where: RoomWhereInput
-  ): RoomConnection!
+    where: RoomMemberWhereInput
+  ): RoomMemberConnection!
   userContacts(
     """
     Returns the elements in the list that come after the specified cursor.

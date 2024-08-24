@@ -63,6 +63,7 @@ CREATE UNIQUE INDEX "messages_message_reply_to_key" ON "messages" ("message_repl
 -- Create "room_members" table
 CREATE TABLE "room_members" (
   "id" character varying NOT NULL,
+  "deleted_at" timestamptz NULL,
   "unread_messages_count" bigint NOT NULL DEFAULT 0,
   "joined_at" timestamptz NOT NULL,
   "user_id" character varying NOT NULL,
@@ -74,6 +75,7 @@ CREATE UNIQUE INDEX "roommember_room_id_user_id" ON "room_members" ("room_id", "
 -- Create "rooms" table
 CREATE TABLE "rooms" (
   "id" character varying NOT NULL,
+  "deleted_at" timestamptz NULL,
   "name" character varying NOT NULL,
   "version" bigint NOT NULL DEFAULT 1,
   "type" character varying NOT NULL,
@@ -85,6 +87,7 @@ CREATE TABLE "rooms" (
 -- Create "user_contacts" table
 CREATE TABLE "user_contacts" (
   "id" character varying NOT NULL,
+  "deleted_at" timestamptz NULL,
   "created_at" timestamptz NOT NULL,
   "user_id" character varying NOT NULL,
   "contact_id" character varying NOT NULL,

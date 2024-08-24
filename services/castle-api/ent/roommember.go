@@ -20,6 +20,8 @@ type RoomMember struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID pulid.ID `json:"id,omitempty"`
+	// DeletedAt holds the value of the "deleted_at" field.
+	DeletedAt time.Time `json:"deleted_at,omitempty"`
 	// UnreadMessagesCount holds the value of the "unread_messages_count" field.
 	UnreadMessagesCount int `json:"unread_messages_count,omitempty"`
 	// UserID holds the value of the "user_id" field.
@@ -78,7 +80,7 @@ func (*RoomMember) scanValues(columns []string) ([]any, error) {
 			values[i] = new(pulid.ID)
 		case roommember.FieldUnreadMessagesCount:
 			values[i] = new(sql.NullInt64)
-		case roommember.FieldJoinedAt:
+		case roommember.FieldDeletedAt, roommember.FieldJoinedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -100,6 +102,12 @@ func (rm *RoomMember) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				rm.ID = *value
+			}
+		case roommember.FieldDeletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
+			} else if value.Valid {
+				rm.DeletedAt = value.Time
 			}
 		case roommember.FieldUnreadMessagesCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -171,6 +179,9 @@ func (rm *RoomMember) String() string {
 	var builder strings.Builder
 	builder.WriteString("RoomMember(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", rm.ID))
+	builder.WriteString("deleted_at=")
+	builder.WriteString(rm.DeletedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("unread_messages_count=")
 	builder.WriteString(fmt.Sprintf("%v", rm.UnreadMessagesCount))
 	builder.WriteString(", ")

@@ -27,17 +27,28 @@ var DefaultDiff schema.Differ = &sqlx.Diff{DiffDriver: &diff{&conn{ExecQuerier: 
 type diff struct{ *conn }
 
 // SchemaAttrDiff returns a changeset for migrating schema attributes from one state to the other.
-func (*diff) SchemaAttrDiff(from, to *schema.Schema) []schema.Change {
-	var changes []schema.Change
-	if change := sqlx.CommentDiff(skipDefaultComment(from), skipDefaultComment(to)); change != nil {
+func (d *diff) SchemaAttrDiff(from, to *schema.Schema) []schema.Change {
+	var (
+		changes    []schema.Change
+		fromA, toA []schema.Attr
+	)
+	// In schema scope, users might compare a "public" schema with a "non-public" schema.
+	// However, since the public standard comment is auto created and not set by the users
+	// this is unintentional in most cases, and this change will be rejected by the plan stage.
+	if d.schema != "" {
+		fromA, toA = skipDefaultComment(from, from.Name), skipDefaultComment(to, to.Name)
+	} else {
+		fromA, toA = skipDefaultComment(from, "public"), skipDefaultComment(to, "public")
+	}
+	if change := sqlx.CommentDiff(fromA, toA); change != nil {
 		changes = append(changes, change)
 	}
 	return changes
 }
 
-func skipDefaultComment(s *schema.Schema) []schema.Attr {
+func skipDefaultComment(s *schema.Schema, public string) []schema.Attr {
 	attrs := s.Attrs
-	if c := (schema.Comment{}); sqlx.Has(attrs, &c) && c.Text == "standard public schema" && (s.Name == "" || s.Name == "public") {
+	if c := (schema.Comment{}); sqlx.Has(attrs, &c) && c.Text == "standard public schema" && (s.Name == "" || s.Name == public) {
 		attrs = schema.RemoveAttr[*schema.Comment](attrs)
 	}
 	return attrs
@@ -52,6 +63,11 @@ func (d *diff) TableAttrDiff(from, to *schema.Table) ([]schema.Change, error) {
 	if err := d.partitionChanged(from, to); err != nil {
 		return nil, err
 	}
+	change, err := d.tableAttrDiff(from, to)
+	if err != nil {
+		return nil, err
+	}
+	changes = append(changes, change...)
 	return append(changes, sqlx.CheckDiff(from, to, func(c1, c2 *schema.Check) bool {
 		return sqlx.Has(c1.Attrs, &NoInherit{}) == sqlx.Has(c2.Attrs, &NoInherit{})
 	})...), nil
@@ -108,7 +124,7 @@ func (d *diff) defaultChanged(from, to *schema.Column) (bool, error) {
 	//	SELECT ARRAY[1] = '{1}'::int[]
 	//	SELECT lower('X'::text) = lower('X')
 	//
-	if (fromX || toX) && d.conn.ExecQuerier != nil {
+	if (fromX || toX) && d.conn.ExecQuerier != nil && d.conn.ExecQuerier != sqlx.NoRows {
 		equals, err := d.defaultEqual(from.Default, to.Default)
 		return !equals, err
 	}
@@ -329,6 +345,10 @@ func typeChanged(from, to *schema.Column, ns string) (bool, error) {
 			// In case the type is defined with schema qualifier, but returned without
 			// (inspecting a schema scope), or vice versa, remove before comparing.
 			ns != "" && trimSchema(toT.T, ns) != trimSchema(toT.T, ns)
+	case *CompositeType:
+		toT := toT.(*CompositeType)
+		changed = toT.T != fromT.T ||
+			(toT.Schema != nil && fromT.Schema != nil && toT.Schema.Name != fromT.Schema.Name)
 	case *DomainType:
 		toT := toT.(*DomainType)
 		changed = toT.T != fromT.T ||

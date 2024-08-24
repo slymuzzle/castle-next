@@ -24,7 +24,7 @@ type Service interface {
 		input SendMessageInput,
 	) (*ent.MessageEdge, error)
 
-	SubscribeToMessageAddedEvent(
+	SubscribeToMessageCreatedEvent(
 		ctx context.Context,
 		roomID pulid.ID,
 	) (<-chan *ent.MessageEdge, error)
@@ -121,10 +121,12 @@ func (s *service) SendMessage(
 		return nil, err
 	}
 
-	_, err = s.roomsService.UpdateRoom(ctx, rm.ID, rooms.UpdateRoomInput{
-		AddVersion:    1,
-		LastMessageID: &msg.ID,
-	})
+	err = s.roomsService.IncrementUnreadMessagesCount(ctx, rm.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.roomsService.IncrementRoomVersion(ctx, rm.ID, msg)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +143,7 @@ func (s *service) SendMessage(
 	return msgEdge, nil
 }
 
-func (s *service) SubscribeToMessageAddedEvent(
+func (s *service) SubscribeToMessageCreatedEvent(
 	ctx context.Context,
 	roomID pulid.ID,
 ) (<-chan *ent.MessageEdge, error) {
@@ -160,26 +162,17 @@ func (s *service) UpdateMessage(
 		return nil, err
 	}
 
-	rm, err := s.roomsService.FindRoomByMessage(
-		ctx,
-		messageID,
-	)
+	rm, err := s.roomsService.FindRoomByMessage(ctx, messageID)
 	if err != nil {
 		return nil, err
 	}
 
-	msg, err := s.chatRepository.UpdateMessage(
-		ctx,
-		messageID,
-		input.Content,
-	)
+	msg, err := s.chatRepository.UpdateMessage(ctx, messageID, input.Content)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = s.roomsService.UpdateRoom(ctx, rm.ID, rooms.UpdateRoomInput{
-		AddVersion: 1,
-	})
+	_, err = s.roomsService.IncrementRoomVersion(ctx, rm.ID, msg)
 	if err != nil {
 		return nil, err
 	}
@@ -214,25 +207,17 @@ func (s *service) DeleteMessage(
 		return nil, err
 	}
 
-	rm, err := s.roomsService.FindRoomByMessage(
-		ctx,
-		messageID,
-	)
+	rm, err := s.roomsService.FindRoomByMessage(ctx, messageID)
 	if err != nil {
 		return nil, err
 	}
 
-	msg, err := s.chatRepository.DeleteMessage(
-		ctx,
-		messageID,
-	)
+	msg, err := s.chatRepository.DeleteMessage(ctx, messageID)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = s.roomsService.UpdateRoom(ctx, rm.ID, rooms.UpdateRoomInput{
-		AddVersion: 1,
-	})
+	_, err = s.roomsService.IncrementRoomVersion(ctx, rm.ID, msg)
 	if err != nil {
 		return nil, err
 	}

@@ -97,7 +97,7 @@ func (i *inspect) InspectSchema(ctx context.Context, name string, opts *schema.I
 		}
 	}
 	if mode.Is(schema.InspectTriggers) {
-		if err := i.inspectTriggers(ctx, r, nil); err != nil {
+		if err := i.inspectTriggers(ctx, r, opts); err != nil {
 			return nil, err
 		}
 	}
@@ -180,7 +180,7 @@ func (i *inspect) schemas(ctx context.Context, opts *schema.InspectRealmOption) 
 func (i *inspect) tables(ctx context.Context, realm *schema.Realm, opts *schema.InspectOptions) error {
 	var (
 		args  []any
-		query = fmt.Sprintf(tablesQuery, nArgs(len(realm.Schemas)))
+		query = fmt.Sprintf(i.tablesQuery(ctx), nArgs(len(realm.Schemas)))
 	)
 	for _, s := range realm.Schemas {
 		args = append(args, s.Name)
@@ -189,7 +189,7 @@ func (i *inspect) tables(ctx context.Context, realm *schema.Realm, opts *schema.
 		for _, t := range opts.Tables {
 			args = append(args, t)
 		}
-		query = fmt.Sprintf(tablesQueryArgs, nArgs(len(realm.Schemas)), nArgs(len(opts.Tables)))
+		query = fmt.Sprintf(i.tablesQueryArgs(ctx), nArgs(len(realm.Schemas)), nArgs(len(opts.Tables)))
 	}
 	rows, err := i.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -198,11 +198,11 @@ func (i *inspect) tables(ctx context.Context, realm *schema.Realm, opts *schema.
 	defer rows.Close()
 	for rows.Next() {
 		var (
-			defaultE                                                    sql.NullBool
-			autoinc                                                     sql.NullInt64
-			tSchema, name, charset, collation, comment, options, engine sql.NullString
+			defaultE                                                          sql.NullBool
+			autoinc                                                           sql.NullInt64
+			tSchema, name, charset, collation, comment, options, engine, ttyp sql.NullString
 		)
-		if err := rows.Scan(&tSchema, &name, &charset, &collation, &autoinc, &comment, &options, &engine, &defaultE); err != nil {
+		if err := rows.Scan(&tSchema, &name, &charset, &collation, &autoinc, &comment, &options, &engine, &defaultE, &ttyp); err != nil {
 			return fmt.Errorf("scan table information: %w", err)
 		}
 		if !sqlx.ValidString(tSchema) || !sqlx.ValidString(name) {
@@ -212,7 +212,7 @@ func (i *inspect) tables(ctx context.Context, realm *schema.Realm, opts *schema.
 		if !ok {
 			return fmt.Errorf("schema %q was not found in realm", tSchema.String)
 		}
-		t := &schema.Table{Name: name.String}
+		t := i.newTable(name.String, ttyp.String)
 		s.AddTables(t)
 		if sqlx.ValidString(charset) {
 			t.Attrs = append(t.Attrs, &schema.Charset{
@@ -246,7 +246,7 @@ func (i *inspect) tables(ctx context.Context, realm *schema.Realm, opts *schema.
 			})
 		}
 	}
-	return rows.Close()
+	return rows.Err()
 }
 
 // columns queries and appends the columns of the given table.
@@ -729,7 +729,8 @@ SELECT
 	t1.TABLE_COMMENT,
 	t1.CREATE_OPTIONS,
 	t1.ENGINE,
-	t3.SUPPORT = 'DEFAULT' AS DEFAULT_ENGINE
+	t3.SUPPORT = 'DEFAULT' AS DEFAULT_ENGINE,
+	t1.TABLE_TYPE
 FROM
 	INFORMATION_SCHEMA.TABLES AS t1
 	LEFT JOIN INFORMATION_SCHEMA.COLLATIONS AS t2
@@ -752,7 +753,8 @@ SELECT
 	t1.TABLE_COMMENT,
 	t1.CREATE_OPTIONS,
 	t1.ENGINE,
-	t3.SUPPORT = 'DEFAULT' AS DEFAULT_ENGINE
+	t3.SUPPORT = 'DEFAULT' AS DEFAULT_ENGINE,
+	t1.TABLE_TYPE
 FROM
 	INFORMATION_SCHEMA.TABLES AS t1
 	JOIN INFORMATION_SCHEMA.COLLATIONS AS t2
@@ -854,6 +856,12 @@ type (
 		Default bool   // The default engine used by the server.
 	}
 
+	// SystemVersioned is an attribute attached to MariaDB tables indicates they are
+	// system versioned. See: https://mariadb.com/kb/en/system-versioned-tables
+	SystemVersioned struct {
+		schema.Attr
+	}
+
 	// OnUpdate attribute for columns with "ON UPDATE CURRENT_TIMESTAMP" as a default.
 	OnUpdate struct {
 		schema.Attr
@@ -909,6 +917,12 @@ type (
 	SetType struct {
 		schema.Type
 		Values []string
+	}
+
+	// NetworkType stores an IPv4 or IPv6 address.
+	NetworkType struct {
+		schema.Type
+		T string
 	}
 
 	// putShow is an intermediate table attribute used

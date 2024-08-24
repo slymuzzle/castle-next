@@ -56,6 +56,11 @@ func IDLTE(id pulid.ID) predicate.UserContact {
 	return predicate.UserContact(sql.FieldLTE(FieldID, id))
 }
 
+// DeletedAt applies equality check predicate on the "deleted_at" field. It's identical to DeletedAtEQ.
+func DeletedAt(v time.Time) predicate.UserContact {
+	return predicate.UserContact(sql.FieldEQ(FieldDeletedAt, v))
+}
+
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v pulid.ID) predicate.UserContact {
 	return predicate.UserContact(sql.FieldEQ(FieldUserID, v))
@@ -74,6 +79,56 @@ func RoomID(v pulid.ID) predicate.UserContact {
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.UserContact {
 	return predicate.UserContact(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// DeletedAtEQ applies the EQ predicate on the "deleted_at" field.
+func DeletedAtEQ(v time.Time) predicate.UserContact {
+	return predicate.UserContact(sql.FieldEQ(FieldDeletedAt, v))
+}
+
+// DeletedAtNEQ applies the NEQ predicate on the "deleted_at" field.
+func DeletedAtNEQ(v time.Time) predicate.UserContact {
+	return predicate.UserContact(sql.FieldNEQ(FieldDeletedAt, v))
+}
+
+// DeletedAtIn applies the In predicate on the "deleted_at" field.
+func DeletedAtIn(vs ...time.Time) predicate.UserContact {
+	return predicate.UserContact(sql.FieldIn(FieldDeletedAt, vs...))
+}
+
+// DeletedAtNotIn applies the NotIn predicate on the "deleted_at" field.
+func DeletedAtNotIn(vs ...time.Time) predicate.UserContact {
+	return predicate.UserContact(sql.FieldNotIn(FieldDeletedAt, vs...))
+}
+
+// DeletedAtGT applies the GT predicate on the "deleted_at" field.
+func DeletedAtGT(v time.Time) predicate.UserContact {
+	return predicate.UserContact(sql.FieldGT(FieldDeletedAt, v))
+}
+
+// DeletedAtGTE applies the GTE predicate on the "deleted_at" field.
+func DeletedAtGTE(v time.Time) predicate.UserContact {
+	return predicate.UserContact(sql.FieldGTE(FieldDeletedAt, v))
+}
+
+// DeletedAtLT applies the LT predicate on the "deleted_at" field.
+func DeletedAtLT(v time.Time) predicate.UserContact {
+	return predicate.UserContact(sql.FieldLT(FieldDeletedAt, v))
+}
+
+// DeletedAtLTE applies the LTE predicate on the "deleted_at" field.
+func DeletedAtLTE(v time.Time) predicate.UserContact {
+	return predicate.UserContact(sql.FieldLTE(FieldDeletedAt, v))
+}
+
+// DeletedAtIsNil applies the IsNil predicate on the "deleted_at" field.
+func DeletedAtIsNil() predicate.UserContact {
+	return predicate.UserContact(sql.FieldIsNull(FieldDeletedAt))
+}
+
+// DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
+func DeletedAtNotNil() predicate.UserContact {
+	return predicate.UserContact(sql.FieldNotNull(FieldDeletedAt))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.

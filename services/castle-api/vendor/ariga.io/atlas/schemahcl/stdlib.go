@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -141,6 +142,7 @@ func stdFuncs() map[string]function.Function {
 		"range":           stdlib.RangeFunc,
 		"regex":           stdlib.RegexFunc,
 		"regexall":        stdlib.RegexAllFunc,
+		"regexpescape":    regexpEscape,
 		"regexreplace":    stdlib.RegexReplaceFunc,
 		"reverse":         stdlib.ReverseListFunc,
 		"setintersection": stdlib.SetIntersectionFunc,
@@ -261,7 +263,8 @@ var (
 		Params: []function.Parameter{
 			{Name: "def", Type: cty.String, AllowNull: false},
 		},
-		Type: function.StaticReturnType(ctyRawExpr),
+		Type:        function.StaticReturnType(ctyRawExpr),
+		Description: "sql is a stub function for raw expressions.",
 		Impl: func(args []cty.Value, _ cty.Type) (cty.Value, error) {
 			x := args[0].AsString()
 			if len(x) == 0 {
@@ -287,7 +290,8 @@ var (
 				Type: cty.String,
 			},
 		},
-		Type: function.StaticReturnType(cty.String),
+		Type:        function.StaticReturnType(cty.String),
+		Description: "urlqueryset sets the query parameter for the URL.",
 		Impl: func(args []cty.Value, _ cty.Type) (cty.Value, error) {
 			u, err := url.Parse(args[0].AsString())
 			if err != nil {
@@ -316,7 +320,8 @@ var (
 			Type:      cty.String,
 			AllowNull: true,
 		},
-		Type: function.StaticReturnType(cty.String),
+		Type:        function.StaticReturnType(cty.String),
+		Description: "urluserinfo sets the user for the URL.",
 		Impl: func(args []cty.Value, _ cty.Type) (cty.Value, error) {
 			u, err := url.Parse(args[0].AsString())
 			if err != nil {
@@ -343,7 +348,8 @@ var (
 				Type: cty.String,
 			},
 		},
-		Type: function.StaticReturnType(cty.String),
+		Type:        function.StaticReturnType(cty.String),
+		Description: "urlsetpath sets the path for the URL.",
 		Impl: func(args []cty.Value, _ cty.Type) (cty.Value, error) {
 			u, err := url.Parse(args[0].AsString())
 			if err != nil {
@@ -361,7 +367,8 @@ var (
 				Type: cty.String,
 			},
 		},
-		Type: function.StaticReturnType(cty.String),
+		Type:        function.StaticReturnType(cty.String),
+		Description: "urlescape escapes the string so it can be safely placed inside a URL query.",
 		Impl: func(args []cty.Value, _ cty.Type) (cty.Value, error) {
 			u := url.QueryEscape(args[0].AsString())
 			return cty.StringVal(u), nil
@@ -378,6 +385,7 @@ var (
 		Type: func(args []cty.Value) (cty.Type, error) {
 			return args[0].Type(), nil
 		},
+		Description: "print prints the value to stdout, and returns the value.",
 		Impl: func(args []cty.Value, _ cty.Type) (cty.Value, error) {
 			switch args[0].Type() {
 			case cty.String:
@@ -434,6 +442,20 @@ var (
 				return cty.True, nil
 			}
 			return cty.False, nil
+		},
+	})
+
+	regexpEscape = function.New(&function.Spec{
+		Description: `Return a string that escapes all regular expression metacharacters in the provided text.`,
+		Params: []function.Parameter{
+			{
+				Name: "str",
+				Type: cty.String,
+			},
+		},
+		Type: function.StaticReturnType(cty.String),
+		Impl: func(args []cty.Value, _ cty.Type) (ret cty.Value, err error) {
+			return cty.StringVal(regexp.QuoteMeta(args[0].AsString())), nil
 		},
 	})
 )

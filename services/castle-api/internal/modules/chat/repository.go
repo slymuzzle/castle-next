@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"journeyhub/ent"
-	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/internal/platform/media"
 )
@@ -138,20 +137,6 @@ func (r *repository) CreateMessage(
 		if msgVoiceErr != nil {
 			return nil, errors.Join(tx.Rollback(), msgVoiceErr)
 		}
-	}
-
-	rmMrErr := tx.RoomMember.
-		Update().
-		Where(
-			roommember.And(
-				roommember.RoomID(roomID),
-				roommember.UserIDNEQ(currentUserID),
-			),
-		).
-		AddUnreadMessagesCount(1).
-		Exec(ctx)
-	if rmMrErr != nil {
-		return nil, errors.Join(tx.Rollback(), rmMrErr)
 	}
 
 	txcErr := tx.Commit()

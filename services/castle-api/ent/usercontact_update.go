@@ -31,6 +31,26 @@ func (ucu *UserContactUpdate) Where(ps ...predicate.UserContact) *UserContactUpd
 	return ucu
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (ucu *UserContactUpdate) SetDeletedAt(t time.Time) *UserContactUpdate {
+	ucu.mutation.SetDeletedAt(t)
+	return ucu
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (ucu *UserContactUpdate) SetNillableDeletedAt(t *time.Time) *UserContactUpdate {
+	if t != nil {
+		ucu.SetDeletedAt(*t)
+	}
+	return ucu
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (ucu *UserContactUpdate) ClearDeletedAt() *UserContactUpdate {
+	ucu.mutation.ClearDeletedAt()
+	return ucu
+}
+
 // SetUserID sets the "user_id" field.
 func (ucu *UserContactUpdate) SetUserID(pu pulid.ID) *UserContactUpdate {
 	ucu.mutation.SetUserID(pu)
@@ -181,6 +201,12 @@ func (ucu *UserContactUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := ucu.mutation.DeletedAt(); ok {
+		_spec.SetField(usercontact.FieldDeletedAt, field.TypeTime, value)
+	}
+	if ucu.mutation.DeletedAtCleared() {
+		_spec.ClearField(usercontact.FieldDeletedAt, field.TypeTime)
+	}
 	if value, ok := ucu.mutation.CreatedAt(); ok {
 		_spec.SetField(usercontact.FieldCreatedAt, field.TypeTime, value)
 	}
@@ -289,6 +315,26 @@ type UserContactUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *UserContactMutation
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (ucuo *UserContactUpdateOne) SetDeletedAt(t time.Time) *UserContactUpdateOne {
+	ucuo.mutation.SetDeletedAt(t)
+	return ucuo
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (ucuo *UserContactUpdateOne) SetNillableDeletedAt(t *time.Time) *UserContactUpdateOne {
+	if t != nil {
+		ucuo.SetDeletedAt(*t)
+	}
+	return ucuo
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (ucuo *UserContactUpdateOne) ClearDeletedAt() *UserContactUpdateOne {
+	ucuo.mutation.ClearDeletedAt()
+	return ucuo
 }
 
 // SetUserID sets the "user_id" field.
@@ -470,6 +516,12 @@ func (ucuo *UserContactUpdateOne) sqlSave(ctx context.Context) (_node *UserConta
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := ucuo.mutation.DeletedAt(); ok {
+		_spec.SetField(usercontact.FieldDeletedAt, field.TypeTime, value)
+	}
+	if ucuo.mutation.DeletedAtCleared() {
+		_spec.ClearField(usercontact.FieldDeletedAt, field.TypeTime)
 	}
 	if value, ok := ucuo.mutation.CreatedAt(); ok {
 		_spec.SetField(usercontact.FieldCreatedAt, field.TypeTime, value)

@@ -1,5 +1,5 @@
-# ariga.io/atlas v0.22.0
-## explicit; go 1.22
+# ariga.io/atlas v0.25.1-0.20240717145915-af51d3945208
+## explicit; go 1.22.5
 ariga.io/atlas/schemahcl
 ariga.io/atlas/sql/internal/specutil
 ariga.io/atlas/sql/internal/sqlx
@@ -13,8 +13,8 @@ ariga.io/atlas/sql/sqlclient
 ariga.io/atlas/sql/sqlite
 ariga.io/atlas/sql/sqlspec
 ariga.io/atlas/sql/sqltool
-# entgo.io/contrib v0.5.0
-## explicit; go 1.21
+# entgo.io/contrib v0.6.0
+## explicit; go 1.22.5
 entgo.io/contrib/entgql
 # entgo.io/ent v0.14.0
 ## explicit; go 1.21
@@ -314,8 +314,6 @@ github.com/segmentio/asm/internal/unsafebytes
 # github.com/sosodev/duration v1.3.1
 ## explicit; go 1.17
 github.com/sosodev/duration
-# github.com/stretchr/objx v0.5.2
-## explicit; go 1.20
 # github.com/urfave/cli/v2 v2.27.3
 ## explicit; go 1.18
 github.com/urfave/cli/v2

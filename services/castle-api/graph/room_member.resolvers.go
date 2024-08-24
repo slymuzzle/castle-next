@@ -14,6 +14,30 @@ import (
 	"entgo.io/contrib/entgql"
 )
 
+// DeleteRoomMember is the resolver for the deleteRoomMember field.
+func (r *mutationResolver) DeleteRoomMember(ctx context.Context, roomMemberID pulid.ID) (*ent.RoomMemberEdge, error) {
+	// roomMember, err := r.roomsService.DeleteRoomMember(ctx, roomMemberID)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	entClient := r.dbService.Client()
+
+	roomMember, err := entClient.RoomMember.Get(ctx, roomMemberID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = entClient.RoomMember.
+		DeleteOneID(roomMemberID).
+		Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return roomMember.ToEdge(ent.DefaultRoomMemberOrder), nil
+}
+
 // RoomMembersByRoom is the resolver for the roomMembersByRoom field.
 func (r *queryResolver) RoomMembersByRoom(ctx context.Context, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) (*ent.RoomMemberConnection, error) {
 	_, err := r.authService.Auth(ctx)

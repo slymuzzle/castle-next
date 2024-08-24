@@ -6,6 +6,7 @@ import (
 	"journeyhub/ent/schema/pulid"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -15,6 +16,8 @@ const (
 	Label = "room_member"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
+	FieldDeletedAt = "deleted_at"
 	// FieldUnreadMessagesCount holds the string denoting the unread_messages_count field in the database.
 	FieldUnreadMessagesCount = "unread_messages_count"
 	// FieldUserID holds the string denoting the user_id field in the database.
@@ -48,6 +51,7 @@ const (
 // Columns holds all SQL columns for roommember fields.
 var Columns = []string{
 	FieldID,
+	FieldDeletedAt,
 	FieldUnreadMessagesCount,
 	FieldUserID,
 	FieldRoomID,
@@ -64,7 +68,14 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "journeyhub/ent/runtime"
 var (
+	Hooks        [1]ent.Hook
+	Interceptors [1]ent.Interceptor
 	// DefaultUnreadMessagesCount holds the default value on creation for the "unread_messages_count" field.
 	DefaultUnreadMessagesCount int
 	// DefaultJoinedAt holds the default value on creation for the "joined_at" field.
@@ -79,6 +90,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByDeletedAt orders the results by the deleted_at field.
+func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
 }
 
 // ByUnreadMessagesCount orders the results by the unread_messages_count field.

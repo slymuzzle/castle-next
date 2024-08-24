@@ -56,6 +56,11 @@ func IDLTE(id pulid.ID) predicate.RoomMember {
 	return predicate.RoomMember(sql.FieldLTE(FieldID, id))
 }
 
+// DeletedAt applies equality check predicate on the "deleted_at" field. It's identical to DeletedAtEQ.
+func DeletedAt(v time.Time) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldEQ(FieldDeletedAt, v))
+}
+
 // UnreadMessagesCount applies equality check predicate on the "unread_messages_count" field. It's identical to UnreadMessagesCountEQ.
 func UnreadMessagesCount(v int) predicate.RoomMember {
 	return predicate.RoomMember(sql.FieldEQ(FieldUnreadMessagesCount, v))
@@ -74,6 +79,56 @@ func RoomID(v pulid.ID) predicate.RoomMember {
 // JoinedAt applies equality check predicate on the "joined_at" field. It's identical to JoinedAtEQ.
 func JoinedAt(v time.Time) predicate.RoomMember {
 	return predicate.RoomMember(sql.FieldEQ(FieldJoinedAt, v))
+}
+
+// DeletedAtEQ applies the EQ predicate on the "deleted_at" field.
+func DeletedAtEQ(v time.Time) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldEQ(FieldDeletedAt, v))
+}
+
+// DeletedAtNEQ applies the NEQ predicate on the "deleted_at" field.
+func DeletedAtNEQ(v time.Time) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldNEQ(FieldDeletedAt, v))
+}
+
+// DeletedAtIn applies the In predicate on the "deleted_at" field.
+func DeletedAtIn(vs ...time.Time) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldIn(FieldDeletedAt, vs...))
+}
+
+// DeletedAtNotIn applies the NotIn predicate on the "deleted_at" field.
+func DeletedAtNotIn(vs ...time.Time) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldNotIn(FieldDeletedAt, vs...))
+}
+
+// DeletedAtGT applies the GT predicate on the "deleted_at" field.
+func DeletedAtGT(v time.Time) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldGT(FieldDeletedAt, v))
+}
+
+// DeletedAtGTE applies the GTE predicate on the "deleted_at" field.
+func DeletedAtGTE(v time.Time) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldGTE(FieldDeletedAt, v))
+}
+
+// DeletedAtLT applies the LT predicate on the "deleted_at" field.
+func DeletedAtLT(v time.Time) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldLT(FieldDeletedAt, v))
+}
+
+// DeletedAtLTE applies the LTE predicate on the "deleted_at" field.
+func DeletedAtLTE(v time.Time) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldLTE(FieldDeletedAt, v))
+}
+
+// DeletedAtIsNil applies the IsNil predicate on the "deleted_at" field.
+func DeletedAtIsNil() predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldIsNull(FieldDeletedAt))
+}
+
+// DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
+func DeletedAtNotNil() predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldNotNull(FieldDeletedAt))
 }
 
 // UnreadMessagesCountEQ applies the EQ predicate on the "unread_messages_count" field.

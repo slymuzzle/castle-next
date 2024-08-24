@@ -6,6 +6,7 @@ import (
 
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
+	"journeyhub/graph/model"
 	"journeyhub/internal/modules/auth"
 	"journeyhub/internal/platform/nats"
 )
@@ -21,20 +22,25 @@ type Service interface {
 		messageID pulid.ID,
 	) (*ent.Room, error)
 
-	CreateRoom(
-		ctx context.Context,
-		input CreateRoomInput,
-	) (*ent.Room, error)
-
-	UpdateRoom(
+	IncrementRoomVersion(
 		ctx context.Context,
 		ID pulid.ID,
-		input UpdateRoomInput,
-	) (*ent.RoomEdge, error)
+		lastMessage *ent.Message,
+	) (*ent.Room, error)
+
+	IncrementUnreadMessagesCount(
+		ctx context.Context,
+		ID pulid.ID,
+	) error
 
 	SubscribeToRoomsUpdatedEvent(
 		ctx context.Context,
-	) (<-chan *ent.RoomEdge, error)
+	) (<-chan *model.RoomUpdatedEvent, error)
+
+	DeleteRoomMember(
+		ctx context.Context,
+		roomMemberID pulid.ID,
+	) (*ent.RoomMember, error)
 
 	DeleteRoom(
 		ctx context.Context,
@@ -79,43 +85,61 @@ func (s *service) FindRoomByMessage(
 	return s.roomsRepository.FindByMessage(ctx, messageID)
 }
 
-func (s *service) CreateRoom(
-	ctx context.Context,
-	input CreateRoomInput,
-) (*ent.Room, error) {
-	return s.roomsRepository.Create(ctx, input)
-}
-
-func (s *service) UpdateRoom(
+func (s *service) IncrementRoomVersion(
 	ctx context.Context,
 	ID pulid.ID,
-	input UpdateRoomInput,
-) (*ent.RoomEdge, error) {
+	lastMessage *ent.Message,
+) (*ent.Room, error) {
 	currentUserID, err := s.authService.Auth(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	room, err := s.roomsRepository.Update(ctx, ID, input)
+	room, err := s.roomsRepository.IncrementVersion(ctx, ID, &lastMessage.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	roomEdge := room.ToEdge(ent.DefaultRoomOrder)
+	event := model.RoomUpdatedEvent{
+		ID:      room.ID,
+		Name:    room.Name,
+		Version: room.Version,
+		Type:    room.Type,
+		LastMessage: &model.LastMessageUpdatedEvent{
+			ID:        lastMessage.ID,
+			Content:   lastMessage.Content,
+			CreatedAt: lastMessage.CreatedAt,
+			UpdatedAt: lastMessage.UpdatedAt,
+		},
+		CreatedAt: room.CreatedAt,
+		UpdatedAt: room.UpdatedAt,
+	}
 
 	natsClient := s.natsService.Client()
 
 	subject := fmt.Sprintf("users.%s.rooms.updated", currentUserID)
-	if err := natsClient.Publish(subject, roomEdge); err != nil {
-		return roomEdge, err
+	if err := natsClient.Publish(subject, event); err != nil {
+		return nil, err
 	}
 
-	return roomEdge, nil
+	return room, nil
+}
+
+func (s *service) IncrementUnreadMessagesCount(
+	ctx context.Context,
+	ID pulid.ID,
+) error {
+	currentUserID, err := s.authService.Auth(ctx)
+	if err != nil {
+		return err
+	}
+
+	return s.roomsRepository.IncrementUnreadMessagesCount(ctx, ID, currentUserID)
 }
 
 func (s *service) SubscribeToRoomsUpdatedEvent(
 	ctx context.Context,
-) (<-chan *ent.RoomEdge, error) {
+) (<-chan *model.RoomUpdatedEvent, error) {
 	currentUserID, err := s.authService.Auth(ctx)
 	if err != nil {
 		return nil, err
@@ -126,22 +150,39 @@ func (s *service) SubscribeToRoomsUpdatedEvent(
 	return s.subscribe(ctx, subject)
 }
 
+func (s *service) DeleteRoomMember(
+	ctx context.Context,
+	roomMemberID pulid.ID,
+) (*ent.RoomMember, error) {
+	_, err := s.authService.Auth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.roomsRepository.DeleteRoomMember(ctx, roomMemberID)
+}
+
 func (s *service) DeleteRoom(
 	ctx context.Context,
 	ID pulid.ID,
 ) (*ent.Room, error) {
+	_, err := s.authService.Auth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return s.roomsRepository.Delete(ctx, ID)
 }
 
 func (s *service) subscribe(
 	ctx context.Context,
 	subject string,
-) (<-chan *ent.RoomEdge, error) {
+) (<-chan *model.RoomUpdatedEvent, error) {
 	natsClient := s.natsService.Client()
 
-	ch := make(chan *ent.RoomEdge, 1)
+	ch := make(chan *model.RoomUpdatedEvent, 1)
 
-	sub, err := natsClient.Subscribe(subject, func(room *ent.RoomEdge) {
+	sub, err := natsClient.Subscribe(subject, func(room *model.RoomUpdatedEvent) {
 		ch <- room
 	})
 	if err != nil {

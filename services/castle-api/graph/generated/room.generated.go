@@ -4,22 +4,20 @@ package generated
 
 import (
 	"context"
-	"journeyhub/ent"
+	"errors"
+	"fmt"
+	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
+	"journeyhub/graph/model"
+	"strconv"
+	"sync/atomic"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
 // region    ************************** generated!.gotpl **************************
-
-type CreateRoomInputResolver interface {
-	UserIDs(ctx context.Context, obj *ent.CreateRoomInput, data []pulid.ID) error
-}
-type UpdateRoomInputResolver interface {
-	AddUserIDs(ctx context.Context, obj *ent.UpdateRoomInput, data []pulid.ID) error
-	RemoveUserIDs(ctx context.Context, obj *ent.UpdateRoomInput, data []pulid.ID) error
-	ClearUsers(ctx context.Context, obj *ent.UpdateRoomInput, data *bool) error
-}
 
 // endregion ************************** generated!.gotpl **************************
 
@@ -33,12 +31,503 @@ type UpdateRoomInputResolver interface {
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _LastMessageUpdatedEvent_id(ctx context.Context, field graphql.CollectedField, obj *model.LastMessageUpdatedEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LastMessageUpdatedEvent_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(pulid.ID)
+	fc.Result = res
+	return ec.marshalNID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LastMessageUpdatedEvent_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LastMessageUpdatedEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LastMessageUpdatedEvent_content(ctx context.Context, field graphql.CollectedField, obj *model.LastMessageUpdatedEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LastMessageUpdatedEvent_content(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Content, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LastMessageUpdatedEvent_content(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LastMessageUpdatedEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LastMessageUpdatedEvent_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.LastMessageUpdatedEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LastMessageUpdatedEvent_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LastMessageUpdatedEvent_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LastMessageUpdatedEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LastMessageUpdatedEvent_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.LastMessageUpdatedEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LastMessageUpdatedEvent_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LastMessageUpdatedEvent_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LastMessageUpdatedEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoomUpdatedEvent_id(ctx context.Context, field graphql.CollectedField, obj *model.RoomUpdatedEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoomUpdatedEvent_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(pulid.ID)
+	fc.Result = res
+	return ec.marshalNID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoomUpdatedEvent_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoomUpdatedEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoomUpdatedEvent_name(ctx context.Context, field graphql.CollectedField, obj *model.RoomUpdatedEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoomUpdatedEvent_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoomUpdatedEvent_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoomUpdatedEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoomUpdatedEvent_version(ctx context.Context, field graphql.CollectedField, obj *model.RoomUpdatedEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoomUpdatedEvent_version(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Version, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoomUpdatedEvent_version(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoomUpdatedEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoomUpdatedEvent_type(ctx context.Context, field graphql.CollectedField, obj *model.RoomUpdatedEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoomUpdatedEvent_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(room.Type)
+	fc.Result = res
+	return ec.marshalNRoomType2journeyhubᚋentᚋroomᚐType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoomUpdatedEvent_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoomUpdatedEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RoomType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoomUpdatedEvent_lastMessage(ctx context.Context, field graphql.CollectedField, obj *model.RoomUpdatedEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoomUpdatedEvent_lastMessage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastMessage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.LastMessageUpdatedEvent)
+	fc.Result = res
+	return ec.marshalOLastMessageUpdatedEvent2ᚖjourneyhubᚋgraphᚋmodelᚐLastMessageUpdatedEvent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoomUpdatedEvent_lastMessage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoomUpdatedEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_LastMessageUpdatedEvent_id(ctx, field)
+			case "content":
+				return ec.fieldContext_LastMessageUpdatedEvent_content(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_LastMessageUpdatedEvent_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_LastMessageUpdatedEvent_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LastMessageUpdatedEvent", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoomUpdatedEvent_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.RoomUpdatedEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoomUpdatedEvent_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoomUpdatedEvent_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoomUpdatedEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoomUpdatedEvent_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.RoomUpdatedEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoomUpdatedEvent_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoomUpdatedEvent_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoomUpdatedEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 // endregion **************************** field.gotpl *****************************
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputCreateRoomInput(ctx context.Context, obj interface{}) (ent.CreateRoomInput, error) {
-	var it ent.CreateRoomInput
+func (ec *executionContext) unmarshalInputCreateRoomInput(ctx context.Context, obj interface{}) (model.CreateRoomInput, error) {
+	var it model.CreateRoomInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -64,17 +553,15 @@ func (ec *executionContext) unmarshalInputCreateRoomInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.CreateRoomInput().UserIDs(ctx, &it, data); err != nil {
-				return it, err
-			}
+			it.UserIDs = data
 		}
 	}
 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUpdateRoomInput(ctx context.Context, obj interface{}) (ent.UpdateRoomInput, error) {
-	var it ent.UpdateRoomInput
+func (ec *executionContext) unmarshalInputUpdateRoomInput(ctx context.Context, obj interface{}) (model.UpdateRoomInput, error) {
+	var it model.UpdateRoomInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -100,27 +587,21 @@ func (ec *executionContext) unmarshalInputUpdateRoomInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.UpdateRoomInput().AddUserIDs(ctx, &it, data); err != nil {
-				return it, err
-			}
+			it.AddUserIDs = data
 		case "removeUserIDs":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeUserIDs"))
 			data, err := ec.unmarshalOID2ᚕjourneyhubᚋentᚋschemaᚋpulidᚐIDᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.UpdateRoomInput().RemoveUserIDs(ctx, &it, data); err != nil {
-				return it, err
-			}
+			it.RemoveUserIDs = data
 		case "clearUsers":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearUsers"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.UpdateRoomInput().ClearUsers(ctx, &it, data); err != nil {
-				return it, err
-			}
+			it.ClearUsers = data
 		}
 	}
 
@@ -135,18 +616,159 @@ func (ec *executionContext) unmarshalInputUpdateRoomInput(ctx context.Context, o
 
 // region    **************************** object.gotpl ****************************
 
+var lastMessageUpdatedEventImplementors = []string{"LastMessageUpdatedEvent"}
+
+func (ec *executionContext) _LastMessageUpdatedEvent(ctx context.Context, sel ast.SelectionSet, obj *model.LastMessageUpdatedEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, lastMessageUpdatedEventImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LastMessageUpdatedEvent")
+		case "id":
+			out.Values[i] = ec._LastMessageUpdatedEvent_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "content":
+			out.Values[i] = ec._LastMessageUpdatedEvent_content(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._LastMessageUpdatedEvent_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._LastMessageUpdatedEvent_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var roomUpdatedEventImplementors = []string{"RoomUpdatedEvent"}
+
+func (ec *executionContext) _RoomUpdatedEvent(ctx context.Context, sel ast.SelectionSet, obj *model.RoomUpdatedEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, roomUpdatedEventImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RoomUpdatedEvent")
+		case "id":
+			out.Values[i] = ec._RoomUpdatedEvent_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._RoomUpdatedEvent_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "version":
+			out.Values[i] = ec._RoomUpdatedEvent_version(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._RoomUpdatedEvent_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lastMessage":
+			out.Values[i] = ec._RoomUpdatedEvent_lastMessage(ctx, field, obj)
+		case "createdAt":
+			out.Values[i] = ec._RoomUpdatedEvent_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._RoomUpdatedEvent_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNCreateRoomInput2journeyhubᚋentᚐCreateRoomInput(ctx context.Context, v interface{}) (ent.CreateRoomInput, error) {
+func (ec *executionContext) unmarshalNCreateRoomInput2journeyhubᚋgraphᚋmodelᚐCreateRoomInput(ctx context.Context, v interface{}) (model.CreateRoomInput, error) {
 	res, err := ec.unmarshalInputCreateRoomInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUpdateRoomInput2journeyhubᚋentᚐUpdateRoomInput(ctx context.Context, v interface{}) (ent.UpdateRoomInput, error) {
+func (ec *executionContext) marshalNRoomUpdatedEvent2journeyhubᚋgraphᚋmodelᚐRoomUpdatedEvent(ctx context.Context, sel ast.SelectionSet, v model.RoomUpdatedEvent) graphql.Marshaler {
+	return ec._RoomUpdatedEvent(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRoomUpdatedEvent2ᚖjourneyhubᚋgraphᚋmodelᚐRoomUpdatedEvent(ctx context.Context, sel ast.SelectionSet, v *model.RoomUpdatedEvent) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RoomUpdatedEvent(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateRoomInput2journeyhubᚋgraphᚋmodelᚐUpdateRoomInput(ctx context.Context, v interface{}) (model.UpdateRoomInput, error) {
 	res, err := ec.unmarshalInputUpdateRoomInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOLastMessageUpdatedEvent2ᚖjourneyhubᚋgraphᚋmodelᚐLastMessageUpdatedEvent(ctx context.Context, sel ast.SelectionSet, v *model.LastMessageUpdatedEvent) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._LastMessageUpdatedEvent(ctx, sel, v)
 }
 
 // endregion ***************************** type.gotpl *****************************

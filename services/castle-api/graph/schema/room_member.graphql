@@ -1,3 +1,16 @@
+extend input RoomMemberWhereInput {
+  """
+  user edge predicates
+  """
+  hasUser: Boolean
+  hasUserWith: [UserWhereInput!]
+  """
+  room edge predicates
+  """
+  hasRoom: Boolean
+  hasRoomWith: [RoomWhereInput!]
+}
+
 extend type Query {
   roomMembersByRoom(
     """
@@ -35,4 +48,8 @@ extend type Query {
     """
     where: RoomMemberWhereInput
   ): RoomMemberConnection!
+}
+
+extend type Mutation {
+  deleteRoomMember(roomMemberID: ID!): RoomMemberEdge
 }

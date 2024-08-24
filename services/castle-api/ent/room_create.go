@@ -30,6 +30,20 @@ type RoomCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (rc *RoomCreate) SetDeletedAt(t time.Time) *RoomCreate {
+	rc.mutation.SetDeletedAt(t)
+	return rc
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (rc *RoomCreate) SetNillableDeletedAt(t *time.Time) *RoomCreate {
+	if t != nil {
+		rc.SetDeletedAt(*t)
+	}
+	return rc
+}
+
 // SetName sets the "name" field.
 func (rc *RoomCreate) SetName(s string) *RoomCreate {
 	rc.mutation.SetName(s)
@@ -214,7 +228,9 @@ func (rc *RoomCreate) Mutation() *RoomMutation {
 
 // Save creates the Room in the database.
 func (rc *RoomCreate) Save(ctx context.Context) (*Room, error) {
-	rc.defaults()
+	if err := rc.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, rc.sqlSave, rc.mutation, rc.hooks)
 }
 
@@ -241,23 +257,33 @@ func (rc *RoomCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (rc *RoomCreate) defaults() {
+func (rc *RoomCreate) defaults() error {
 	if _, ok := rc.mutation.Version(); !ok {
 		v := room.DefaultVersion
 		rc.mutation.SetVersion(v)
 	}
 	if _, ok := rc.mutation.CreatedAt(); !ok {
+		if room.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized room.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := room.DefaultCreatedAt()
 		rc.mutation.SetCreatedAt(v)
 	}
 	if _, ok := rc.mutation.UpdatedAt(); !ok {
+		if room.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized room.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := room.DefaultUpdatedAt()
 		rc.mutation.SetUpdatedAt(v)
 	}
 	if _, ok := rc.mutation.ID(); !ok {
+		if room.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized room.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := room.DefaultID()
 		rc.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -323,6 +349,10 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := rc.mutation.DeletedAt(); ok {
+		_spec.SetField(room.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = value
+	}
 	if value, ok := rc.mutation.Name(); ok {
 		_spec.SetField(room.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -358,7 +388,7 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		createE := &RoomMemberCreate{config: rc.config, mutation: newRoomMemberMutation(rc.config, OpCreate)}
-		createE.defaults()
+		_ = createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
@@ -470,7 +500,7 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Room.Create().
-//		SetName(v).
+//		SetDeletedAt(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -479,7 +509,7 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.RoomUpsert) {
-//			SetName(v+v).
+//			SetDeletedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (rc *RoomCreate) OnConflict(opts ...sql.ConflictOption) *RoomUpsertOne {
@@ -514,6 +544,24 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *RoomUpsert) SetDeletedAt(v time.Time) *RoomUpsert {
+	u.Set(room.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *RoomUpsert) UpdateDeletedAt() *RoomUpsert {
+	u.SetExcluded(room.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *RoomUpsert) ClearDeletedAt() *RoomUpsert {
+	u.SetNull(room.FieldDeletedAt)
+	return u
+}
 
 // SetName sets the "name" field.
 func (u *RoomUpsert) SetName(v string) *RoomUpsert {
@@ -618,6 +666,27 @@ func (u *RoomUpsertOne) Update(set func(*RoomUpsert)) *RoomUpsertOne {
 		set(&RoomUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *RoomUpsertOne) SetDeletedAt(v time.Time) *RoomUpsertOne {
+	return u.Update(func(s *RoomUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *RoomUpsertOne) UpdateDeletedAt() *RoomUpsertOne {
+	return u.Update(func(s *RoomUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *RoomUpsertOne) ClearDeletedAt() *RoomUpsertOne {
+	return u.Update(func(s *RoomUpsert) {
+		s.ClearDeletedAt()
+	})
 }
 
 // SetName sets the "name" field.
@@ -819,7 +888,7 @@ func (rcb *RoomCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.RoomUpsert) {
-//			SetName(v+v).
+//			SetDeletedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (rcb *RoomCreateBulk) OnConflict(opts ...sql.ConflictOption) *RoomUpsertBulk {
@@ -899,6 +968,27 @@ func (u *RoomUpsertBulk) Update(set func(*RoomUpsert)) *RoomUpsertBulk {
 		set(&RoomUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *RoomUpsertBulk) SetDeletedAt(v time.Time) *RoomUpsertBulk {
+	return u.Update(func(s *RoomUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *RoomUpsertBulk) UpdateDeletedAt() *RoomUpsertBulk {
+	return u.Update(func(s *RoomUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *RoomUpsertBulk) ClearDeletedAt() *RoomUpsertBulk {
+	return u.Update(func(s *RoomUpsert) {
+		s.ClearDeletedAt()
+	})
 }
 
 // SetName sets the "name" field.

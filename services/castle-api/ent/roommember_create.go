@@ -26,6 +26,20 @@ type RoomMemberCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (rmc *RoomMemberCreate) SetDeletedAt(t time.Time) *RoomMemberCreate {
+	rmc.mutation.SetDeletedAt(t)
+	return rmc
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (rmc *RoomMemberCreate) SetNillableDeletedAt(t *time.Time) *RoomMemberCreate {
+	if t != nil {
+		rmc.SetDeletedAt(*t)
+	}
+	return rmc
+}
+
 // SetUnreadMessagesCount sets the "unread_messages_count" field.
 func (rmc *RoomMemberCreate) SetUnreadMessagesCount(i int) *RoomMemberCreate {
 	rmc.mutation.SetUnreadMessagesCount(i)
@@ -97,7 +111,9 @@ func (rmc *RoomMemberCreate) Mutation() *RoomMemberMutation {
 
 // Save creates the RoomMember in the database.
 func (rmc *RoomMemberCreate) Save(ctx context.Context) (*RoomMember, error) {
-	rmc.defaults()
+	if err := rmc.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, rmc.sqlSave, rmc.mutation, rmc.hooks)
 }
 
@@ -124,19 +140,26 @@ func (rmc *RoomMemberCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (rmc *RoomMemberCreate) defaults() {
+func (rmc *RoomMemberCreate) defaults() error {
 	if _, ok := rmc.mutation.UnreadMessagesCount(); !ok {
 		v := roommember.DefaultUnreadMessagesCount
 		rmc.mutation.SetUnreadMessagesCount(v)
 	}
 	if _, ok := rmc.mutation.JoinedAt(); !ok {
+		if roommember.DefaultJoinedAt == nil {
+			return fmt.Errorf("ent: uninitialized roommember.DefaultJoinedAt (forgotten import ent/runtime?)")
+		}
 		v := roommember.DefaultJoinedAt()
 		rmc.mutation.SetJoinedAt(v)
 	}
 	if _, ok := rmc.mutation.ID(); !ok {
+		if roommember.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized roommember.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := roommember.DefaultID()
 		rmc.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -195,6 +218,10 @@ func (rmc *RoomMemberCreate) createSpec() (*RoomMember, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := rmc.mutation.DeletedAt(); ok {
+		_spec.SetField(roommember.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = value
+	}
 	if value, ok := rmc.mutation.UnreadMessagesCount(); ok {
 		_spec.SetField(roommember.FieldUnreadMessagesCount, field.TypeInt, value)
 		_node.UnreadMessagesCount = value
@@ -244,7 +271,7 @@ func (rmc *RoomMemberCreate) createSpec() (*RoomMember, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.RoomMember.Create().
-//		SetUnreadMessagesCount(v).
+//		SetDeletedAt(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -253,7 +280,7 @@ func (rmc *RoomMemberCreate) createSpec() (*RoomMember, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.RoomMemberUpsert) {
-//			SetUnreadMessagesCount(v+v).
+//			SetDeletedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (rmc *RoomMemberCreate) OnConflict(opts ...sql.ConflictOption) *RoomMemberUpsertOne {
@@ -288,6 +315,24 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *RoomMemberUpsert) SetDeletedAt(v time.Time) *RoomMemberUpsert {
+	u.Set(roommember.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *RoomMemberUpsert) UpdateDeletedAt() *RoomMemberUpsert {
+	u.SetExcluded(roommember.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *RoomMemberUpsert) ClearDeletedAt() *RoomMemberUpsert {
+	u.SetNull(roommember.FieldDeletedAt)
+	return u
+}
 
 // SetUnreadMessagesCount sets the "unread_messages_count" field.
 func (u *RoomMemberUpsert) SetUnreadMessagesCount(v int) *RoomMemberUpsert {
@@ -380,6 +425,27 @@ func (u *RoomMemberUpsertOne) Update(set func(*RoomMemberUpsert)) *RoomMemberUps
 		set(&RoomMemberUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *RoomMemberUpsertOne) SetDeletedAt(v time.Time) *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *RoomMemberUpsertOne) UpdateDeletedAt() *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *RoomMemberUpsertOne) ClearDeletedAt() *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.ClearDeletedAt()
+	})
 }
 
 // SetUnreadMessagesCount sets the "unread_messages_count" field.
@@ -567,7 +633,7 @@ func (rmcb *RoomMemberCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.RoomMemberUpsert) {
-//			SetUnreadMessagesCount(v+v).
+//			SetDeletedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (rmcb *RoomMemberCreateBulk) OnConflict(opts ...sql.ConflictOption) *RoomMemberUpsertBulk {
@@ -647,6 +713,27 @@ func (u *RoomMemberUpsertBulk) Update(set func(*RoomMemberUpsert)) *RoomMemberUp
 		set(&RoomMemberUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *RoomMemberUpsertBulk) SetDeletedAt(v time.Time) *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *RoomMemberUpsertBulk) UpdateDeletedAt() *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *RoomMemberUpsertBulk) ClearDeletedAt() *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.ClearDeletedAt()
+	})
 }
 
 // SetUnreadMessagesCount sets the "unread_messages_count" field.

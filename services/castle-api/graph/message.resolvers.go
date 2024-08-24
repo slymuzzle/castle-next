@@ -6,7 +6,6 @@ package graph
 
 import (
 	"context"
-
 	"journeyhub/ent"
 	"journeyhub/ent/message"
 	"journeyhub/ent/room"
@@ -60,9 +59,9 @@ func (r *queryResolver) MessagesByRoom(ctx context.Context, roomID pulid.ID, aft
 		)
 }
 
-// MessageAdded is the resolver for the messageAdded field.
-func (r *subscriptionResolver) MessageAdded(ctx context.Context, roomID pulid.ID) (<-chan *ent.MessageEdge, error) {
-	return r.chatService.SubscribeToMessageAddedEvent(ctx, roomID)
+// MessageCreated is the resolver for the messageCreated field.
+func (r *subscriptionResolver) MessageCreated(ctx context.Context, roomID pulid.ID) (<-chan *ent.MessageEdge, error) {
+	return r.chatService.SubscribeToMessageCreatedEvent(ctx, roomID)
 }
 
 // MessageUpdated is the resolver for the messageUpdated field.
@@ -81,7 +80,5 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
-type (
-	mutationResolver     struct{ *Resolver }
-	subscriptionResolver struct{ *Resolver }
-)
+type mutationResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }

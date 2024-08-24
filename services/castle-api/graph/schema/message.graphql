@@ -55,13 +55,6 @@ extend type Query {
   ): MessageConnection!
 }
 
-"""
-UpdateMessageInput is used for update Message object.
-"""
-input UpdateMessageInput {
-  content: String! @goTag(key: "validate", value: "required")
-}
-
 extend type Mutation {
   sendMessage(input: SendMessageInput!): MessageEdge
   updateMessage(messageID: ID!, input: UpdateMessageInput!): MessageEdge
@@ -69,7 +62,7 @@ extend type Mutation {
 }
 
 extend type Subscription {
-  messageAdded(roomID: ID!): MessageEdge!
+  messageCreated(roomID: ID!): MessageEdge!
   messageUpdated(roomID: ID!): MessageEdge!
   messageDeleted(roomID: ID!): MessageEdge!
 }

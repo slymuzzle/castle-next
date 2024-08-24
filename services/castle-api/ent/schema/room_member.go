@@ -1,8 +1,10 @@
 package schema
 
 import (
-	"journeyhub/ent/schema/pulid"
 	"time"
+
+	"journeyhub/ent/schema/mixin"
+	"journeyhub/ent/schema/pulid"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
@@ -21,6 +23,7 @@ type RoomMember struct {
 func (RoomMember) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		pulid.MixinWithPrefix("RM"),
+		mixin.SoftDeleteMixin{},
 	}
 }
 
@@ -73,6 +76,7 @@ func (RoomMember) Indexes() []ent.Index {
 // Annotations of the RoomMember.
 func (RoomMember) Annotations() []schema.Annotation {
 	return []schema.Annotation{
+		entgql.QueryField(),
 		entgql.MultiOrder(),
 		entgql.RelayConnection(),
 	}

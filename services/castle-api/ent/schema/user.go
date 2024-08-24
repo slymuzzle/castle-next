@@ -1,8 +1,9 @@
 package schema
 
 import (
-	"journeyhub/ent/schema/pulid"
 	"time"
+
+	"journeyhub/ent/schema/pulid"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"

@@ -23,18 +23,21 @@ import (
 
 type (
 	doc struct {
-		Tables       []*sqlspec.Table    `spec:"table"`
-		Views        []*sqlspec.View     `spec:"view"`
-		Materialized []*sqlspec.View     `spec:"materialized"`
-		Enums        []*enum             `spec:"enum"`
-		Domains      []*domain           `spec:"domain"`
-		Composites   []*composite        `spec:"composite"`
-		Sequences    []*sqlspec.Sequence `spec:"sequence"`
-		Funcs        []*sqlspec.Func     `spec:"function"`
-		Procs        []*sqlspec.Func     `spec:"procedure"`
-		Triggers     []*sqlspec.Trigger  `spec:"trigger"`
-		Extensions   []*extension        `spec:"extension"`
-		Schemas      []*sqlspec.Schema   `spec:"schema"`
+		Tables        []*sqlspec.Table    `spec:"table"`
+		Views         []*sqlspec.View     `spec:"view"`
+		Materialized  []*sqlspec.View     `spec:"materialized"`
+		Enums         []*enum             `spec:"enum"`
+		Domains       []*domain           `spec:"domain"`
+		Composites    []*composite        `spec:"composite"`
+		Sequences     []*sqlspec.Sequence `spec:"sequence"`
+		Funcs         []*sqlspec.Func     `spec:"function"`
+		Procs         []*sqlspec.Func     `spec:"procedure"`
+		Aggregates    []*aggregate        `spec:"aggregate"`
+		Triggers      []*sqlspec.Trigger  `spec:"trigger"`
+		Policies      []*policy           `spec:"policy"`
+		EventTriggers []*eventTrigger     `spec:"event_trigger"`
+		Extensions    []*extension        `spec:"extension"`
+		Schemas       []*sqlspec.Schema   `spec:"schema"`
 	}
 
 	// Enum holds a specification for an enum type.
@@ -83,6 +86,35 @@ type (
 		// added to the extension definition.
 		schemahcl.DefaultExtension
 	}
+
+	// eventTrigger holds a specification for a postgres event trigger.
+	// Note, event trigger names are unique within a realm (database).
+	eventTrigger struct {
+		Name string `spec:",name"`
+		// Schema, version and comment are conditionally
+		// added to the extension definition.
+		schemahcl.DefaultExtension
+	}
+
+	// aggregate holds the specification for an aggregation function.
+	aggregate struct {
+		Name      string             `spec:",name"`
+		Qualifier string             `spec:",qualifier"`
+		Schema    *schemahcl.Ref     `spec:"schema"`
+		Args      []*sqlspec.FuncArg `spec:"arg"`
+		// state_type, state_func and rest of the attributes
+		// are appended after the function arguments.
+		schemahcl.DefaultExtension
+	}
+
+	// Policy defines row-level security policy for a table.
+	// See: https://www.postgresql.org/docs/current/view-pg-policies.html.
+	policy struct {
+		Name string         `spec:",name"`
+		On   *schemahcl.Ref `spec:"on"`
+		// Rest of the attributes are appended after the table reference.
+		schemahcl.DefaultExtension
+	}
 )
 
 // merge merges the doc d1 into d.
@@ -95,9 +127,12 @@ func (d *doc) merge(d1 *doc) {
 	d.Domains = append(d.Domains, d1.Domains...)
 	d.Composites = append(d.Composites, d1.Composites...)
 	d.Schemas = append(d.Schemas, d1.Schemas...)
+	d.Aggregates = append(d.Aggregates, d1.Aggregates...)
 	d.Sequences = append(d.Sequences, d1.Sequences...)
 	d.Extensions = append(d.Extensions, d1.Extensions...)
 	d.Triggers = append(d.Triggers, d1.Triggers...)
+	d.Policies = append(d.Policies, d1.Policies...)
+	d.EventTriggers = append(d.EventTriggers, d1.EventTriggers...)
 	d.Materialized = append(d.Materialized, d1.Materialized...)
 }
 
@@ -149,11 +184,26 @@ func (c *composite) SetQualifier(q string) { c.Qualifier = q }
 // SchemaRef returns the schema reference for the composite.
 func (c *composite) SchemaRef() *schemahcl.Ref { return c.Schema }
 
+// Label returns the defaults label used for the aggregate resource.
+func (a *aggregate) Label() string { return a.Name }
+
+// QualifierLabel returns the qualifier label used for the aggregate resource, if any.
+func (a *aggregate) QualifierLabel() string { return a.Qualifier }
+
+// SetQualifier sets the qualifier label used for the aggregate resource.
+func (a *aggregate) SetQualifier(q string) { a.Qualifier = q }
+
+// SchemaRef returns the schema reference for the aggregate.
+func (a *aggregate) SchemaRef() *schemahcl.Ref { return a.Schema }
+
 func init() {
 	schemahcl.Register("enum", &enum{})
 	schemahcl.Register("domain", &domain{})
+	schemahcl.Register("policy", &policy{})
 	schemahcl.Register("composite", &composite{})
+	schemahcl.Register("aggregate", &aggregate{})
 	schemahcl.Register("extension", &extension{})
+	schemahcl.Register("event_trigger", &eventTrigger{})
 }
 
 // evalSpec evaluates an Atlas DDL document into v using the input.
@@ -170,10 +220,19 @@ func evalSpec(p *hclparse.Parser, v any, input map[string]cty.Value) error {
 		if err := convertTypes(&d, v); err != nil {
 			return err
 		}
+		if err := convertAggregate(&d, v); err != nil {
+			return err
+		}
 		if err := convertSequences(d.Tables, d.Sequences, v); err != nil {
 			return err
 		}
+		if err := convertPolicies(d.Tables, d.Policies, v); err != nil {
+			return err
+		}
 		if err := convertExtensions(d.Extensions, v); err != nil {
+			return err
+		}
+		if err := convertEventTriggers(d.EventTriggers, v); err != nil {
 			return err
 		}
 		if err := normalizeRealm(v); err != nil {
@@ -194,7 +253,13 @@ func evalSpec(p *hclparse.Parser, v any, input map[string]cty.Value) error {
 		if err := convertTypes(&d, r); err != nil {
 			return err
 		}
+		if err := convertAggregate(&d, r); err != nil {
+			return err
+		}
 		if err := convertSequences(d.Tables, d.Sequences, r); err != nil {
+			return err
+		}
+		if err := convertPolicies(d.Tables, d.Policies, r); err != nil {
 			return err
 		}
 		// Extensions are skipped in schema scope.
@@ -224,6 +289,9 @@ func MarshalSpec(v any, marshaler schemahcl.Marshaler) ([]byte, error) {
 		}
 		ts = trs
 		d.merge(d1)
+		if err := schemasObjectSpec(&d, rv); err != nil {
+			return nil, err
+		}
 	case *schema.Realm:
 		for _, s := range rv.Schemas {
 			d1, trs, err := schemaSpec(s)
@@ -245,6 +313,9 @@ func MarshalSpec(v any, marshaler schemahcl.Marshaler) ([]byte, error) {
 		if err := specutil.QualifyObjects(d.Materialized); err != nil {
 			return nil, err
 		}
+		if err := specutil.QualifyObjects(d.Aggregates); err != nil {
+			return nil, err
+		}
 		if err := specutil.QualifyObjects(d.Enums); err != nil {
 			return nil, err
 		}
@@ -264,9 +335,6 @@ func MarshalSpec(v any, marshaler schemahcl.Marshaler) ([]byte, error) {
 			return nil, err
 		}
 		if err := specutil.QualifyReferences(d.Tables, rv); err != nil {
-			return nil, err
-		}
-		if err := qualifySeqRefs(d.Sequences, d.Tables, rv); err != nil {
 			return nil, err
 		}
 	default:
@@ -324,6 +392,9 @@ func convertTable(spec *sqlspec.Table, parent *schema.Schema) (*schema.Table, er
 		return nil, err
 	}
 	if err := convertPartition(spec.Extra, t); err != nil {
+		return nil, err
+	}
+	if err := convertTableAttrs(spec, t); err != nil {
 		return nil, err
 	}
 	return t, nil
@@ -619,6 +690,29 @@ func convertPart(spec *sqlspec.IndexPart, part *schema.IndexPart) error {
 		}
 		part.Attrs = append(part.Attrs, &IndexOpClass{Name: name})
 	}
+	// The following attributes are mutually exclusive.
+	if nulls, ok := spec.Attr("nulls_last"); ok {
+		b, err := nulls.Bool()
+		if err != nil {
+			return err
+		}
+		if b {
+			at := sqlx.AttrOr(part.Attrs, &IndexColumnProperty{})
+			at.NullsLast = true
+			schema.ReplaceOrAppend(&part.Attrs, at)
+		}
+	}
+	if nulls, ok := spec.Attr("nulls_first"); ok {
+		b, err := nulls.Bool()
+		if err != nil {
+			return err
+		}
+		if b {
+			at := sqlx.AttrOr(part.Attrs, &IndexColumnProperty{})
+			at.NullsFirst = true
+			schema.ReplaceOrAppend(&part.Attrs, at)
+		}
+	}
 	return nil
 }
 
@@ -709,6 +803,7 @@ func tableSpec(t *schema.Table) (*sqlspec.Table, error) {
 	if p := (Partition{}); sqlx.Has(t.Attrs, &p) {
 		spec.Extra.Children = append(spec.Extra.Children, fromPartition(p))
 	}
+	tableAttrsSpec(t, spec)
 	return spec, nil
 }
 
@@ -777,20 +872,26 @@ func indexPKSpec(idx *schema.Index, attrs []*schemahcl.Attr) []*schemahcl.Attr {
 }
 
 func partAttr(idx *schema.Index, part *schema.IndexPart, spec *sqlspec.IndexPart) error {
-	var op IndexOpClass
-	if !sqlx.Has(part.Attrs, &op) {
-		return nil
+	if op := (IndexOpClass{}); sqlx.Has(part.Attrs, &op) {
+		switch d, err := op.DefaultFor(idx, part); {
+		case err != nil:
+			return err
+		case d:
+		case len(op.Params) > 0:
+			spec.Extra.Attrs = append(spec.Extra.Attrs, schemahcl.RawAttr("ops", op.String()))
+		case postgresop.HasClass(op.String()):
+			spec.Extra.Attrs = append(spec.Extra.Attrs, specutil.VarAttr("ops", op.String()))
+		default:
+			spec.Extra.Attrs = append(spec.Extra.Attrs, schemahcl.StringAttr("ops", op.String()))
+		}
 	}
-	switch d, err := op.DefaultFor(idx, part); {
-	case err != nil:
-		return err
-	case d:
-	case len(op.Params) > 0:
-		spec.Extra.Attrs = append(spec.Extra.Attrs, schemahcl.RawAttr("ops", op.String()))
-	case postgresop.HasClass(op.String()):
-		spec.Extra.Attrs = append(spec.Extra.Attrs, specutil.VarAttr("ops", op.String()))
-	default:
-		spec.Extra.Attrs = append(spec.Extra.Attrs, schemahcl.StringAttr("ops", op.String()))
+	if nulls := (IndexColumnProperty{}); sqlx.Has(part.Attrs, &nulls) {
+		switch {
+		case part.Desc && nulls.NullsLast:
+			spec.Extra.Attrs = append(spec.Extra.Attrs, schemahcl.BoolAttr("nulls_last", true))
+		case !part.Desc && nulls.NullsFirst:
+			spec.Extra.Attrs = append(spec.Extra.Attrs, schemahcl.BoolAttr("nulls_first", true))
+		}
 	}
 	return nil
 }
@@ -938,7 +1039,7 @@ var TypeRegistry = schemahcl.NewRegistry(
 			typeOID, typeRegClass, typeRegCollation, typeRegConfig, typeRegDictionary, typeRegNamespace,
 			typeName, typeRegOper, typeRegOperator, typeRegProc, typeRegProcedure, typeRegRole, typeRegType,
 			typeAny, typeAnyElement, typeAnyArray, typeAnyNonArray, typeAnyEnum, typeInternal, typeRecord,
-			typeTrigger, typeVoid, typeUnknown,
+			typeTrigger, typeEventTrigger, typeVoid, typeUnknown,
 		} {
 			specs = append(specs, schemahcl.NewTypeSpec(t))
 		}

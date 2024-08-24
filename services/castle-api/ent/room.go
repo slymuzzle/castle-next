@@ -19,6 +19,8 @@ type Room struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID pulid.ID `json:"id,omitempty"`
+	// DeletedAt holds the value of the "deleted_at" field.
+	DeletedAt time.Time `json:"deleted_at,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Version holds the value of the "version" field.
@@ -142,7 +144,7 @@ func (*Room) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case room.FieldName, room.FieldType:
 			values[i] = new(sql.NullString)
-		case room.FieldCreatedAt, room.FieldUpdatedAt:
+		case room.FieldDeletedAt, room.FieldCreatedAt, room.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case room.ForeignKeys[0]: // room_last_message
 			values[i] = &sql.NullScanner{S: new(pulid.ID)}
@@ -166,6 +168,12 @@ func (r *Room) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				r.ID = *value
+			}
+		case room.FieldDeletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
+			} else if value.Valid {
+				r.DeletedAt = value.Time
 			}
 		case room.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -275,6 +283,9 @@ func (r *Room) String() string {
 	var builder strings.Builder
 	builder.WriteString("Room(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", r.ID))
+	builder.WriteString("deleted_at=")
+	builder.WriteString(r.DeletedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(r.Name)
 	builder.WriteString(", ")

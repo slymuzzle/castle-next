@@ -337,12 +337,12 @@ func (rmq *RoomMemberQuery) WithRoom(opts ...func(*RoomQuery)) *RoomMemberQuery 
 // Example:
 //
 //	var v []struct {
-//		UnreadMessagesCount int `json:"unread_messages_count,omitempty"`
+//		DeletedAt time.Time `json:"deleted_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.RoomMember.Query().
-//		GroupBy(roommember.FieldUnreadMessagesCount).
+//		GroupBy(roommember.FieldDeletedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (rmq *RoomMemberQuery) GroupBy(field string, fields ...string) *RoomMemberGroupBy {
@@ -360,11 +360,11 @@ func (rmq *RoomMemberQuery) GroupBy(field string, fields ...string) *RoomMemberG
 // Example:
 //
 //	var v []struct {
-//		UnreadMessagesCount int `json:"unread_messages_count,omitempty"`
+//		DeletedAt time.Time `json:"deleted_at,omitempty"`
 //	}
 //
 //	client.RoomMember.Query().
-//		Select(roommember.FieldUnreadMessagesCount).
+//		Select(roommember.FieldDeletedAt).
 //		Scan(ctx, &v)
 func (rmq *RoomMemberQuery) Select(fields ...string) *RoomMemberSelect {
 	rmq.ctx.Fields = append(rmq.ctx.Fields, fields...)

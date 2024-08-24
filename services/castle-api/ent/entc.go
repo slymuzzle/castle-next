@@ -30,6 +30,7 @@ func main() {
 	)
 
 	opts := []entc.Option{
+		entc.FeatureNames("intercept", "schema/snapshot"),
 		entc.Extensions(ex),
 	}
 

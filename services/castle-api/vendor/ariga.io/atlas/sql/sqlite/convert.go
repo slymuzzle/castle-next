@@ -39,7 +39,7 @@ func FormatType(t schema.Type) (string, error) {
 		f = strings.ToLower(t.T)
 	case *schema.SpatialType:
 		f = strings.ToLower(t.T)
-	case *UUIDType:
+	case *schema.UUIDType:
 		f = strings.ToLower(t.T)
 	case *schema.UnsupportedType:
 		return "", fmt.Errorf("sqlite: unsupported type: %q", t.T)
@@ -95,12 +95,12 @@ func ParseType(c string) (schema.Type, error) {
 			ct.Size = int(p)
 		}
 		return ct, nil
-	case "json":
+	case "json", "jsonb":
 		return &schema.JSONType{T: t}, nil
 	case "date", "datetime", "time", "timestamp":
 		return &schema.TimeType{T: t}, nil
 	case "uuid":
-		return &UUIDType{T: t}, nil
+		return &schema.UUIDType{T: t}, nil
 	default:
 		return &schema.UnsupportedType{T: t}, nil
 	}

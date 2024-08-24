@@ -2,7 +2,195 @@
 
 package runtime
 
-// The schema-stitching logic is generated in journeyhub/ent/runtime.go
+import (
+	"journeyhub/ent/file"
+	"journeyhub/ent/message"
+	"journeyhub/ent/messageattachment"
+	"journeyhub/ent/messagelink"
+	"journeyhub/ent/messagevoice"
+	"journeyhub/ent/room"
+	"journeyhub/ent/roommember"
+	"journeyhub/ent/schema"
+	"journeyhub/ent/schema/pulid"
+	"journeyhub/ent/user"
+	"journeyhub/ent/usercontact"
+	"time"
+)
+
+// The init function reads all schema descriptors with runtime code
+// (default values, validators, hooks and policies) and stitches it
+// to their package variables.
+func init() {
+	fileMixin := schema.File{}.Mixin()
+	fileMixinFields0 := fileMixin[0].Fields()
+	_ = fileMixinFields0
+	fileFields := schema.File{}.Fields()
+	_ = fileFields
+	// fileDescCreatedAt is the schema descriptor for created_at field.
+	fileDescCreatedAt := fileFields[6].Descriptor()
+	// file.DefaultCreatedAt holds the default value on creation for the created_at field.
+	file.DefaultCreatedAt = fileDescCreatedAt.Default.(func() time.Time)
+	// fileDescUpdatedAt is the schema descriptor for updated_at field.
+	fileDescUpdatedAt := fileFields[7].Descriptor()
+	// file.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	file.DefaultUpdatedAt = fileDescUpdatedAt.Default.(func() time.Time)
+	// file.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	file.UpdateDefaultUpdatedAt = fileDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// fileDescID is the schema descriptor for id field.
+	fileDescID := fileMixinFields0[0].Descriptor()
+	// file.DefaultID holds the default value on creation for the id field.
+	file.DefaultID = fileDescID.Default.(func() pulid.ID)
+	messageMixin := schema.Message{}.Mixin()
+	messageMixinFields0 := messageMixin[0].Fields()
+	_ = messageMixinFields0
+	messageFields := schema.Message{}.Fields()
+	_ = messageFields
+	// messageDescCreatedAt is the schema descriptor for created_at field.
+	messageDescCreatedAt := messageFields[1].Descriptor()
+	// message.DefaultCreatedAt holds the default value on creation for the created_at field.
+	message.DefaultCreatedAt = messageDescCreatedAt.Default.(func() time.Time)
+	// messageDescUpdatedAt is the schema descriptor for updated_at field.
+	messageDescUpdatedAt := messageFields[2].Descriptor()
+	// message.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	message.DefaultUpdatedAt = messageDescUpdatedAt.Default.(func() time.Time)
+	// message.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	message.UpdateDefaultUpdatedAt = messageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// messageDescID is the schema descriptor for id field.
+	messageDescID := messageMixinFields0[0].Descriptor()
+	// message.DefaultID holds the default value on creation for the id field.
+	message.DefaultID = messageDescID.Default.(func() pulid.ID)
+	messageattachmentMixin := schema.MessageAttachment{}.Mixin()
+	messageattachmentMixinFields0 := messageattachmentMixin[0].Fields()
+	_ = messageattachmentMixinFields0
+	messageattachmentFields := schema.MessageAttachment{}.Fields()
+	_ = messageattachmentFields
+	// messageattachmentDescAttachedAt is the schema descriptor for attached_at field.
+	messageattachmentDescAttachedAt := messageattachmentFields[1].Descriptor()
+	// messageattachment.DefaultAttachedAt holds the default value on creation for the attached_at field.
+	messageattachment.DefaultAttachedAt = messageattachmentDescAttachedAt.Default.(func() time.Time)
+	// messageattachmentDescID is the schema descriptor for id field.
+	messageattachmentDescID := messageattachmentMixinFields0[0].Descriptor()
+	// messageattachment.DefaultID holds the default value on creation for the id field.
+	messageattachment.DefaultID = messageattachmentDescID.Default.(func() pulid.ID)
+	messagelinkMixin := schema.MessageLink{}.Mixin()
+	messagelinkMixinFields0 := messagelinkMixin[0].Fields()
+	_ = messagelinkMixinFields0
+	messagelinkFields := schema.MessageLink{}.Fields()
+	_ = messagelinkFields
+	// messagelinkDescCreatedAt is the schema descriptor for created_at field.
+	messagelinkDescCreatedAt := messagelinkFields[1].Descriptor()
+	// messagelink.DefaultCreatedAt holds the default value on creation for the created_at field.
+	messagelink.DefaultCreatedAt = messagelinkDescCreatedAt.Default.(func() time.Time)
+	// messagelinkDescUpdatedAt is the schema descriptor for updated_at field.
+	messagelinkDescUpdatedAt := messagelinkFields[2].Descriptor()
+	// messagelink.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	messagelink.DefaultUpdatedAt = messagelinkDescUpdatedAt.Default.(func() time.Time)
+	// messagelink.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	messagelink.UpdateDefaultUpdatedAt = messagelinkDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// messagelinkDescID is the schema descriptor for id field.
+	messagelinkDescID := messagelinkMixinFields0[0].Descriptor()
+	// messagelink.DefaultID holds the default value on creation for the id field.
+	messagelink.DefaultID = messagelinkDescID.Default.(func() pulid.ID)
+	messagevoiceMixin := schema.MessageVoice{}.Mixin()
+	messagevoiceMixinFields0 := messagevoiceMixin[0].Fields()
+	_ = messagevoiceMixinFields0
+	messagevoiceFields := schema.MessageVoice{}.Fields()
+	_ = messagevoiceFields
+	// messagevoiceDescAttachedAt is the schema descriptor for attached_at field.
+	messagevoiceDescAttachedAt := messagevoiceFields[0].Descriptor()
+	// messagevoice.DefaultAttachedAt holds the default value on creation for the attached_at field.
+	messagevoice.DefaultAttachedAt = messagevoiceDescAttachedAt.Default.(func() time.Time)
+	// messagevoiceDescID is the schema descriptor for id field.
+	messagevoiceDescID := messagevoiceMixinFields0[0].Descriptor()
+	// messagevoice.DefaultID holds the default value on creation for the id field.
+	messagevoice.DefaultID = messagevoiceDescID.Default.(func() pulid.ID)
+	roomMixin := schema.Room{}.Mixin()
+	roomMixinHooks1 := roomMixin[1].Hooks()
+	room.Hooks[0] = roomMixinHooks1[0]
+	roomMixinInters1 := roomMixin[1].Interceptors()
+	room.Interceptors[0] = roomMixinInters1[0]
+	roomMixinFields0 := roomMixin[0].Fields()
+	_ = roomMixinFields0
+	roomFields := schema.Room{}.Fields()
+	_ = roomFields
+	// roomDescVersion is the schema descriptor for version field.
+	roomDescVersion := roomFields[1].Descriptor()
+	// room.DefaultVersion holds the default value on creation for the version field.
+	room.DefaultVersion = roomDescVersion.Default.(uint64)
+	// room.VersionValidator is a validator for the "version" field. It is called by the builders before save.
+	room.VersionValidator = roomDescVersion.Validators[0].(func(uint64) error)
+	// roomDescCreatedAt is the schema descriptor for created_at field.
+	roomDescCreatedAt := roomFields[3].Descriptor()
+	// room.DefaultCreatedAt holds the default value on creation for the created_at field.
+	room.DefaultCreatedAt = roomDescCreatedAt.Default.(func() time.Time)
+	// roomDescUpdatedAt is the schema descriptor for updated_at field.
+	roomDescUpdatedAt := roomFields[4].Descriptor()
+	// room.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	room.DefaultUpdatedAt = roomDescUpdatedAt.Default.(func() time.Time)
+	// room.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	room.UpdateDefaultUpdatedAt = roomDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// roomDescID is the schema descriptor for id field.
+	roomDescID := roomMixinFields0[0].Descriptor()
+	// room.DefaultID holds the default value on creation for the id field.
+	room.DefaultID = roomDescID.Default.(func() pulid.ID)
+	roommemberMixin := schema.RoomMember{}.Mixin()
+	roommemberMixinHooks1 := roommemberMixin[1].Hooks()
+	roommember.Hooks[0] = roommemberMixinHooks1[0]
+	roommemberMixinInters1 := roommemberMixin[1].Interceptors()
+	roommember.Interceptors[0] = roommemberMixinInters1[0]
+	roommemberMixinFields0 := roommemberMixin[0].Fields()
+	_ = roommemberMixinFields0
+	roommemberFields := schema.RoomMember{}.Fields()
+	_ = roommemberFields
+	// roommemberDescUnreadMessagesCount is the schema descriptor for unread_messages_count field.
+	roommemberDescUnreadMessagesCount := roommemberFields[0].Descriptor()
+	// roommember.DefaultUnreadMessagesCount holds the default value on creation for the unread_messages_count field.
+	roommember.DefaultUnreadMessagesCount = roommemberDescUnreadMessagesCount.Default.(int)
+	// roommemberDescJoinedAt is the schema descriptor for joined_at field.
+	roommemberDescJoinedAt := roommemberFields[3].Descriptor()
+	// roommember.DefaultJoinedAt holds the default value on creation for the joined_at field.
+	roommember.DefaultJoinedAt = roommemberDescJoinedAt.Default.(func() time.Time)
+	// roommemberDescID is the schema descriptor for id field.
+	roommemberDescID := roommemberMixinFields0[0].Descriptor()
+	// roommember.DefaultID holds the default value on creation for the id field.
+	roommember.DefaultID = roommemberDescID.Default.(func() pulid.ID)
+	userMixin := schema.User{}.Mixin()
+	userMixinFields0 := userMixin[0].Fields()
+	_ = userMixinFields0
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescCreatedAt is the schema descriptor for created_at field.
+	userDescCreatedAt := userFields[6].Descriptor()
+	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
+	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
+	// userDescUpdatedAt is the schema descriptor for updated_at field.
+	userDescUpdatedAt := userFields[7].Descriptor()
+	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
+	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// userDescID is the schema descriptor for id field.
+	userDescID := userMixinFields0[0].Descriptor()
+	// user.DefaultID holds the default value on creation for the id field.
+	user.DefaultID = userDescID.Default.(func() pulid.ID)
+	usercontactMixin := schema.UserContact{}.Mixin()
+	usercontactMixinHooks1 := usercontactMixin[1].Hooks()
+	usercontact.Hooks[0] = usercontactMixinHooks1[0]
+	usercontactMixinInters1 := usercontactMixin[1].Interceptors()
+	usercontact.Interceptors[0] = usercontactMixinInters1[0]
+	usercontactMixinFields0 := usercontactMixin[0].Fields()
+	_ = usercontactMixinFields0
+	usercontactFields := schema.UserContact{}.Fields()
+	_ = usercontactFields
+	// usercontactDescCreatedAt is the schema descriptor for created_at field.
+	usercontactDescCreatedAt := usercontactFields[3].Descriptor()
+	// usercontact.DefaultCreatedAt holds the default value on creation for the created_at field.
+	usercontact.DefaultCreatedAt = usercontactDescCreatedAt.Default.(func() time.Time)
+	// usercontactDescID is the schema descriptor for id field.
+	usercontactDescID := usercontactMixinFields0[0].Descriptor()
+	// usercontact.DefaultID holds the default value on creation for the id field.
+	usercontact.DefaultID = usercontactDescID.Default.(func() pulid.ID)
+}
 
 const (
 	Version = "v0.14.0"                                         // Version of ent codegen.

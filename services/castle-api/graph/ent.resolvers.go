@@ -7,9 +7,8 @@ package graph
 import (
 	"context"
 	"journeyhub/ent"
-	"journeyhub/ent/room"
+	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
-	"journeyhub/ent/user"
 	"journeyhub/ent/usercontact"
 	"journeyhub/graph/generated"
 
@@ -26,18 +25,16 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []pulid.ID) ([]ent.Noder,
 	return r.dbService.Client().Noders(ctx, ids)
 }
 
-// Rooms is the resolver for the rooms field.
-func (r *queryResolver) Rooms(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomOrder, where *ent.RoomWhereInput) (*ent.RoomConnection, error) {
+// RoomMembers is the resolver for the roomMembers field.
+func (r *queryResolver) RoomMembers(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) (*ent.RoomMemberConnection, error) {
 	currentUserID, err := r.authService.Auth(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.dbService.Client().Room.Query().
+	return r.dbService.Client().RoomMember.Query().
 		Where(
-			room.HasUsersWith(
-				user.ID(currentUserID),
-			),
+			roommember.UserID(currentUserID),
 		).
 		Paginate(
 			ctx,
@@ -45,8 +42,8 @@ func (r *queryResolver) Rooms(ctx context.Context, after *entgql.Cursor[pulid.ID
 			first,
 			before,
 			last,
-			ent.WithRoomOrder(orderBy),
-			ent.WithRoomFilter(where.Filter),
+			ent.WithRoomMemberOrder(orderBy),
+			ent.WithRoomMemberFilter(where.Filter),
 		)
 }
 

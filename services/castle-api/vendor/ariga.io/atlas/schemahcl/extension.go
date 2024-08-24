@@ -221,6 +221,11 @@ func (r *Resource) as(target any) error {
 		children := childrenOfType(r, childType)
 		extras.Children = append(extras.Children, children...)
 	}
+	// In case the resource contains a remain (DefaultExtension)
+	// field, attach to it the position.
+	if r.rang != nil && rem.Remain() != nil {
+		rem.Remain().SetRange(r.rang)
+	}
 	return nil
 }
 
@@ -319,6 +324,12 @@ func setField(field reflect.Value, attr *Attr) error {
 		}
 	case reflect.Interface:
 		field.Set(reflect.ValueOf(attr.V))
+	case reflect.Map:
+		if attr.V.CanIterateElements() {
+			field.Set(reflect.ValueOf(attr.V.AsValueMap()))
+			return nil
+		}
+		fallthrough
 	default:
 		if err := gocty.FromCtyValue(attr.V, field.Addr().Interface()); err != nil {
 			return fmt.Errorf("set field %q of type %T: %w", attr.K, field, err)

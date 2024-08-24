@@ -382,8 +382,21 @@ func byKeys[T any](m map[string]T) []struct {
 	return vs
 }
 
+// SortOptions allows drivers to customize the behavior of the SortChanges function.
+type SortOptions struct {
+	// FuncDepT reports if a function depends on the given table.
+	FuncDepT func(*schema.Func, *schema.Table) bool
+	// FuncDepV reports if a function depends on the given view.
+	FuncDepV func(*schema.Func, *schema.View) bool
+	// FuncDepO reports if a function depends on the given object.
+	FuncDepO func(*schema.Func, schema.Object) bool
+	// DefaultSchema defines the default schema (also known as "search_path") that
+	// is used by the database to search for objects if no qualifier is provided.
+	DefaultSchema string
+}
+
 // SortChanges is a helper function to sort to level changes based on their priority.
-func SortChanges(changes []schema.Change) []schema.Change {
+func SortChanges(changes []schema.Change, opts *SortOptions) []schema.Change {
 	var views, drop, other []schema.Change
 	for _, c := range changes {
 		switch c.(type) {
@@ -402,10 +415,10 @@ func SortChanges(changes []schema.Change) []schema.Change {
 	// (see, dependsOn function) we push views and drop changes to the end, unless there is a dependency requirement.
 	changes = append(other, append(views, drop...)...)
 	edges := make(map[schema.Change][]schema.Change)
-	for _, c := range changes {
+	for _, c1 := range changes {
 		for _, c2 := range changes {
-			if c != c2 && dependsOn(c, c2) {
-				edges[c] = append(edges[c], c2)
+			if c1 != c2 && dependsOn(c1, c2, V(opts)) {
+				edges[c1] = append(edges[c1], c2)
 			}
 		}
 	}
@@ -444,7 +457,7 @@ type Depender interface {
 }
 
 // dependsOn reports if the given change depends on the other change.
-func dependsOn(c1, c2 schema.Change) bool {
+func dependsOn(c1, c2 schema.Change, opts SortOptions) bool {
 	if dependOnOf(c1, c2) {
 		return true
 	}
@@ -452,21 +465,21 @@ func dependsOn(c1, c2 schema.Change) bool {
 	case *schema.DropSchema:
 		switch c2 := c2.(type) {
 		case *schema.DropFunc:
-			return sameSchema(c1.S, c2.F.Schema)
+			return SameSchema(c1.S, c2.F.Schema)
 		case *schema.DropProc:
-			return sameSchema(c1.S, c2.P.Schema)
+			return SameSchema(c1.S, c2.P.Schema)
 		case *schema.DropTable:
 			// Schema must be dropped after all its tables and references to them.
-			return sameSchema(c1.S, c2.T.Schema) || slices.ContainsFunc(c2.T.ForeignKeys, func(fk *schema.ForeignKey) bool {
-				return sameSchema(c1.S, fk.RefTable.Schema)
+			return SameSchema(c1.S, c2.T.Schema) || slices.ContainsFunc(c2.T.ForeignKeys, func(fk *schema.ForeignKey) bool {
+				return SameSchema(c1.S, fk.RefTable.Schema)
 			})
 		case *schema.ModifyTable:
-			return sameSchema(c1.S, c2.T.Schema) || slices.ContainsFunc(c2.Changes, func(c schema.Change) bool {
+			return SameSchema(c1.S, c2.T.Schema) || slices.ContainsFunc(c2.Changes, func(c schema.Change) bool {
 				fk, ok := c.(*schema.DropForeignKey)
-				return ok && sameSchema(c1.S, fk.F.RefTable.Schema)
+				return ok && SameSchema(c1.S, fk.F.RefTable.Schema)
 			})
 		case *schema.DropView:
-			return sameSchema(c1.S, c2.V.Schema)
+			return SameSchema(c1.S, c2.V.Schema)
 		}
 	case *schema.AddTable:
 		switch c2 := c2.(type) {
@@ -474,13 +487,13 @@ func dependsOn(c1, c2 schema.Change) bool {
 			return c1.T.Schema.Name == c2.S.Name
 		case *schema.DropTable:
 			// Table recreation.
-			return c1.T.Name == c2.T.Name && sameSchema(c1.T.Schema, c2.T.Schema)
+			return c1.T.Name == c2.T.Name && SameSchema(c1.T.Schema, c2.T.Schema)
 		case *schema.AddTable:
 			if refTo(c1.T.ForeignKeys, c2.T) {
 				return true
 			}
 		case *schema.ModifyTable:
-			if (c1.T.Name != c2.T.Name || !sameSchema(c1.T.Schema, c2.T.Schema)) && refTo(c1.T.ForeignKeys, c2.T) {
+			if (c1.T.Name != c2.T.Name || !SameSchema(c1.T.Schema, c2.T.Schema)) && refTo(c1.T.ForeignKeys, c2.T) {
 				return true
 			}
 		case *schema.AddObject:
@@ -490,6 +503,8 @@ func dependsOn(c1, c2 schema.Change) bool {
 			}) {
 				return true
 			}
+		case *schema.AddFunc:
+			return tableDepFunc(c1.T, c2.F, opts)
 		}
 		return depOfAdd(c1.T.Deps, c2)
 	case *schema.DropTable:
@@ -515,7 +530,7 @@ func dependsOn(c1, c2 schema.Change) bool {
 		switch c2 := c2.(type) {
 		case *schema.AddTable:
 			// Table modification relies on its creation.
-			if c1.T.Name == c2.T.Name && sameSchema(c1.T.Schema, c2.T.Schema) {
+			if c1.T.Name == c2.T.Name && SameSchema(c1.T.Schema, c2.T.Schema) {
 				return true
 			}
 			// Tables need to be created before referencing them.
@@ -557,10 +572,16 @@ func dependsOn(c1, c2 schema.Change) bool {
 		case *schema.AddSchema:
 			return c1.V.Schema.Name == c2.S.Name
 		case *schema.DropView:
-			return c1.V.Name == c2.V.Name && sameSchema(c1.V.Schema, c2.V.Schema) // View recreation.
-		default:
-			return depOfAdd(c1.V.Deps, c2)
+			return c1.V.Name == c2.V.Name && SameSchema(c1.V.Schema, c2.V.Schema) // View recreation.
+		case *schema.AddObject:
+			t, ok := c2.O.(schema.Type)
+			if ok && slices.ContainsFunc(c1.V.Columns, func(c *schema.Column) bool {
+				return dependsOnT(c.Type.Type, t)
+			}) {
+				return true
+			}
 		}
+		return depOfAdd(c1.V.Deps, c2)
 	case *schema.DropView:
 		if c2, ok := c2.(*schema.DropTrigger); ok && c2.T.View == c1.V {
 			return true
@@ -569,7 +590,7 @@ func dependsOn(c1, c2 schema.Change) bool {
 	case *schema.ModifyView:
 		if c2, ok := c2.(*schema.AddView); ok {
 			// View modification relies on its creation.
-			return c1.From.Name == c2.V.Name && sameSchema(c1.From.Schema, c2.V.Schema)
+			return c1.From.Name == c2.V.Name && SameSchema(c1.From.Schema, c2.V.Schema)
 		}
 		return depOfAdd(c1.To.Deps, c2)
 	case *schema.AddFunc:
@@ -577,14 +598,22 @@ func dependsOn(c1, c2 schema.Change) bool {
 		case *schema.AddSchema:
 			return c1.F.Schema.Name == c2.S.Name
 		case *schema.DropFunc:
-			return c1.F.Name == c2.F.Name && sameSchema(c1.F.Schema, c2.F.Schema) // Func recreation.
+			return c1.F.Name == c2.F.Name && SameSchema(c1.F.Schema, c2.F.Schema) // Func recreation.
 		case *schema.AddFunc:
-			if funcDep(c1.F, c2.F) {
+			if funcDep(c1.F, c2.F, opts) {
 				return true // Relies on other function or overload.
 			}
 		case *schema.ModifyFunc:
-			if funcDep(c1.F, c2.To) {
+			if funcDep(c1.F, c2.To, opts) {
 				return true // Relies on the new definition.
+			}
+		case *schema.AddTable:
+			if opts.FuncDepT != nil && opts.FuncDepT(c1.F, c2.T) {
+				return true
+			}
+		case *schema.AddView:
+			if opts.FuncDepV != nil && opts.FuncDepV(c1.F, c2.V) {
+				return true
 			}
 		case *schema.AddObject:
 			t, ok := c2.O.(schema.Type)
@@ -598,12 +627,12 @@ func dependsOn(c1, c2 schema.Change) bool {
 	case *schema.DropFunc:
 		switch c2 := c2.(type) {
 		case *schema.DropFunc:
-			if funcDep(c2.F, c1.F) {
+			if funcDep(c2.F, c1.F, opts) {
 				// If f1 depends on f2, f1 should be dropped before f2.
 				return true
 			}
 		case *schema.ModifyFunc:
-			if funcDep(c2.From, c1.F) {
+			if funcDep(c2.From, c1.F, opts) {
 				// If f1 depends on previous definition of f2, f1 should be dropped before f2.
 				return true
 			}
@@ -612,14 +641,14 @@ func dependsOn(c1, c2 schema.Change) bool {
 	case *schema.ModifyFunc:
 		switch c2 := c2.(type) {
 		case *schema.AddFunc:
-			if c1.From.Name == c2.F.Name && sameSchema(c1.From.Schema, c2.F.Schema) {
+			if c1.From.Name == c2.F.Name && SameSchema(c1.From.Schema, c2.F.Schema) {
 				return true // Func modification relies on its creation.
 			}
-			if funcDep(c1.To, c2.F) {
+			if funcDep(c1.To, c2.F, opts) {
 				return true // New definition relies on a new function.
 			}
 		case *schema.ModifyFunc:
-			if funcDep(c1.To, c2.To) {
+			if funcDep(c1.To, c2.To, opts) {
 				return true // New definition relies on a new definition.
 			}
 		}
@@ -629,13 +658,13 @@ func dependsOn(c1, c2 schema.Change) bool {
 		case *schema.AddSchema:
 			return c1.P.Schema.Name == c2.S.Name
 		case *schema.DropProc:
-			return c1.P.Name == c2.P.Name && sameSchema(c1.P.Schema, c2.P.Schema) // Proc recreation.
+			return c1.P.Name == c2.P.Name && SameSchema(c1.P.Schema, c2.P.Schema) // Proc recreation.
 		case *schema.AddProc:
-			if procDep(c1.P, c2.P) {
+			if procDep(c1.P, c2.P, opts) {
 				return true // Relies on other procedure or overload.
 			}
 		case *schema.ModifyProc:
-			if procDep(c1.P, c2.To) {
+			if procDep(c1.P, c2.To, opts) {
 				return true // Relies on the new definition.
 			}
 		case *schema.AddObject:
@@ -649,12 +678,12 @@ func dependsOn(c1, c2 schema.Change) bool {
 	case *schema.DropProc:
 		switch c2 := c2.(type) {
 		case *schema.DropProc:
-			if procDep(c2.P, c1.P) {
+			if procDep(c2.P, c1.P, opts) {
 				// If f1 depends on f2, f1 should be dropped before f2.
 				return true
 			}
 		case *schema.ModifyProc:
-			if procDep(c2.From, c1.P) {
+			if procDep(c2.From, c1.P, opts) {
 				// If f1 depends on previous definition of f2, f1 should be dropped before f2.
 				return true
 			}
@@ -663,14 +692,14 @@ func dependsOn(c1, c2 schema.Change) bool {
 	case *schema.ModifyProc:
 		switch c2 := c2.(type) {
 		case *schema.AddProc:
-			if c1.From.Name == c2.P.Name && sameSchema(c1.From.Schema, c2.P.Schema) {
+			if c1.From.Name == c2.P.Name && SameSchema(c1.From.Schema, c2.P.Schema) {
 				return true // Proc modification relies on its creation.
 			}
-			if procDep(c1.To, c2.P) {
+			if procDep(c1.To, c2.P, opts) {
 				return true // New definition relies on a new procedure.
 			}
 		case *schema.ModifyProc:
-			if procDep(c1.To, c2.To) {
+			if procDep(c1.To, c2.To, opts) {
 				return true // New definition relies on a new definition.
 			}
 		}
@@ -802,14 +831,22 @@ func depOfAdd(refs []schema.Object, c schema.Change) bool {
 		o = c.T
 	case *schema.AddView:
 		o = c.V
-	case *schema.AddFunc:
-		o = c.F
-	case *schema.AddProc:
-		o = c.P
 	case *schema.AddObject:
 		o = c.O
 	case *schema.AddTrigger:
 		o = c.T
+	// Check functions and procedures by
+	// names as they might have overloads.
+	case *schema.AddFunc:
+		return slices.ContainsFunc(refs, func(o schema.Object) bool {
+			f, ok := o.(*schema.Func)
+			return ok && c.F.Name == f.Name && SameSchema(c.F.Schema, f.Schema)
+		})
+	case *schema.AddProc:
+		return slices.ContainsFunc(refs, func(o schema.Object) bool {
+			f, ok := o.(*schema.Proc)
+			return ok && c.P.Name == f.Name && SameSchema(c.P.Schema, f.Schema)
+		})
 	default:
 		return false
 	}
@@ -835,13 +872,13 @@ func SameTable(t1, t2 *schema.Table) bool {
 	if t1 == nil || t2 == nil {
 		return t1 == t2
 	}
-	return t1.Name == t2.Name && sameSchema(t1.Schema, t2.Schema)
+	return t1.Name == t2.Name && SameSchema(t1.Schema, t2.Schema)
 }
 
-// sameSchema reports if the given schemas are the same.
+// SameSchema reports if the given schemas are the same.
 // Objects can be different as they might reside in two
 // different states (current and desired).
-func sameSchema(s1, s2 *schema.Schema) bool {
+func SameSchema(s1, s2 *schema.Schema) bool {
 	if s1 == nil || s2 == nil {
 		return s1 == s2
 	}

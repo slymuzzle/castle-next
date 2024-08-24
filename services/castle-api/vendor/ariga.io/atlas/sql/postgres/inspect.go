@@ -29,7 +29,12 @@ type inspect struct{ *conn }
 var _ schema.Inspector = (*inspect)(nil)
 
 // InspectRealm returns schema descriptions of all resources in the given realm.
-func (i *inspect) InspectRealm(ctx context.Context, opts *schema.InspectRealmOption) (*schema.Realm, error) {
+func (i *inspect) InspectRealm(ctx context.Context, opts *schema.InspectRealmOption) (_ *schema.Realm, rerr error) {
+	undo, err := i.noSearchPath(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { rerr = errors.Join(rerr, undo()) }()
 	schemas, err := i.schemas(ctx, opts)
 	if err != nil {
 		return nil, err
@@ -67,10 +72,10 @@ func (i *inspect) InspectRealm(ctx context.Context, opts *schema.InspectRealmOpt
 			}
 		}
 		if mode.Is(schema.InspectObjects) {
-			if err := i.inspectSequences(ctx, r, nil); err != nil {
+			if err := i.inspectObjects(ctx, r, nil); err != nil {
 				return nil, err
 			}
-			if err := i.inspectExtensions(ctx, r, nil); err != nil {
+			if err := i.inspectRealmObjects(ctx, r, nil); err != nil {
 				return nil, err
 			}
 		}
@@ -84,6 +89,34 @@ func (i *inspect) InspectRealm(ctx context.Context, opts *schema.InspectRealmOpt
 		}
 	}
 	return schema.ExcludeRealm(r, opts.Exclude)
+}
+
+// noSearchPath ensures the session search_path is clean when inspecting realms to ensures all
+// referenced objects in the public schema (or any other default search_path) are returned
+// qualified in the inspection.
+func (i *inspect) noSearchPath(ctx context.Context) (func() error, error) {
+	if i.crdb {
+		// Skip logic for CockroachDB.
+		return func() error { return nil }, nil
+	}
+	rows, err := i.QueryContext(ctx, "SELECT current_setting('search_path'), set_config('search_path', '', false)")
+	if err != nil {
+		return nil, err
+	}
+	var prev sql.NullString
+	if err := sqlx.ScanOne(rows, &prev, &sql.NullString{}); err != nil {
+		return nil, err
+	}
+	return func() error {
+		if sqlx.ValidString(prev) {
+			rows, err := i.QueryContext(ctx, "SELECT set_config('search_path', $1, false)", prev.String)
+			if err != nil {
+				return err
+			}
+			return rows.Close()
+		}
+		return nil
+	}, nil
 }
 
 // InspectSchema returns schema descriptions of the tables in the given schema.
@@ -135,7 +168,7 @@ func (i *inspect) InspectSchema(ctx context.Context, name string, opts *schema.I
 		}
 	}
 	if mode.Is(schema.InspectObjects) {
-		if err := i.inspectSequences(ctx, r, opts); err != nil {
+		if err := i.inspectObjects(ctx, r, opts); err != nil {
 			return nil, err
 		}
 	}
@@ -199,10 +232,10 @@ func (i *inspect) tables(ctx context.Context, realm *schema.Realm, opts *schema.
 	defer rows.Close()
 	for rows.Next() {
 		var (
-			oid                                                     sql.NullInt64
-			tSchema, name, comment, partattrs, partstart, partexprs sql.NullString
+			oid                                                            sql.NullInt64
+			tSchema, name, comment, partattrs, partstart, partexprs, extra sql.NullString
 		)
-		if err := rows.Scan(&oid, &tSchema, &name, &comment, &partattrs, &partstart, &partexprs); err != nil {
+		if err := rows.Scan(&oid, &tSchema, &name, &comment, &partattrs, &partstart, &partexprs, &extra); err != nil {
 			return fmt.Errorf("scan table information: %w", err)
 		}
 		if !sqlx.ValidString(tSchema) || !sqlx.ValidString(name) {
@@ -212,7 +245,7 @@ func (i *inspect) tables(ctx context.Context, realm *schema.Realm, opts *schema.
 		if !ok {
 			return fmt.Errorf("schema %q was not found in realm", tSchema.String)
 		}
-		t := schema.NewTable(name.String)
+		t := i.newTable(ctx, name.String, extra.String)
 		s.AddTables(t)
 		if oid.Valid {
 			t.AddAttrs(&OID{V: oid.Int64})
@@ -228,7 +261,7 @@ func (i *inspect) tables(ctx context.Context, realm *schema.Realm, opts *schema.
 			})
 		}
 	}
-	return rows.Close()
+	return rows.Err()
 }
 
 // columns queries and appends the columns of the given table.
@@ -247,7 +280,7 @@ func (i *inspect) columns(ctx context.Context, s *schema.Schema) error {
 			return fmt.Errorf("postgres: %w", err)
 		}
 	}
-	return rows.Close()
+	return rows.Err()
 }
 
 // addColumn scans the current row and adds a new column from it to the scope (table or view).
@@ -500,14 +533,14 @@ func (i *inspect) addIndexes(s *schema.Schema, rows *sql.Rows, scope queryScope)
 	names := make(map[string]*schema.Index)
 	for rows.Next() {
 		var (
-			table, name, typ                                                              string
-			uniq, primary, included, nullsnotdistinct                                     bool
-			desc, nullsfirst, nullslast, opcdefault                                       sql.NullBool
-			column, constraints, pred, expr, comment, options, opcname, opcparams, exoper sql.NullString
+			table, name, typ                                                                         string
+			uniq, primary, included, nullsnotdistinct                                                bool
+			desc, nullsfirst, nullslast, opcdefault                                                  sql.NullBool
+			column, constraints, pred, expr, comment, options, opcname, opcschema, opcparams, exoper sql.NullString
 		)
 		if err := rows.Scan(
 			&table, &name, &typ, &column, &included, &primary, &uniq, &exoper, &constraints, &pred, &expr, &desc,
-			&nullsfirst, &nullslast, &comment, &options, &opcname, &opcdefault, &opcparams, &nullsnotdistinct,
+			&nullsfirst, &nullslast, &comment, &options, &opcname, &opcschema, &opcdefault, &opcparams, &nullsnotdistinct,
 		); err != nil {
 			return fmt.Errorf("postgres: scanning indexes for schema %q: %w", s.Name, err)
 		}
@@ -594,7 +627,7 @@ func (i *inspect) addIndexes(s *schema.Schema, rows *sql.Rows, scope queryScope)
 		default:
 			return fmt.Errorf("postgres: invalid part for index %q", idx.Name)
 		}
-		if err := mayAppendOps(part, opcname.String, opcparams.String, opcdefault.Bool); err != nil {
+		if err := i.mayAppendOps(part, opcschema.String, opcname.String, opcparams.String, opcdefault.Bool); err != nil {
 			return err
 		}
 	}
@@ -602,7 +635,7 @@ func (i *inspect) addIndexes(s *schema.Schema, rows *sql.Rows, scope queryScope)
 }
 
 // mayAppendOps appends an operator_class attribute to the part in case it is not the default.
-func mayAppendOps(part *schema.IndexPart, name string, params string, defaults bool) error {
+func (i *inspect) mayAppendOps(part *schema.IndexPart, ns, name, params string, defaults bool) error {
 	if name == "" || defaults && params == "" {
 		return nil
 	}
@@ -611,6 +644,19 @@ func mayAppendOps(part *schema.IndexPart, name string, params string, defaults b
 		return err
 	}
 	part.Attrs = append(part.Attrs, op)
+	// Detect if the operator class reside in an external schema
+	// and should be handled accordingly in other stages.
+	switch {
+	case
+		// Schema is not defined.
+		ns == "",
+		// Operator class is defined in current scope.
+		ns == i.schema,
+		// Operator class is defined in the default search_path.
+		ns == "pg_catalog", ns == "public":
+	default:
+		op.Name = fmt.Sprintf("%s.%s", ns, name)
+	}
 	return nil
 }
 
@@ -1089,7 +1135,7 @@ type (
 	// https://www.postgresql.org/docs/current/indexes-opclass.html.
 	IndexOpClass struct {
 		schema.Attr
-		Name    string                  // Name of the operator class.
+		Name    string                  // Name of the operator class. Qualified if schema is not the default, and required.
 		Default bool                    // If it is the default operator class.
 		Params  []struct{ N, V string } // Optional parameters.
 	}
@@ -1471,54 +1517,6 @@ WHERE
 ORDER BY
     nspname`
 
-	// Query to list table information.
-	tablesQuery = `
-SELECT
-	t3.oid,
-	t1.table_schema,
-	t1.table_name,
-	pg_catalog.obj_description(t3.oid, 'pg_class') AS comment,
-	t4.partattrs AS partition_attrs,
-	t4.partstrat AS partition_strategy,
-	pg_get_expr(t4.partexprs, t4.partrelid) AS partition_exprs
-FROM
-	INFORMATION_SCHEMA.TABLES AS t1
-	JOIN pg_catalog.pg_namespace AS t2 ON t2.nspname = t1.table_schema
-	JOIN pg_catalog.pg_class AS t3 ON t3.relnamespace = t2.oid AND t3.relname = t1.table_name
-	LEFT JOIN pg_catalog.pg_partitioned_table AS t4 ON t4.partrelid = t3.oid
-	LEFT JOIN pg_depend AS t5 ON t5.classid = 'pg_catalog.pg_class'::regclass::oid AND t5.objid = t3.oid AND t5.deptype = 'e'
-WHERE
-	t1.table_type = 'BASE TABLE'
-	AND NOT COALESCE(t3.relispartition, false)
-	AND t1.table_schema IN (%s)
-	AND t5.objid IS NULL
-ORDER BY
-	t1.table_schema, t1.table_name
-`
-	tablesQueryArgs = `
-SELECT
-	t3.oid,
-	t1.table_schema,
-	t1.table_name,
-	pg_catalog.obj_description(t3.oid, 'pg_class') AS comment,
-	t4.partattrs AS partition_attrs,
-	t4.partstrat AS partition_strategy,
-	pg_get_expr(t4.partexprs, t4.partrelid) AS partition_exprs
-FROM
-	INFORMATION_SCHEMA.TABLES AS t1
-	JOIN pg_catalog.pg_namespace AS t2 ON t2.nspname = t1.table_schema
-	JOIN pg_catalog.pg_class AS t3 ON t3.relnamespace = t2.oid AND t3.relname = t1.table_name
-	LEFT JOIN pg_catalog.pg_partitioned_table AS t4 ON t4.partrelid = t3.oid
-	LEFT JOIN pg_depend AS t5 ON t5.classid = 'pg_catalog.pg_class'::regclass::oid AND t5.objid = t3.oid AND t5.deptype = 'e'
-WHERE
-	t1.table_type = 'BASE TABLE'
-	AND NOT COALESCE(t3.relispartition, false)
-	AND t1.table_schema IN (%s)
-	AND t1.table_name IN (%s)
-	AND t5.objid IS NULL
-ORDER BY
-	t1.table_schema, t1.table_name
-`
 	// Query to list table columns.
 	columnsQuery = `
 SELECT
@@ -1664,6 +1662,7 @@ SELECT
 	obj_description(i.oid, 'pg_class') AS comment,
 	i.reloptions AS options,
 	op.opcname AS opclass_name,
+	op.opcnamespace::regnamespace::text AS opclass_schema,
 	op.opcdefault AS opclass_default,
 	a2.attoptions AS opclass_params,
     %s AS indnullsnotdistinct

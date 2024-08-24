@@ -39,7 +39,7 @@ func (s *loggingService) SendMessage(
 	return s.Service.SendMessage(ctx, input)
 }
 
-func (s *loggingService) SubscribeToMessageAddedEvent(
+func (s *loggingService) SubscribeToMessageCreatedEvent(
 	ctx context.Context,
 	roomID pulid.ID,
 ) (ch <-chan *ent.MessageEdge, err error) {
@@ -51,7 +51,7 @@ func (s *loggingService) SubscribeToMessageAddedEvent(
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.SubscribeToMessageAddedEvent(ctx, roomID)
+	return s.Service.SubscribeToMessageCreatedEvent(ctx, roomID)
 }
 
 func (s *loggingService) UpdateMessage(

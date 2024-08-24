@@ -22,19 +22,23 @@ extend type Mutation {
   deleteRoom(roomID: ID!): RoomEdge
 }
 
-"""
-RoomsUpdatedPayload is used for roomsUpdated subscription payload.
-"""
-input RoomsUpdatedPayload {
+type LastMessageUpdatedEvent {
+  id: ID!
+  content: String!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type RoomUpdatedEvent {
   id: ID!
   name: String!
   version: Uint64!
   type: RoomType!
-  lastMessage: Message
+  lastMessage: LastMessageUpdatedEvent
   createdAt: Time!
   updatedAt: Time!
 }
 
 extend type Subscription {
-  roomsUpdated: RoomsUpdatedPayload!
+  roomsUpdated: RoomUpdatedEvent!
 }

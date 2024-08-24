@@ -26,6 +26,20 @@ type UserContactCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (ucc *UserContactCreate) SetDeletedAt(t time.Time) *UserContactCreate {
+	ucc.mutation.SetDeletedAt(t)
+	return ucc
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (ucc *UserContactCreate) SetNillableDeletedAt(t *time.Time) *UserContactCreate {
+	if t != nil {
+		ucc.SetDeletedAt(*t)
+	}
+	return ucc
+}
+
 // SetUserID sets the "user_id" field.
 func (ucc *UserContactCreate) SetUserID(pu pulid.ID) *UserContactCreate {
 	ucc.mutation.SetUserID(pu)
@@ -102,7 +116,9 @@ func (ucc *UserContactCreate) Mutation() *UserContactMutation {
 
 // Save creates the UserContact in the database.
 func (ucc *UserContactCreate) Save(ctx context.Context) (*UserContact, error) {
-	ucc.defaults()
+	if err := ucc.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, ucc.sqlSave, ucc.mutation, ucc.hooks)
 }
 
@@ -129,15 +145,22 @@ func (ucc *UserContactCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (ucc *UserContactCreate) defaults() {
+func (ucc *UserContactCreate) defaults() error {
 	if _, ok := ucc.mutation.CreatedAt(); !ok {
+		if usercontact.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized usercontact.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := usercontact.DefaultCreatedAt()
 		ucc.mutation.SetCreatedAt(v)
 	}
 	if _, ok := ucc.mutation.ID(); !ok {
+		if usercontact.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized usercontact.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := usercontact.DefaultID()
 		ucc.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -192,6 +215,10 @@ func (ucc *UserContactCreate) createSpec() (*UserContact, *sqlgraph.CreateSpec) 
 	if id, ok := ucc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
+	}
+	if value, ok := ucc.mutation.DeletedAt(); ok {
+		_spec.SetField(usercontact.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = value
 	}
 	if value, ok := ucc.mutation.CreatedAt(); ok {
 		_spec.SetField(usercontact.FieldCreatedAt, field.TypeTime, value)
@@ -255,7 +282,7 @@ func (ucc *UserContactCreate) createSpec() (*UserContact, *sqlgraph.CreateSpec) 
 // of the `INSERT` statement. For example:
 //
 //	client.UserContact.Create().
-//		SetUserID(v).
+//		SetDeletedAt(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -264,7 +291,7 @@ func (ucc *UserContactCreate) createSpec() (*UserContact, *sqlgraph.CreateSpec) 
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.UserContactUpsert) {
-//			SetUserID(v+v).
+//			SetDeletedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (ucc *UserContactCreate) OnConflict(opts ...sql.ConflictOption) *UserContactUpsertOne {
@@ -299,6 +326,24 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UserContactUpsert) SetDeletedAt(v time.Time) *UserContactUpsert {
+	u.Set(usercontact.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UserContactUpsert) UpdateDeletedAt() *UserContactUpsert {
+	u.SetExcluded(usercontact.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UserContactUpsert) ClearDeletedAt() *UserContactUpsert {
+	u.SetNull(usercontact.FieldDeletedAt)
+	return u
+}
 
 // SetUserID sets the "user_id" field.
 func (u *UserContactUpsert) SetUserID(v pulid.ID) *UserContactUpsert {
@@ -400,6 +445,27 @@ func (u *UserContactUpsertOne) Update(set func(*UserContactUpsert)) *UserContact
 		set(&UserContactUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UserContactUpsertOne) SetDeletedAt(v time.Time) *UserContactUpsertOne {
+	return u.Update(func(s *UserContactUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UserContactUpsertOne) UpdateDeletedAt() *UserContactUpsertOne {
+	return u.Update(func(s *UserContactUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UserContactUpsertOne) ClearDeletedAt() *UserContactUpsertOne {
+	return u.Update(func(s *UserContactUpsert) {
+		s.ClearDeletedAt()
+	})
 }
 
 // SetUserID sets the "user_id" field.
@@ -601,7 +667,7 @@ func (uccb *UserContactCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.UserContactUpsert) {
-//			SetUserID(v+v).
+//			SetDeletedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (uccb *UserContactCreateBulk) OnConflict(opts ...sql.ConflictOption) *UserContactUpsertBulk {
@@ -678,6 +744,27 @@ func (u *UserContactUpsertBulk) Update(set func(*UserContactUpsert)) *UserContac
 		set(&UserContactUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UserContactUpsertBulk) SetDeletedAt(v time.Time) *UserContactUpsertBulk {
+	return u.Update(func(s *UserContactUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UserContactUpsertBulk) UpdateDeletedAt() *UserContactUpsertBulk {
+	return u.Update(func(s *UserContactUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UserContactUpsertBulk) ClearDeletedAt() *UserContactUpsertBulk {
+	return u.Update(func(s *UserContactUpsert) {
+		s.ClearDeletedAt()
+	})
 }
 
 // SetUserID sets the "user_id" field.

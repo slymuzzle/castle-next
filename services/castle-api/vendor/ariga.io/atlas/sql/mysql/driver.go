@@ -58,7 +58,15 @@ func init() {
 		sqlclient.OpenerFunc(opener),
 		sqlclient.RegisterDriverOpener(Open),
 		sqlclient.RegisterCodec(MarshalHCL, EvalHCL),
-		sqlclient.RegisterFlavours("mysql+unix", "maria", "maria+unix", "mariadb", "mariadb+unix"),
+		sqlclient.RegisterFlavours("mysql+unix"),
+		sqlclient.RegisterURLParser(parser{}),
+	)
+	sqlclient.Register(
+		"mariadb",
+		sqlclient.OpenerFunc(opener),
+		sqlclient.RegisterDriverOpener(Open),
+		sqlclient.RegisterCodec(MarshalHCL, EvalMariaHCL),
+		sqlclient.RegisterFlavours("mariadb+unix", "maria", "maria+unix"),
 		sqlclient.RegisterURLParser(parser{}),
 	)
 }
@@ -269,7 +277,8 @@ func (*Driver) StmtBuilder(opts migrate.PlanOptions) *sqlx.Builder {
 func (*Driver) ScanStmts(input string) ([]*migrate.Stmt, error) {
 	return (&migrate.Scanner{
 		ScannerOptions: migrate.ScannerOptions{
-			MatchBegin: true,
+			MatchBegin:       true,
+			BackslashEscapes: true,
 			// The following are not support by MySQL/MariaDB.
 			MatchBeginAtomic: false,
 			MatchDollarQuote: false,
@@ -431,6 +440,9 @@ const (
 	TypeGeometryCollection = "geometrycollection" // Geometry_type::kGeometrycollection
 
 	TypeUUID = "uuid" // MariaDB supported uuid type from 10.7.0+
+
+	TypeInet4 = "inet4" // MariaDB type for storage of IPv4 addresses, from 10.10.0+.
+	TypeInet6 = "inet6" // MariaDB type for storage of IPv6 addresses, from 10.10.0+.
 )
 
 // Additional common constants in MySQL.

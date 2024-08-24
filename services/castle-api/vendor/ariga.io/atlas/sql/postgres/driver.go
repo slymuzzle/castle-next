@@ -347,6 +347,7 @@ func (*Driver) ScanStmts(input string) ([]*migrate.Stmt, error) {
 			MatchBegin:       true,
 			MatchBeginAtomic: true,
 			MatchDollarQuote: true,
+			EscapedStringExt: true,
 		},
 	}).Scan(input)
 }
@@ -515,16 +516,17 @@ const (
 	typeRegType       = "regtype"
 
 	// PostgreSQL of supported pseudo-types.
-	typeAny         = "any"
-	typeAnyElement  = "anyelement"
-	typeAnyArray    = "anyarray"
-	typeAnyNonArray = "anynonarray"
-	typeAnyEnum     = "anyenum"
-	typeInternal    = "internal"
-	typeRecord      = "record"
-	typeTrigger     = "trigger"
-	typeVoid        = "void"
-	typeUnknown     = "unknown"
+	typeAny          = "any"
+	typeAnyElement   = "anyelement"
+	typeAnyArray     = "anyarray"
+	typeAnyNonArray  = "anynonarray"
+	typeAnyEnum      = "anyenum"
+	typeInternal     = "internal"
+	typeRecord       = "record"
+	typeTrigger      = "trigger"
+	typeEventTrigger = "event_trigger"
+	typeVoid         = "void"
+	typeUnknown      = "unknown"
 )
 
 // List of supported index types.
