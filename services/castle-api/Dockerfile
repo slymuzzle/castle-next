@@ -12,7 +12,7 @@ SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 
 RUN apk add --no-cache \
     build-base=0.5-r3 \
-    curl=8.9.0-r0 \
+    curl=8.9.1-r0 \
     # Install atlas
     && curl -sSf https://atlasgo.sh | ash
 
