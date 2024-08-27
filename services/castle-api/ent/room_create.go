@@ -14,6 +14,7 @@ import (
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
+	"journeyhub/ent/usercontact"
 	"time"
 
 	"entgo.io/ent/dialect"
@@ -47,6 +48,14 @@ func (rc *RoomCreate) SetNillableDeletedAt(t *time.Time) *RoomCreate {
 // SetName sets the "name" field.
 func (rc *RoomCreate) SetName(s string) *RoomCreate {
 	rc.mutation.SetName(s)
+	return rc
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (rc *RoomCreate) SetNillableName(s *string) *RoomCreate {
+	if s != nil {
+		rc.SetName(*s)
+	}
 	return rc
 }
 
@@ -110,6 +119,21 @@ func (rc *RoomCreate) SetNillableID(pu *pulid.ID) *RoomCreate {
 		rc.SetID(*pu)
 	}
 	return rc
+}
+
+// AddUserContactIDs adds the "user_contact" edge to the UserContact entity by IDs.
+func (rc *RoomCreate) AddUserContactIDs(ids ...pulid.ID) *RoomCreate {
+	rc.mutation.AddUserContactIDs(ids...)
+	return rc
+}
+
+// AddUserContact adds the "user_contact" edges to the UserContact entity.
+func (rc *RoomCreate) AddUserContact(u ...*UserContact) *RoomCreate {
+	ids := make([]pulid.ID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return rc.AddUserContactIDs(ids...)
 }
 
 // AddUserIDs adds the "users" edge to the User entity by IDs.
@@ -288,9 +312,6 @@ func (rc *RoomCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (rc *RoomCreate) check() error {
-	if _, ok := rc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Room.name"`)}
-	}
 	if _, ok := rc.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "Room.version"`)}
 	}
@@ -372,6 +393,22 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 	if value, ok := rc.mutation.UpdatedAt(); ok {
 		_spec.SetField(room.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if nodes := rc.mutation.UserContactIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   room.UserContactTable,
+			Columns: []string{room.UserContactColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := rc.mutation.UsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -575,6 +612,12 @@ func (u *RoomUpsert) UpdateName() *RoomUpsert {
 	return u
 }
 
+// ClearName clears the value of the "name" field.
+func (u *RoomUpsert) ClearName() *RoomUpsert {
+	u.SetNull(room.FieldName)
+	return u
+}
+
 // SetVersion sets the "version" field.
 func (u *RoomUpsert) SetVersion(v uint64) *RoomUpsert {
 	u.Set(room.FieldVersion, v)
@@ -700,6 +743,13 @@ func (u *RoomUpsertOne) SetName(v string) *RoomUpsertOne {
 func (u *RoomUpsertOne) UpdateName() *RoomUpsertOne {
 	return u.Update(func(s *RoomUpsert) {
 		s.UpdateName()
+	})
+}
+
+// ClearName clears the value of the "name" field.
+func (u *RoomUpsertOne) ClearName() *RoomUpsertOne {
+	return u.Update(func(s *RoomUpsert) {
+		s.ClearName()
 	})
 }
 
@@ -1002,6 +1052,13 @@ func (u *RoomUpsertBulk) SetName(v string) *RoomUpsertBulk {
 func (u *RoomUpsertBulk) UpdateName() *RoomUpsertBulk {
 	return u.Update(func(s *RoomUpsert) {
 		s.UpdateName()
+	})
+}
+
+// ClearName clears the value of the "name" field.
+func (u *RoomUpsertBulk) ClearName() *RoomUpsertBulk {
+	return u.Update(func(s *RoomUpsert) {
+		s.ClearName()
 	})
 }
 

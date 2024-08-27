@@ -143,11 +143,11 @@ func init() {
 	roommemberFields := schema.RoomMember{}.Fields()
 	_ = roommemberFields
 	// roommemberDescUnreadMessagesCount is the schema descriptor for unread_messages_count field.
-	roommemberDescUnreadMessagesCount := roommemberFields[0].Descriptor()
+	roommemberDescUnreadMessagesCount := roommemberFields[1].Descriptor()
 	// roommember.DefaultUnreadMessagesCount holds the default value on creation for the unread_messages_count field.
 	roommember.DefaultUnreadMessagesCount = roommemberDescUnreadMessagesCount.Default.(int)
 	// roommemberDescJoinedAt is the schema descriptor for joined_at field.
-	roommemberDescJoinedAt := roommemberFields[3].Descriptor()
+	roommemberDescJoinedAt := roommemberFields[4].Descriptor()
 	// roommember.DefaultJoinedAt holds the default value on creation for the joined_at field.
 	roommember.DefaultJoinedAt = roommemberDescJoinedAt.Default.(func() time.Time)
 	// roommemberDescID is the schema descriptor for id field.

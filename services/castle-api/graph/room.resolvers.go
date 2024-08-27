@@ -30,8 +30,3 @@ func (r *mutationResolver) DeleteRoom(ctx context.Context, roomID pulid.ID) (*en
 	}
 	return room.ToEdge(ent.DefaultRoomOrder), nil
 }
-
-// RoomsUpdated is the resolver for the roomsUpdated field.
-func (r *subscriptionResolver) RoomsUpdated(ctx context.Context) (<-chan *model.RoomUpdatedEvent, error) {
-	return r.roomsService.SubscribeToRoomsUpdatedEvent(ctx)
-}

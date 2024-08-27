@@ -31,6 +31,7 @@ func (Room) Mixin() []ent.Mixin {
 func (Room) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
+			Optional().
 			Annotations(
 				entgql.OrderField("NAME"),
 			),
@@ -64,16 +65,15 @@ func (Room) Fields() []ent.Field {
 // Edges of the Room.
 func (Room) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.From("user_contact", UserContact.Type).
+			Ref("room"),
 		edge.To("users", User.Type).
 			Through("room_members", RoomMember.Type).
 			Annotations(
 				entgql.RelayConnection(),
 			),
 		edge.To("last_message", Message.Type).
-			Unique().
-			Annotations(
-				entsql.OnDelete(entsql.Cascade),
-			),
+			Unique(),
 		edge.To("messages", Message.Type).
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),

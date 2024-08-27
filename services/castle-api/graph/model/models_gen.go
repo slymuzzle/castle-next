@@ -29,7 +29,7 @@ type LoginUser struct {
 	Token string    `json:"token"`
 }
 
-type RoomUpdatedEvent struct {
+type RoomMemberUpdatedEvent struct {
 	ID          pulid.ID                 `json:"id"`
 	Name        string                   `json:"name"`
 	Version     uint64                   `json:"version"`
@@ -41,7 +41,8 @@ type RoomUpdatedEvent struct {
 
 // CreateMessageInput is used for create Message object.
 type SendMessageInput struct {
-	TargetUserID pulid.ID          `json:"targetUserID" validate:"required"`
+	RoomID       pulid.ID          `json:"roomID" validate:"required"`
+	NotifyUserID *pulid.ID         `json:"notifyUserID,omitempty"`
 	ReplyTo      *pulid.ID         `json:"replyTo,omitempty"`
 	Content      string            `json:"content" validate:"required,max=4096"`
 	Files        []*graphql.Upload `json:"files,omitempty" validate:"max=10"`

@@ -27,23 +27,27 @@ type MutationResolver interface {
 	UpdateRoom(ctx context.Context, roomID pulid.ID, input model.UpdateRoomInput) (*ent.RoomEdge, error)
 	DeleteRoom(ctx context.Context, roomID pulid.ID) (*ent.RoomEdge, error)
 	DeleteRoomMember(ctx context.Context, roomMemberID pulid.ID) (*ent.RoomMemberEdge, error)
+	MarkRoomMemeberAsSeen(ctx context.Context, roomMemberID pulid.ID) (*ent.RoomMemberEdge, error)
 	Register(ctx context.Context, input model.UserRegisterInput) (*ent.User, error)
 	Login(ctx context.Context, input model.UserLoginInput) (*model.LoginUser, error)
 	GeneratePinCode(ctx context.Context) (*string, error)
-	AddContact(ctx context.Context, pincode string) (*ent.UserContact, error)
+	AddUserContact(ctx context.Context, pincode string) (*ent.UserContactEdge, error)
+	DeleteUserContact(ctx context.Context, userContactID pulid.ID) (*ent.UserContactEdge, error)
 }
 type SubscriptionResolver interface {
 	MessageCreated(ctx context.Context, roomID pulid.ID) (<-chan *ent.MessageEdge, error)
 	MessageUpdated(ctx context.Context, roomID pulid.ID) (<-chan *ent.MessageEdge, error)
-	MessageDeleted(ctx context.Context, roomID pulid.ID) (<-chan *ent.MessageEdge, error)
-	RoomsUpdated(ctx context.Context) (<-chan *model.RoomUpdatedEvent, error)
+	MessageDeleted(ctx context.Context, roomID pulid.ID) (<-chan pulid.ID, error)
+	RoomMemberCreated(ctx context.Context) (<-chan *ent.RoomMemberEdge, error)
+	RoomMemberUpdated(ctx context.Context) (<-chan *ent.RoomMemberEdge, error)
+	RoomMemberDeleted(ctx context.Context) (<-chan pulid.ID, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_addContact_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_addUserContact_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -118,6 +122,21 @@ func (ec *executionContext) field_Mutation_deleteRoom_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteUserContact_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 pulid.ID
+	if tmp, ok := rawArgs["userContactID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userContactID"))
+		arg0, err = ec.unmarshalNID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userContactID"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -130,6 +149,21 @@ func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawAr
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_markRoomMemeberAsSeen_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 pulid.ID
+	if tmp, ok := rawArgs["roomMemberID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomMemberID"))
+		arg0, err = ec.unmarshalNID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["roomMemberID"] = arg0
 	return args, nil
 }
 
@@ -670,6 +704,64 @@ func (ec *executionContext) fieldContext_Mutation_deleteRoomMember(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_markRoomMemeberAsSeen(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_markRoomMemeberAsSeen(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().MarkRoomMemeberAsSeen(rctx, fc.Args["roomMemberID"].(pulid.ID))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.RoomMemberEdge)
+	fc.Result = res
+	return ec.marshalORoomMemberEdge2ᚖjourneyhubᚋentᚐRoomMemberEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_markRoomMemeberAsSeen(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_RoomMemberEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_RoomMemberEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RoomMemberEdge", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_markRoomMemeberAsSeen_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_register(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_register(ctx, field)
 	if err != nil {
@@ -849,8 +941,8 @@ func (ec *executionContext) fieldContext_Mutation_generatePinCode(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_addContact(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_addContact(ctx, field)
+func (ec *executionContext) _Mutation_addUserContact(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addUserContact(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -863,7 +955,7 @@ func (ec *executionContext) _Mutation_addContact(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddContact(rctx, fc.Args["pincode"].(string))
+		return ec.resolvers.Mutation().AddUserContact(rctx, fc.Args["pincode"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -872,12 +964,12 @@ func (ec *executionContext) _Mutation_addContact(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*ent.UserContact)
+	res := resTmp.(*ent.UserContactEdge)
 	fc.Result = res
-	return ec.marshalOUserContact2ᚖjourneyhubᚋentᚐUserContact(ctx, field.Selections, res)
+	return ec.marshalOUserContactEdge2ᚖjourneyhubᚋentᚐUserContactEdge(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_addContact(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_addUserContact(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -885,24 +977,12 @@ func (ec *executionContext) fieldContext_Mutation_addContact(ctx context.Context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_UserContact_id(ctx, field)
-			case "userID":
-				return ec.fieldContext_UserContact_userID(ctx, field)
-			case "contactID":
-				return ec.fieldContext_UserContact_contactID(ctx, field)
-			case "roomID":
-				return ec.fieldContext_UserContact_roomID(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_UserContact_createdAt(ctx, field)
-			case "user":
-				return ec.fieldContext_UserContact_user(ctx, field)
-			case "contact":
-				return ec.fieldContext_UserContact_contact(ctx, field)
-			case "room":
-				return ec.fieldContext_UserContact_room(ctx, field)
+			case "node":
+				return ec.fieldContext_UserContactEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_UserContactEdge_cursor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type UserContact", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type UserContactEdge", field.Name)
 		},
 	}
 	defer func() {
@@ -912,7 +992,65 @@ func (ec *executionContext) fieldContext_Mutation_addContact(ctx context.Context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_addContact_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_addUserContact_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteUserContact(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteUserContact(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteUserContact(rctx, fc.Args["userContactID"].(pulid.ID))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.UserContactEdge)
+	fc.Result = res
+	return ec.marshalOUserContactEdge2ᚖjourneyhubᚋentᚐUserContactEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteUserContact(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_UserContactEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_UserContactEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UserContactEdge", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteUserContact_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -1097,7 +1235,7 @@ func (ec *executionContext) _Subscription_messageDeleted(ctx context.Context, fi
 	}
 	return func(ctx context.Context) graphql.Marshaler {
 		select {
-		case res, ok := <-resTmp.(<-chan *ent.MessageEdge):
+		case res, ok := <-resTmp.(<-chan pulid.ID):
 			if !ok {
 				return nil
 			}
@@ -1105,7 +1243,7 @@ func (ec *executionContext) _Subscription_messageDeleted(ctx context.Context, fi
 				w.Write([]byte{'{'})
 				graphql.MarshalString(field.Alias).MarshalGQL(w)
 				w.Write([]byte{':'})
-				ec.marshalNMessageEdge2ᚖjourneyhubᚋentᚐMessageEdge(ctx, field.Selections, res).MarshalGQL(w)
+				ec.marshalNID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx, field.Selections, res).MarshalGQL(w)
 				w.Write([]byte{'}'})
 			})
 		case <-ctx.Done():
@@ -1121,13 +1259,7 @@ func (ec *executionContext) fieldContext_Subscription_messageDeleted(ctx context
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "node":
-				return ec.fieldContext_MessageEdge_node(ctx, field)
-			case "cursor":
-				return ec.fieldContext_MessageEdge_cursor(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MessageEdge", field.Name)
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	defer func() {
@@ -1144,8 +1276,8 @@ func (ec *executionContext) fieldContext_Subscription_messageDeleted(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _Subscription_roomsUpdated(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
-	fc, err := ec.fieldContext_Subscription_roomsUpdated(ctx, field)
+func (ec *executionContext) _Subscription_roomMemberCreated(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	fc, err := ec.fieldContext_Subscription_roomMemberCreated(ctx, field)
 	if err != nil {
 		return nil
 	}
@@ -1158,7 +1290,7 @@ func (ec *executionContext) _Subscription_roomsUpdated(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().RoomsUpdated(rctx)
+		return ec.resolvers.Subscription().RoomMemberCreated(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1172,7 +1304,7 @@ func (ec *executionContext) _Subscription_roomsUpdated(ctx context.Context, fiel
 	}
 	return func(ctx context.Context) graphql.Marshaler {
 		select {
-		case res, ok := <-resTmp.(<-chan *model.RoomUpdatedEvent):
+		case res, ok := <-resTmp.(<-chan *ent.RoomMemberEdge):
 			if !ok {
 				return nil
 			}
@@ -1180,7 +1312,7 @@ func (ec *executionContext) _Subscription_roomsUpdated(ctx context.Context, fiel
 				w.Write([]byte{'{'})
 				graphql.MarshalString(field.Alias).MarshalGQL(w)
 				w.Write([]byte{':'})
-				ec.marshalNRoomUpdatedEvent2ᚖjourneyhubᚋgraphᚋmodelᚐRoomUpdatedEvent(ctx, field.Selections, res).MarshalGQL(w)
+				ec.marshalNRoomMemberEdge2ᚖjourneyhubᚋentᚐRoomMemberEdge(ctx, field.Selections, res).MarshalGQL(w)
 				w.Write([]byte{'}'})
 			})
 		case <-ctx.Done():
@@ -1189,7 +1321,7 @@ func (ec *executionContext) _Subscription_roomsUpdated(ctx context.Context, fiel
 	}
 }
 
-func (ec *executionContext) fieldContext_Subscription_roomsUpdated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Subscription_roomMemberCreated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Subscription",
 		Field:      field,
@@ -1197,22 +1329,134 @@ func (ec *executionContext) fieldContext_Subscription_roomsUpdated(_ context.Con
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_RoomUpdatedEvent_id(ctx, field)
-			case "name":
-				return ec.fieldContext_RoomUpdatedEvent_name(ctx, field)
-			case "version":
-				return ec.fieldContext_RoomUpdatedEvent_version(ctx, field)
-			case "type":
-				return ec.fieldContext_RoomUpdatedEvent_type(ctx, field)
-			case "lastMessage":
-				return ec.fieldContext_RoomUpdatedEvent_lastMessage(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_RoomUpdatedEvent_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_RoomUpdatedEvent_updatedAt(ctx, field)
+			case "node":
+				return ec.fieldContext_RoomMemberEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_RoomMemberEdge_cursor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type RoomUpdatedEvent", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type RoomMemberEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Subscription_roomMemberUpdated(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	fc, err := ec.fieldContext_Subscription_roomMemberUpdated(ctx, field)
+	if err != nil {
+		return nil
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().RoomMemberUpdated(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return nil
+	}
+	return func(ctx context.Context) graphql.Marshaler {
+		select {
+		case res, ok := <-resTmp.(<-chan *ent.RoomMemberEdge):
+			if !ok {
+				return nil
+			}
+			return graphql.WriterFunc(func(w io.Writer) {
+				w.Write([]byte{'{'})
+				graphql.MarshalString(field.Alias).MarshalGQL(w)
+				w.Write([]byte{':'})
+				ec.marshalNRoomMemberEdge2ᚖjourneyhubᚋentᚐRoomMemberEdge(ctx, field.Selections, res).MarshalGQL(w)
+				w.Write([]byte{'}'})
+			})
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}
+
+func (ec *executionContext) fieldContext_Subscription_roomMemberUpdated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_RoomMemberEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_RoomMemberEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RoomMemberEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Subscription_roomMemberDeleted(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	fc, err := ec.fieldContext_Subscription_roomMemberDeleted(ctx, field)
+	if err != nil {
+		return nil
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().RoomMemberDeleted(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return nil
+	}
+	return func(ctx context.Context) graphql.Marshaler {
+		select {
+		case res, ok := <-resTmp.(<-chan pulid.ID):
+			if !ok {
+				return nil
+			}
+			return graphql.WriterFunc(func(w io.Writer) {
+				w.Write([]byte{'{'})
+				graphql.MarshalString(field.Alias).MarshalGQL(w)
+				w.Write([]byte{':'})
+				ec.marshalNID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx, field.Selections, res).MarshalGQL(w)
+				w.Write([]byte{'}'})
+			})
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}
+
+func (ec *executionContext) fieldContext_Subscription_roomMemberDeleted(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1229,20 +1473,27 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"targetUserID", "replyTo", "content", "files", "voice"}
+	fieldsInOrder := [...]string{"roomID", "notifyUserID", "replyTo", "content", "files", "voice"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "targetUserID":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("targetUserID"))
+		case "roomID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomID"))
 			data, err := ec.unmarshalNID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.TargetUserID = data
+			it.RoomID = data
+		case "notifyUserID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("notifyUserID"))
+			data, err := ec.unmarshalOID2ᚖjourneyhubᚋentᚋschemaᚋpulidᚐID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NotifyUserID = data
 		case "replyTo":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("replyTo"))
 			data, err := ec.unmarshalOID2ᚖjourneyhubᚋentᚋschemaᚋpulidᚐID(ctx, v)
@@ -1359,6 +1610,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteRoomMember(ctx, field)
 			})
+		case "markRoomMemeberAsSeen":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_markRoomMemeberAsSeen(ctx, field)
+			})
 		case "register":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_register(ctx, field)
@@ -1371,9 +1626,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_generatePinCode(ctx, field)
 			})
-		case "addContact":
+		case "addUserContact":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_addContact(ctx, field)
+				return ec._Mutation_addUserContact(ctx, field)
+			})
+		case "deleteUserContact":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteUserContact(ctx, field)
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -1417,8 +1676,12 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 		return ec._Subscription_messageUpdated(ctx, fields[0])
 	case "messageDeleted":
 		return ec._Subscription_messageDeleted(ctx, fields[0])
-	case "roomsUpdated":
-		return ec._Subscription_roomsUpdated(ctx, fields[0])
+	case "roomMemberCreated":
+		return ec._Subscription_roomMemberCreated(ctx, fields[0])
+	case "roomMemberUpdated":
+		return ec._Subscription_roomMemberUpdated(ctx, fields[0])
+	case "roomMemberDeleted":
+		return ec._Subscription_roomMemberDeleted(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}

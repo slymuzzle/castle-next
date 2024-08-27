@@ -31,6 +31,8 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeUserContact holds the string denoting the user_contact edge name in mutations.
+	EdgeUserContact = "user_contact"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
 	EdgeUsers = "users"
 	// EdgeLastMessage holds the string denoting the last_message edge name in mutations.
@@ -47,6 +49,13 @@ const (
 	EdgeRoomMembers = "room_members"
 	// Table holds the table name of the room in the database.
 	Table = "rooms"
+	// UserContactTable is the table that holds the user_contact relation/edge.
+	UserContactTable = "user_contacts"
+	// UserContactInverseTable is the table name for the UserContact entity.
+	// It exists in this package in order to avoid circular dependency with the "usercontact" package.
+	UserContactInverseTable = "user_contacts"
+	// UserContactColumn is the table column denoting the user_contact relation/edge.
+	UserContactColumn = "room_id"
 	// UsersTable is the table that holds the users relation/edge. The primary key declared below.
 	UsersTable = "room_members"
 	// UsersInverseTable is the table name for the User entity.
@@ -217,6 +226,20 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
+// ByUserContactCount orders the results by user_contact count.
+func ByUserContactCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUserContactStep(), opts...)
+	}
+}
+
+// ByUserContact orders the results by user_contact terms.
+func ByUserContact(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserContactStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByUsersCount orders the results by users count.
 func ByUsersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -306,6 +329,13 @@ func ByRoomMembers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newRoomMembersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
+}
+func newUserContactStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserContactInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, UserContactTable, UserContactColumn),
+	)
 }
 func newUsersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

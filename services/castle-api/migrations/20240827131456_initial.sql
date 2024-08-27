@@ -64,6 +64,7 @@ CREATE UNIQUE INDEX "messages_message_reply_to_key" ON "messages" ("message_repl
 CREATE TABLE "room_members" (
   "id" character varying NOT NULL,
   "deleted_at" timestamptz NULL,
+  "name" character varying NULL,
   "unread_messages_count" bigint NOT NULL DEFAULT 0,
   "joined_at" timestamptz NOT NULL,
   "user_id" character varying NOT NULL,
@@ -76,7 +77,7 @@ CREATE UNIQUE INDEX "roommember_room_id_user_id" ON "room_members" ("room_id", "
 CREATE TABLE "rooms" (
   "id" character varying NOT NULL,
   "deleted_at" timestamptz NULL,
-  "name" character varying NOT NULL,
+  "name" character varying NULL,
   "version" bigint NOT NULL DEFAULT 1,
   "type" character varying NOT NULL,
   "created_at" timestamptz NOT NULL,
@@ -139,7 +140,7 @@ ALTER TABLE "room_members" ADD
  CONSTRAINT "room_members_users_user" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE;
 -- Modify "rooms" table
 ALTER TABLE "rooms" ADD
- CONSTRAINT "rooms_messages_last_message" FOREIGN KEY ("room_last_message") REFERENCES "messages" ("id") ON UPDATE NO ACTION ON DELETE CASCADE;
+ CONSTRAINT "rooms_messages_last_message" FOREIGN KEY ("room_last_message") REFERENCES "messages" ("id") ON UPDATE NO ACTION ON DELETE SET NULL;
 -- Modify "user_contacts" table
 ALTER TABLE "user_contacts" ADD
  CONSTRAINT "user_contacts_rooms_room" FOREIGN KEY ("room_id") REFERENCES "rooms" ("id") ON UPDATE NO ACTION ON DELETE SET NULL, ADD

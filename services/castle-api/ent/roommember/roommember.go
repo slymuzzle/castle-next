@@ -18,6 +18,8 @@ const (
 	FieldID = "id"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
 	FieldDeletedAt = "deleted_at"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
 	// FieldUnreadMessagesCount holds the string denoting the unread_messages_count field in the database.
 	FieldUnreadMessagesCount = "unread_messages_count"
 	// FieldUserID holds the string denoting the user_id field in the database.
@@ -52,6 +54,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldDeletedAt,
+	FieldName,
 	FieldUnreadMessagesCount,
 	FieldUserID,
 	FieldRoomID,
@@ -95,6 +98,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByDeletedAt orders the results by the deleted_at field.
 func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
 // ByUnreadMessagesCount orders the results by the unread_messages_count field.

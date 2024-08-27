@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"journeyhub/graph"
 	"journeyhub/graph/server"
@@ -12,6 +11,7 @@ import (
 	"journeyhub/internal/modules/auth/jwtauth"
 	"journeyhub/internal/modules/chat"
 	"journeyhub/internal/modules/contacts"
+	"journeyhub/internal/modules/roommembers"
 	"journeyhub/internal/modules/rooms"
 	"journeyhub/internal/platform/config"
 	"journeyhub/internal/platform/db"
@@ -51,32 +51,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	var dbService db.Service
-	dbService = db.NewService(config.Database)
-	dbService = db.NewLoggingService(
-		log.With(logger, "component", "database"),
-		dbService,
-	)
-
-	if dbErr := dbService.Connect(); dbErr != nil {
-		level.Error(logger).Log("exit", dbErr)
-		os.Exit(1)
-	}
-	defer dbService.Close()
-
-	entClient := dbService.Client()
-
-	var mediaService media.Service
-	mediaService, mErr := media.NewService(config.S3)
-	if mErr != nil {
-		level.Error(logger).Log("exit", mErr)
-		os.Exit(1)
-	}
-	mediaService = media.NewLoggingService(
-		log.With(logger, "component", "media"),
-		mediaService,
-	)
-
 	var natsService nats.Service
 	natsService = nats.NewService(config.Nats)
 	natsService = nats.NewLoggingService(
@@ -89,6 +63,37 @@ func main() {
 		os.Exit(1)
 	}
 	defer natsService.Close()
+
+	var dbService db.Service
+	dbService = db.NewService(config.Database)
+	dbService = db.NewLoggingService(
+		log.With(logger, "component", "db"),
+		dbService,
+	)
+
+	if dbErr := dbService.Connect(); dbErr != nil {
+		level.Error(logger).Log("exit", dbErr)
+		os.Exit(1)
+	}
+	defer dbService.Close()
+
+	// Initialize ent client
+	entClient := dbService.Client().Debug()
+
+	// Ent hooks stack
+	entLogger := log.With(logger, "component", "ent")
+	entClient.Use(db.LoggingHook(entLogger))
+
+	var mediaService media.Service
+	mediaService, mErr := media.NewService(config.S3)
+	if mErr != nil {
+		level.Error(logger).Log("exit", mErr)
+		os.Exit(1)
+	}
+	mediaService = media.NewLoggingService(
+		log.With(logger, "component", "media"),
+		mediaService,
+	)
 
 	var validationService validation.Service
 	validationService = validation.NewService()
@@ -105,9 +110,17 @@ func main() {
 		authService,
 	)
 
+	var roomMembersService roommembers.Service
+	roomMembersRepository := roommembers.NewRepository(entClient)
+	roomMembersService = roommembers.NewService(roomMembersRepository, authService, natsService)
+	roomMembersService = roommembers.NewLoggingService(
+		log.With(logger, "component", "roommembers"),
+		roomMembersService,
+	)
+
 	var roomsService rooms.Service
 	roomsRepository := rooms.NewRepository(entClient)
-	roomsService = rooms.NewService(roomsRepository, authService, natsService)
+	roomsService = rooms.NewService(roomsRepository, roomMembersService, authService, natsService)
 	roomsService = rooms.NewLoggingService(
 		log.With(logger, "component", "rooms"),
 		roomsService,
@@ -115,7 +128,7 @@ func main() {
 
 	var chatService chat.Service
 	chatRepository := chat.NewRepository(entClient)
-	chatService = chat.NewService(chatRepository, authService, roomsService, natsService, mediaService)
+	chatService = chat.NewService(chatRepository, authService, roomsService, roomMembersService, natsService, mediaService)
 	chatService = chat.NewLoggingService(
 		log.With(logger, "component", "chat"),
 		chatService,
@@ -145,20 +158,22 @@ func main() {
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
-	router.Use(middleware.Timeout(60 * time.Second))
+	// router.Use(middleware.Timeout(60 * time.Second))
 
-	wsLogger := log.With(logger, "ws", log.DefaultTimestampUTC)
+	graphqlLogger := log.With(logger, "component", "graphql")
 	graphqlQueryHandler := server.NewDefaultServer(
 		graph.NewSchema(
 			dbService,
 			validationService,
 			authService,
 			roomsService,
+			roomMembersService,
 			chatService,
 			contactsService,
 		),
-		wsLogger,
+		graphqlLogger,
 		jwtAuth,
+		entClient,
 	)
 	router.Handle("/query", graphqlQueryHandler)
 

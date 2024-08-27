@@ -2,7 +2,6 @@ package chat
 
 import (
 	"context"
-	"errors"
 
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
@@ -15,6 +14,11 @@ type (
 )
 
 type Repository interface {
+	FindByID(
+		ctx context.Context,
+		ID pulid.ID,
+	) (*ent.Message, error)
+
 	CreateMessage(
 		ctx context.Context,
 		roomID pulid.ID,
@@ -47,6 +51,13 @@ func NewRepository(entClient *ent.Client) Repository {
 	}
 }
 
+func (r *repository) FindByID(
+	ctx context.Context,
+	ID pulid.ID,
+) (*ent.Message, error) {
+	return r.getClient(ctx).Message.Get(ctx, ID)
+}
+
 func (r *repository) CreateMessage(
 	ctx context.Context,
 	roomID pulid.ID,
@@ -56,12 +67,9 @@ func (r *repository) CreateMessage(
 	uploadAttachmentsFn UploadAttachmentsFn,
 	uploadVoiceFn UploadVoiceFn,
 ) (*ent.Message, error) {
-	tx, txErr := r.entClient.Tx(ctx)
-	if txErr != nil {
-		return nil, txErr
-	}
+	client := r.getClient(ctx)
 
-	msg, msgErr := tx.Message.
+	msg, msgErr := client.Message.
 		Create().
 		SetRoomID(roomID).
 		SetUserID(currentUserID).
@@ -69,16 +77,16 @@ func (r *repository) CreateMessage(
 		SetContent(content).
 		Save(ctx)
 	if msgErr != nil {
-		return nil, errors.Join(tx.Rollback(), msgErr)
+		return nil, msgErr
 	}
 
 	if uploadAttachmentsFn != nil {
 		uAtchInfo, uAtchErr := uploadAttachmentsFn(msg)
 		if uAtchErr != nil {
-			return nil, errors.Join(tx.Rollback(), uAtchErr)
+			return nil, uAtchErr
 		}
 
-		msgFiles, msgFilesErr := tx.File.MapCreateBulk(
+		msgFiles, msgFilesErr := client.File.MapCreateBulk(
 			uAtchInfo,
 			func(a *ent.FileCreate, i int) {
 				a.SetID(uAtchInfo[i].ID).
@@ -91,10 +99,10 @@ func (r *repository) CreateMessage(
 			},
 		).Save(ctx)
 		if msgFilesErr != nil {
-			return nil, errors.Join(tx.Rollback(), msgFilesErr)
+			return nil, msgFilesErr
 		}
 
-		msgAtchErr := tx.MessageAttachment.MapCreateBulk(
+		msgAtchErr := client.MessageAttachment.MapCreateBulk(
 			msgFiles,
 			func(a *ent.MessageAttachmentCreate, i int) {
 				a.SetMessage(msg).
@@ -104,17 +112,17 @@ func (r *repository) CreateMessage(
 			},
 		).Exec(ctx)
 		if msgAtchErr != nil {
-			return nil, errors.Join(tx.Rollback(), msgAtchErr)
+			return nil, msgAtchErr
 		}
 	}
 
 	if uploadVoiceFn != nil {
 		uVoiceInfo, uVoiceErr := uploadVoiceFn(msg)
 		if uVoiceErr != nil {
-			return nil, errors.Join(tx.Rollback(), uVoiceErr)
+			return nil, uVoiceErr
 		}
 
-		voiceFile, voiceFileErr := tx.File.
+		voiceFile, voiceFileErr := client.File.
 			Create().
 			SetID(uVoiceInfo.ID).
 			SetName(uVoiceInfo.Filename).
@@ -125,26 +133,21 @@ func (r *repository) CreateMessage(
 			SetPath(uVoiceInfo.Path).
 			Save(ctx)
 		if voiceFileErr != nil {
-			return nil, errors.Join(tx.Rollback(), voiceFileErr)
+			return nil, voiceFileErr
 		}
 
-		msgVoiceErr := tx.MessageVoice.
+		msgVoiceErr := client.MessageVoice.
 			Create().
 			SetMessage(msg).
 			SetRoomID(roomID).
 			SetFile(voiceFile).
 			Exec(ctx)
 		if msgVoiceErr != nil {
-			return nil, errors.Join(tx.Rollback(), msgVoiceErr)
+			return nil, msgVoiceErr
 		}
 	}
 
-	txcErr := tx.Commit()
-	if txcErr != nil {
-		return nil, txcErr
-	}
-
-	return msg.Unwrap(), nil
+	return msg, nil
 }
 
 func (r *repository) UpdateMessage(
@@ -152,7 +155,7 @@ func (r *repository) UpdateMessage(
 	messageID pulid.ID,
 	content string,
 ) (*ent.Message, error) {
-	return r.entClient.Message.
+	return r.getClient(ctx).Message.
 		UpdateOneID(messageID).
 		SetContent(content).
 		Save(ctx)
@@ -162,12 +165,14 @@ func (r *repository) DeleteMessage(
 	ctx context.Context,
 	messageID pulid.ID,
 ) (*ent.Message, error) {
-	msg, err := r.entClient.Message.Get(ctx, messageID)
+	client := r.getClient(ctx)
+
+	msg, err := client.Message.Get(ctx, messageID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = r.entClient.Message.
+	err = client.Message.
 		DeleteOneID(messageID).
 		Exec(ctx)
 	if err != nil {
@@ -175,4 +180,14 @@ func (r *repository) DeleteMessage(
 	}
 
 	return msg, nil
+}
+
+func (r *repository) getClient(ctx context.Context) *ent.Client {
+	var client *ent.Client
+	if clientFromCtx := ent.FromContext(ctx); clientFromCtx != nil {
+		client = clientFromCtx
+	} else {
+		client = r.entClient
+	}
+	return client
 }

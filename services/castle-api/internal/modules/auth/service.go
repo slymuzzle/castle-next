@@ -115,7 +115,7 @@ func (s *service) Login(
 		"sub": string(existingUser.ID),
 	}
 	jwtauth.SetIssuedNow(claims)
-	jwtauth.SetExpiryIn(claims, time.Hour*24)
+	jwtauth.SetExpiryIn(claims, time.Hour*720)
 
 	_, token, err := s.jwtAuth.Encode(claims)
 	if err != nil {

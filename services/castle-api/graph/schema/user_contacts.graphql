@@ -1,4 +1,23 @@
+extend input UserContactWhereInput {
+  """
+  user edge predicates
+  """
+  hasUser: Boolean
+  hasUserWith: [UserWhereInput!]
+  """
+  contact edge predicates
+  """
+  hasContact: Boolean
+  hasContactWith: [UserWhereInput!]
+  """
+  room edge predicates
+  """
+  hasRoom: Boolean
+  hasRoomWith: [RoomWhereInput!]
+}
+
 extend type Mutation {
   generatePinCode: String
-  addContact(pincode: String!): UserContact
+  addUserContact(pincode: String!): UserContactEdge
+  deleteUserContact(userContactID: ID!): UserContactEdge
 }

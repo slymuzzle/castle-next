@@ -40,6 +40,8 @@ type Room struct {
 
 // RoomEdges holds the relations/edges for other nodes in the graph.
 type RoomEdges struct {
+	// UserContact holds the value of the user_contact edge.
+	UserContact []*UserContact `json:"user_contact,omitempty"`
 	// Users holds the value of the users edge.
 	Users []*User `json:"users,omitempty"`
 	// LastMessage holds the value of the last_message edge.
@@ -56,10 +58,11 @@ type RoomEdges struct {
 	RoomMembers []*RoomMember `json:"room_members,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 	// totalCount holds the count of the edges above.
-	totalCount [7]map[string]int
+	totalCount [8]map[string]int
 
+	namedUserContact        map[string][]*UserContact
 	namedUsers              map[string][]*User
 	namedMessages           map[string][]*Message
 	namedMessageVoices      map[string][]*MessageVoice
@@ -68,10 +71,19 @@ type RoomEdges struct {
 	namedRoomMembers        map[string][]*RoomMember
 }
 
+// UserContactOrErr returns the UserContact value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoomEdges) UserContactOrErr() ([]*UserContact, error) {
+	if e.loadedTypes[0] {
+		return e.UserContact, nil
+	}
+	return nil, &NotLoadedError{edge: "user_contact"}
+}
+
 // UsersOrErr returns the Users value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoomEdges) UsersOrErr() ([]*User, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		return e.Users, nil
 	}
 	return nil, &NotLoadedError{edge: "users"}
@@ -82,7 +94,7 @@ func (e RoomEdges) UsersOrErr() ([]*User, error) {
 func (e RoomEdges) LastMessageOrErr() (*Message, error) {
 	if e.LastMessage != nil {
 		return e.LastMessage, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: message.Label}
 	}
 	return nil, &NotLoadedError{edge: "last_message"}
@@ -91,7 +103,7 @@ func (e RoomEdges) LastMessageOrErr() (*Message, error) {
 // MessagesOrErr returns the Messages value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoomEdges) MessagesOrErr() ([]*Message, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.Messages, nil
 	}
 	return nil, &NotLoadedError{edge: "messages"}
@@ -100,7 +112,7 @@ func (e RoomEdges) MessagesOrErr() ([]*Message, error) {
 // MessageVoicesOrErr returns the MessageVoices value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoomEdges) MessageVoicesOrErr() ([]*MessageVoice, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.MessageVoices, nil
 	}
 	return nil, &NotLoadedError{edge: "message_voices"}
@@ -109,7 +121,7 @@ func (e RoomEdges) MessageVoicesOrErr() ([]*MessageVoice, error) {
 // MessageAttachmentsOrErr returns the MessageAttachments value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoomEdges) MessageAttachmentsOrErr() ([]*MessageAttachment, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.MessageAttachments, nil
 	}
 	return nil, &NotLoadedError{edge: "message_attachments"}
@@ -118,7 +130,7 @@ func (e RoomEdges) MessageAttachmentsOrErr() ([]*MessageAttachment, error) {
 // MessageLinksOrErr returns the MessageLinks value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoomEdges) MessageLinksOrErr() ([]*MessageLink, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.MessageLinks, nil
 	}
 	return nil, &NotLoadedError{edge: "message_links"}
@@ -127,7 +139,7 @@ func (e RoomEdges) MessageLinksOrErr() ([]*MessageLink, error) {
 // RoomMembersOrErr returns the RoomMembers value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoomEdges) RoomMembersOrErr() ([]*RoomMember, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.RoomMembers, nil
 	}
 	return nil, &NotLoadedError{edge: "room_members"}
@@ -225,6 +237,11 @@ func (r *Room) Value(name string) (ent.Value, error) {
 	return r.selectValues.Get(name)
 }
 
+// QueryUserContact queries the "user_contact" edge of the Room entity.
+func (r *Room) QueryUserContact() *UserContactQuery {
+	return NewRoomClient(r.config).QueryUserContact(r)
+}
+
 // QueryUsers queries the "users" edge of the Room entity.
 func (r *Room) QueryUsers() *UserQuery {
 	return NewRoomClient(r.config).QueryUsers(r)
@@ -302,6 +319,30 @@ func (r *Room) String() string {
 	builder.WriteString(r.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedUserContact returns the UserContact named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (r *Room) NamedUserContact(name string) ([]*UserContact, error) {
+	if r.Edges.namedUserContact == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := r.Edges.namedUserContact[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (r *Room) appendNamedUserContact(name string, edges ...*UserContact) {
+	if r.Edges.namedUserContact == nil {
+		r.Edges.namedUserContact = make(map[string][]*UserContact)
+	}
+	if len(edges) == 0 {
+		r.Edges.namedUserContact[name] = []*UserContact{}
+	} else {
+		r.Edges.namedUserContact[name] = append(r.Edges.namedUserContact[name], edges...)
+	}
 }
 
 // NamedUsers returns the Users named value or an error if the edge was not

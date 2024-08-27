@@ -51,6 +51,26 @@ func (rmu *RoomMemberUpdate) ClearDeletedAt() *RoomMemberUpdate {
 	return rmu
 }
 
+// SetName sets the "name" field.
+func (rmu *RoomMemberUpdate) SetName(s string) *RoomMemberUpdate {
+	rmu.mutation.SetName(s)
+	return rmu
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (rmu *RoomMemberUpdate) SetNillableName(s *string) *RoomMemberUpdate {
+	if s != nil {
+		rmu.SetName(*s)
+	}
+	return rmu
+}
+
+// ClearName clears the value of the "name" field.
+func (rmu *RoomMemberUpdate) ClearName() *RoomMemberUpdate {
+	rmu.mutation.ClearName()
+	return rmu
+}
+
 // SetUnreadMessagesCount sets the "unread_messages_count" field.
 func (rmu *RoomMemberUpdate) SetUnreadMessagesCount(i int) *RoomMemberUpdate {
 	rmu.mutation.ResetUnreadMessagesCount()
@@ -183,6 +203,12 @@ func (rmu *RoomMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if rmu.mutation.DeletedAtCleared() {
 		_spec.ClearField(roommember.FieldDeletedAt, field.TypeTime)
 	}
+	if value, ok := rmu.mutation.Name(); ok {
+		_spec.SetField(roommember.FieldName, field.TypeString, value)
+	}
+	if rmu.mutation.NameCleared() {
+		_spec.ClearField(roommember.FieldName, field.TypeString)
+	}
 	if value, ok := rmu.mutation.UnreadMessagesCount(); ok {
 		_spec.SetField(roommember.FieldUnreadMessagesCount, field.TypeInt, value)
 	}
@@ -284,6 +310,26 @@ func (rmuo *RoomMemberUpdateOne) SetNillableDeletedAt(t *time.Time) *RoomMemberU
 // ClearDeletedAt clears the value of the "deleted_at" field.
 func (rmuo *RoomMemberUpdateOne) ClearDeletedAt() *RoomMemberUpdateOne {
 	rmuo.mutation.ClearDeletedAt()
+	return rmuo
+}
+
+// SetName sets the "name" field.
+func (rmuo *RoomMemberUpdateOne) SetName(s string) *RoomMemberUpdateOne {
+	rmuo.mutation.SetName(s)
+	return rmuo
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (rmuo *RoomMemberUpdateOne) SetNillableName(s *string) *RoomMemberUpdateOne {
+	if s != nil {
+		rmuo.SetName(*s)
+	}
+	return rmuo
+}
+
+// ClearName clears the value of the "name" field.
+func (rmuo *RoomMemberUpdateOne) ClearName() *RoomMemberUpdateOne {
+	rmuo.mutation.ClearName()
 	return rmuo
 }
 
@@ -448,6 +494,12 @@ func (rmuo *RoomMemberUpdateOne) sqlSave(ctx context.Context) (_node *RoomMember
 	}
 	if rmuo.mutation.DeletedAtCleared() {
 		_spec.ClearField(roommember.FieldDeletedAt, field.TypeTime)
+	}
+	if value, ok := rmuo.mutation.Name(); ok {
+		_spec.SetField(roommember.FieldName, field.TypeString, value)
+	}
+	if rmuo.mutation.NameCleared() {
+		_spec.ClearField(roommember.FieldName, field.TypeString)
 	}
 	if value, ok := rmuo.mutation.UnreadMessagesCount(); ok {
 		_spec.SetField(roommember.FieldUnreadMessagesCount, field.TypeInt, value)

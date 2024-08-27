@@ -52,4 +52,28 @@ extend type Query {
 
 extend type Mutation {
   deleteRoomMember(roomMemberID: ID!): RoomMemberEdge
+  markRoomMemeberAsSeen(roomMemberID: ID!): RoomMemberEdge
+}
+
+type LastMessageUpdatedEvent {
+  id: ID!
+  content: String!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type RoomMemberUpdatedEvent {
+  id: ID!
+  name: String!
+  version: Uint64!
+  type: RoomType!
+  lastMessage: LastMessageUpdatedEvent
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+extend type Subscription {
+  roomMemberCreated: RoomMemberEdge!
+  roomMemberUpdated: RoomMemberEdge!
+  roomMemberDeleted: ID!
 }

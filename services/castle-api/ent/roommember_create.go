@@ -40,6 +40,20 @@ func (rmc *RoomMemberCreate) SetNillableDeletedAt(t *time.Time) *RoomMemberCreat
 	return rmc
 }
 
+// SetName sets the "name" field.
+func (rmc *RoomMemberCreate) SetName(s string) *RoomMemberCreate {
+	rmc.mutation.SetName(s)
+	return rmc
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (rmc *RoomMemberCreate) SetNillableName(s *string) *RoomMemberCreate {
+	if s != nil {
+		rmc.SetName(*s)
+	}
+	return rmc
+}
+
 // SetUnreadMessagesCount sets the "unread_messages_count" field.
 func (rmc *RoomMemberCreate) SetUnreadMessagesCount(i int) *RoomMemberCreate {
 	rmc.mutation.SetUnreadMessagesCount(i)
@@ -222,6 +236,10 @@ func (rmc *RoomMemberCreate) createSpec() (*RoomMember, *sqlgraph.CreateSpec) {
 		_spec.SetField(roommember.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = value
 	}
+	if value, ok := rmc.mutation.Name(); ok {
+		_spec.SetField(roommember.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
 	if value, ok := rmc.mutation.UnreadMessagesCount(); ok {
 		_spec.SetField(roommember.FieldUnreadMessagesCount, field.TypeInt, value)
 		_node.UnreadMessagesCount = value
@@ -331,6 +349,24 @@ func (u *RoomMemberUpsert) UpdateDeletedAt() *RoomMemberUpsert {
 // ClearDeletedAt clears the value of the "deleted_at" field.
 func (u *RoomMemberUpsert) ClearDeletedAt() *RoomMemberUpsert {
 	u.SetNull(roommember.FieldDeletedAt)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *RoomMemberUpsert) SetName(v string) *RoomMemberUpsert {
+	u.Set(roommember.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *RoomMemberUpsert) UpdateName() *RoomMemberUpsert {
+	u.SetExcluded(roommember.FieldName)
+	return u
+}
+
+// ClearName clears the value of the "name" field.
+func (u *RoomMemberUpsert) ClearName() *RoomMemberUpsert {
+	u.SetNull(roommember.FieldName)
 	return u
 }
 
@@ -445,6 +481,27 @@ func (u *RoomMemberUpsertOne) UpdateDeletedAt() *RoomMemberUpsertOne {
 func (u *RoomMemberUpsertOne) ClearDeletedAt() *RoomMemberUpsertOne {
 	return u.Update(func(s *RoomMemberUpsert) {
 		s.ClearDeletedAt()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *RoomMemberUpsertOne) SetName(v string) *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *RoomMemberUpsertOne) UpdateName() *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.UpdateName()
+	})
+}
+
+// ClearName clears the value of the "name" field.
+func (u *RoomMemberUpsertOne) ClearName() *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.ClearName()
 	})
 }
 
@@ -733,6 +790,27 @@ func (u *RoomMemberUpsertBulk) UpdateDeletedAt() *RoomMemberUpsertBulk {
 func (u *RoomMemberUpsertBulk) ClearDeletedAt() *RoomMemberUpsertBulk {
 	return u.Update(func(s *RoomMemberUpsert) {
 		s.ClearDeletedAt()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *RoomMemberUpsertBulk) SetName(v string) *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *RoomMemberUpsertBulk) UpdateName() *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.UpdateName()
+	})
+}
+
+// ClearName clears the value of the "name" field.
+func (u *RoomMemberUpsertBulk) ClearName() *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.ClearName()
 	})
 }
 

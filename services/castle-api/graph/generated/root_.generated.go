@@ -155,17 +155,19 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddContact       func(childComplexity int, pincode string) int
-		CreateRoom       func(childComplexity int, input model.CreateRoomInput) int
-		DeleteMessage    func(childComplexity int, messageID pulid.ID) int
-		DeleteRoom       func(childComplexity int, roomID pulid.ID) int
-		DeleteRoomMember func(childComplexity int, roomMemberID pulid.ID) int
-		GeneratePinCode  func(childComplexity int) int
-		Login            func(childComplexity int, input model.UserLoginInput) int
-		Register         func(childComplexity int, input model.UserRegisterInput) int
-		SendMessage      func(childComplexity int, input model.SendMessageInput) int
-		UpdateMessage    func(childComplexity int, messageID pulid.ID, input model.UpdateMessageInput) int
-		UpdateRoom       func(childComplexity int, roomID pulid.ID, input model.UpdateRoomInput) int
+		AddUserContact        func(childComplexity int, pincode string) int
+		CreateRoom            func(childComplexity int, input model.CreateRoomInput) int
+		DeleteMessage         func(childComplexity int, messageID pulid.ID) int
+		DeleteRoom            func(childComplexity int, roomID pulid.ID) int
+		DeleteRoomMember      func(childComplexity int, roomMemberID pulid.ID) int
+		DeleteUserContact     func(childComplexity int, userContactID pulid.ID) int
+		GeneratePinCode       func(childComplexity int) int
+		Login                 func(childComplexity int, input model.UserLoginInput) int
+		MarkRoomMemeberAsSeen func(childComplexity int, roomMemberID pulid.ID) int
+		Register              func(childComplexity int, input model.UserRegisterInput) int
+		SendMessage           func(childComplexity int, input model.SendMessageInput) int
+		UpdateMessage         func(childComplexity int, messageID pulid.ID, input model.UpdateMessageInput) int
+		UpdateRoom            func(childComplexity int, roomID pulid.ID, input model.UpdateRoomInput) int
 	}
 
 	PageInfo struct {
@@ -200,6 +202,7 @@ type ComplexityRoot struct {
 		RoomMembers        func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
 		Type               func(childComplexity int) int
 		UpdatedAt          func(childComplexity int) int
+		UserContact        func(childComplexity int) int
 		Users              func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) int
 		Version            func(childComplexity int) int
 	}
@@ -218,6 +221,7 @@ type ComplexityRoot struct {
 	RoomMember struct {
 		ID                  func(childComplexity int) int
 		JoinedAt            func(childComplexity int) int
+		Name                func(childComplexity int) int
 		Room                func(childComplexity int) int
 		RoomID              func(childComplexity int) int
 		UnreadMessagesCount func(childComplexity int) int
@@ -236,7 +240,7 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int) int
 	}
 
-	RoomUpdatedEvent struct {
+	RoomMemberUpdatedEvent struct {
 		CreatedAt   func(childComplexity int) int
 		ID          func(childComplexity int) int
 		LastMessage func(childComplexity int) int
@@ -247,10 +251,12 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		MessageCreated func(childComplexity int, roomID pulid.ID) int
-		MessageDeleted func(childComplexity int, roomID pulid.ID) int
-		MessageUpdated func(childComplexity int, roomID pulid.ID) int
-		RoomsUpdated   func(childComplexity int) int
+		MessageCreated    func(childComplexity int, roomID pulid.ID) int
+		MessageDeleted    func(childComplexity int, roomID pulid.ID) int
+		MessageUpdated    func(childComplexity int, roomID pulid.ID) int
+		RoomMemberCreated func(childComplexity int) int
+		RoomMemberDeleted func(childComplexity int) int
+		RoomMemberUpdated func(childComplexity int) int
 	}
 
 	User struct {
@@ -770,17 +776,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MessageVoiceEdge.Node(childComplexity), true
 
-	case "Mutation.addContact":
-		if e.complexity.Mutation.AddContact == nil {
+	case "Mutation.addUserContact":
+		if e.complexity.Mutation.AddUserContact == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_addContact_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_addUserContact_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddContact(childComplexity, args["pincode"].(string)), true
+		return e.complexity.Mutation.AddUserContact(childComplexity, args["pincode"].(string)), true
 
 	case "Mutation.createRoom":
 		if e.complexity.Mutation.CreateRoom == nil {
@@ -830,6 +836,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteRoomMember(childComplexity, args["roomMemberID"].(pulid.ID)), true
 
+	case "Mutation.deleteUserContact":
+		if e.complexity.Mutation.DeleteUserContact == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteUserContact_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteUserContact(childComplexity, args["userContactID"].(pulid.ID)), true
+
 	case "Mutation.generatePinCode":
 		if e.complexity.Mutation.GeneratePinCode == nil {
 			break
@@ -848,6 +866,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.Login(childComplexity, args["input"].(model.UserLoginInput)), true
+
+	case "Mutation.markRoomMemeberAsSeen":
+		if e.complexity.Mutation.MarkRoomMemeberAsSeen == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_markRoomMemeberAsSeen_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.MarkRoomMemeberAsSeen(childComplexity, args["roomMemberID"].(pulid.ID)), true
 
 	case "Mutation.register":
 		if e.complexity.Mutation.Register == nil {
@@ -1142,6 +1172,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Room.UpdatedAt(childComplexity), true
 
+	case "Room.userContact":
+		if e.complexity.Room.UserContact == nil {
+			break
+		}
+
+		return e.complexity.Room.UserContact(childComplexity), true
+
 	case "Room.users":
 		if e.complexity.Room.Users == nil {
 			break
@@ -1209,6 +1246,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RoomMember.JoinedAt(childComplexity), true
+
+	case "RoomMember.name":
+		if e.complexity.RoomMember.Name == nil {
+			break
+		}
+
+		return e.complexity.RoomMember.Name(childComplexity), true
 
 	case "RoomMember.room":
 		if e.complexity.RoomMember.Room == nil {
@@ -1280,54 +1324,54 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RoomMemberEdge.Node(childComplexity), true
 
-	case "RoomUpdatedEvent.createdAt":
-		if e.complexity.RoomUpdatedEvent.CreatedAt == nil {
+	case "RoomMemberUpdatedEvent.createdAt":
+		if e.complexity.RoomMemberUpdatedEvent.CreatedAt == nil {
 			break
 		}
 
-		return e.complexity.RoomUpdatedEvent.CreatedAt(childComplexity), true
+		return e.complexity.RoomMemberUpdatedEvent.CreatedAt(childComplexity), true
 
-	case "RoomUpdatedEvent.id":
-		if e.complexity.RoomUpdatedEvent.ID == nil {
+	case "RoomMemberUpdatedEvent.id":
+		if e.complexity.RoomMemberUpdatedEvent.ID == nil {
 			break
 		}
 
-		return e.complexity.RoomUpdatedEvent.ID(childComplexity), true
+		return e.complexity.RoomMemberUpdatedEvent.ID(childComplexity), true
 
-	case "RoomUpdatedEvent.lastMessage":
-		if e.complexity.RoomUpdatedEvent.LastMessage == nil {
+	case "RoomMemberUpdatedEvent.lastMessage":
+		if e.complexity.RoomMemberUpdatedEvent.LastMessage == nil {
 			break
 		}
 
-		return e.complexity.RoomUpdatedEvent.LastMessage(childComplexity), true
+		return e.complexity.RoomMemberUpdatedEvent.LastMessage(childComplexity), true
 
-	case "RoomUpdatedEvent.name":
-		if e.complexity.RoomUpdatedEvent.Name == nil {
+	case "RoomMemberUpdatedEvent.name":
+		if e.complexity.RoomMemberUpdatedEvent.Name == nil {
 			break
 		}
 
-		return e.complexity.RoomUpdatedEvent.Name(childComplexity), true
+		return e.complexity.RoomMemberUpdatedEvent.Name(childComplexity), true
 
-	case "RoomUpdatedEvent.type":
-		if e.complexity.RoomUpdatedEvent.Type == nil {
+	case "RoomMemberUpdatedEvent.type":
+		if e.complexity.RoomMemberUpdatedEvent.Type == nil {
 			break
 		}
 
-		return e.complexity.RoomUpdatedEvent.Type(childComplexity), true
+		return e.complexity.RoomMemberUpdatedEvent.Type(childComplexity), true
 
-	case "RoomUpdatedEvent.updatedAt":
-		if e.complexity.RoomUpdatedEvent.UpdatedAt == nil {
+	case "RoomMemberUpdatedEvent.updatedAt":
+		if e.complexity.RoomMemberUpdatedEvent.UpdatedAt == nil {
 			break
 		}
 
-		return e.complexity.RoomUpdatedEvent.UpdatedAt(childComplexity), true
+		return e.complexity.RoomMemberUpdatedEvent.UpdatedAt(childComplexity), true
 
-	case "RoomUpdatedEvent.version":
-		if e.complexity.RoomUpdatedEvent.Version == nil {
+	case "RoomMemberUpdatedEvent.version":
+		if e.complexity.RoomMemberUpdatedEvent.Version == nil {
 			break
 		}
 
-		return e.complexity.RoomUpdatedEvent.Version(childComplexity), true
+		return e.complexity.RoomMemberUpdatedEvent.Version(childComplexity), true
 
 	case "Subscription.messageCreated":
 		if e.complexity.Subscription.MessageCreated == nil {
@@ -1365,12 +1409,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Subscription.MessageUpdated(childComplexity, args["roomID"].(pulid.ID)), true
 
-	case "Subscription.roomsUpdated":
-		if e.complexity.Subscription.RoomsUpdated == nil {
+	case "Subscription.roomMemberCreated":
+		if e.complexity.Subscription.RoomMemberCreated == nil {
 			break
 		}
 
-		return e.complexity.Subscription.RoomsUpdated(childComplexity), true
+		return e.complexity.Subscription.RoomMemberCreated(childComplexity), true
+
+	case "Subscription.roomMemberDeleted":
+		if e.complexity.Subscription.RoomMemberDeleted == nil {
+			break
+		}
+
+		return e.complexity.Subscription.RoomMemberDeleted(childComplexity), true
+
+	case "Subscription.roomMemberUpdated":
+		if e.complexity.Subscription.RoomMemberUpdated == nil {
+			break
+		}
+
+		return e.complexity.Subscription.RoomMemberUpdated(childComplexity), true
 
 	case "User.contactPin":
 		if e.complexity.User.ContactPin == nil {
@@ -2579,11 +2637,12 @@ type Query {
 }
 type Room implements Node {
   id: ID!
-  name: String!
+  name: String
   version: Uint64!
   type: RoomType!
   createdAt: Time!
   updatedAt: Time!
+  userContact: [UserContact!]
   users(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -2804,6 +2863,7 @@ type RoomEdge {
 }
 type RoomMember implements Node {
   id: ID!
+  name: String
   unreadMessagesCount: Int!
   userID: ID!
   roomID: ID!
@@ -2858,6 +2918,7 @@ input RoomMemberOrder {
 Properties by which RoomMember connections can be ordered.
 """
 enum RoomMemberOrderField {
+  NAME
   UNREAD_MESSAGES_COUNT
   JOINED_AT
 }
@@ -2880,6 +2941,24 @@ input RoomMemberWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
+  """
+  name field predicates
+  """
+  name: String
+  nameNEQ: String
+  nameIn: [String!]
+  nameNotIn: [String!]
+  nameGT: String
+  nameGTE: String
+  nameLT: String
+  nameLTE: String
+  nameContains: String
+  nameHasPrefix: String
+  nameHasSuffix: String
+  nameIsNil: Boolean
+  nameNotNil: Boolean
+  nameEqualFold: String
+  nameContainsFold: String
   """
   unread_messages_count field predicates
   """
@@ -2966,6 +3045,8 @@ input RoomWhereInput {
   nameContains: String
   nameHasPrefix: String
   nameHasSuffix: String
+  nameIsNil: Boolean
+  nameNotNil: Boolean
   nameEqualFold: String
   nameContainsFold: String
   """
@@ -3008,6 +3089,11 @@ input RoomWhereInput {
   updatedAtGTE: Time
   updatedAtLT: Time
   updatedAtLTE: Time
+  """
+  user_contact edge predicates
+  """
+  hasUserContact: Boolean
+  hasUserContactWith: [UserContactWhereInput!]
   """
   users edge predicates
   """
@@ -3521,7 +3607,8 @@ input UserWhereInput {
 CreateMessageInput is used for create Message object.
 """
 input SendMessageInput {
-  targetUserID: ID! @goTag(key: "validate", value: "required")
+  roomID: ID! @goTag(key: "validate", value: "required")
+  notifyUserID: ID
   replyTo: ID
   content: String! @goTag(key: "validate", value: "required,max=4096")
   files: [Upload!] @goTag(key: "validate", value: "max=10")
@@ -3583,7 +3670,7 @@ extend type Mutation {
 extend type Subscription {
   messageCreated(roomID: ID!): MessageEdge!
   messageUpdated(roomID: ID!): MessageEdge!
-  messageDeleted(roomID: ID!): MessageEdge!
+  messageDeleted(roomID: ID!): ID!
 }
 `, BuiltIn: false},
 	{Name: "../schema/message_attachment.graphql", Input: `extend type Query {
@@ -3726,27 +3813,6 @@ extend type Mutation {
   updateRoom(roomID: ID!, input: UpdateRoomInput!): RoomEdge
   deleteRoom(roomID: ID!): RoomEdge
 }
-
-type LastMessageUpdatedEvent {
-  id: ID!
-  content: String!
-  createdAt: Time!
-  updatedAt: Time!
-}
-
-type RoomUpdatedEvent {
-  id: ID!
-  name: String!
-  version: Uint64!
-  type: RoomType!
-  lastMessage: LastMessageUpdatedEvent
-  createdAt: Time!
-  updatedAt: Time!
-}
-
-extend type Subscription {
-  roomsUpdated: RoomUpdatedEvent!
-}
 `, BuiltIn: false},
 	{Name: "../schema/room_member.graphql", Input: `extend input RoomMemberWhereInput {
   """
@@ -3802,6 +3868,30 @@ extend type Query {
 
 extend type Mutation {
   deleteRoomMember(roomMemberID: ID!): RoomMemberEdge
+  markRoomMemeberAsSeen(roomMemberID: ID!): RoomMemberEdge
+}
+
+type LastMessageUpdatedEvent {
+  id: ID!
+  content: String!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type RoomMemberUpdatedEvent {
+  id: ID!
+  name: String!
+  version: Uint64!
+  type: RoomType!
+  lastMessage: LastMessageUpdatedEvent
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+extend type Subscription {
+  roomMemberCreated: RoomMemberEdge!
+  roomMemberUpdated: RoomMemberEdge!
+  roomMemberDeleted: ID!
 }
 `, BuiltIn: false},
 	{Name: "../schema/scalars.graphql", Input: `"""
@@ -3842,9 +3932,28 @@ extend type Query {
   self: User
 }
 `, BuiltIn: false},
-	{Name: "../schema/user_contacts.graphql", Input: `extend type Mutation {
+	{Name: "../schema/user_contacts.graphql", Input: `extend input UserContactWhereInput {
+  """
+  user edge predicates
+  """
+  hasUser: Boolean
+  hasUserWith: [UserWhereInput!]
+  """
+  contact edge predicates
+  """
+  hasContact: Boolean
+  hasContactWith: [UserWhereInput!]
+  """
+  room edge predicates
+  """
+  hasRoom: Boolean
+  hasRoomWith: [RoomWhereInput!]
+}
+
+extend type Mutation {
   generatePinCode: String
-  addContact(pincode: String!): UserContact
+  addUserContact(pincode: String!): UserContactEdge
+  deleteUserContact(userContactID: ID!): UserContactEdge
 }
 `, BuiltIn: false},
 }

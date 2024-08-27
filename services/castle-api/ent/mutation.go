@@ -3494,6 +3494,9 @@ type RoomMutation struct {
 	created_at                 *time.Time
 	updated_at                 *time.Time
 	clearedFields              map[string]struct{}
+	user_contact               map[pulid.ID]struct{}
+	removeduser_contact        map[pulid.ID]struct{}
+	cleareduser_contact        bool
 	users                      map[pulid.ID]struct{}
 	removedusers               map[pulid.ID]struct{}
 	clearedusers               bool
@@ -3703,9 +3706,22 @@ func (m *RoomMutation) OldName(ctx context.Context) (v string, err error) {
 	return oldValue.Name, nil
 }
 
+// ClearName clears the value of the "name" field.
+func (m *RoomMutation) ClearName() {
+	m.name = nil
+	m.clearedFields[room.FieldName] = struct{}{}
+}
+
+// NameCleared returns if the "name" field was cleared in this mutation.
+func (m *RoomMutation) NameCleared() bool {
+	_, ok := m.clearedFields[room.FieldName]
+	return ok
+}
+
 // ResetName resets all changes to the "name" field.
 func (m *RoomMutation) ResetName() {
 	m.name = nil
+	delete(m.clearedFields, room.FieldName)
 }
 
 // SetVersion sets the "version" field.
@@ -3870,6 +3886,60 @@ func (m *RoomMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *RoomMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// AddUserContactIDs adds the "user_contact" edge to the UserContact entity by ids.
+func (m *RoomMutation) AddUserContactIDs(ids ...pulid.ID) {
+	if m.user_contact == nil {
+		m.user_contact = make(map[pulid.ID]struct{})
+	}
+	for i := range ids {
+		m.user_contact[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUserContact clears the "user_contact" edge to the UserContact entity.
+func (m *RoomMutation) ClearUserContact() {
+	m.cleareduser_contact = true
+}
+
+// UserContactCleared reports if the "user_contact" edge to the UserContact entity was cleared.
+func (m *RoomMutation) UserContactCleared() bool {
+	return m.cleareduser_contact
+}
+
+// RemoveUserContactIDs removes the "user_contact" edge to the UserContact entity by IDs.
+func (m *RoomMutation) RemoveUserContactIDs(ids ...pulid.ID) {
+	if m.removeduser_contact == nil {
+		m.removeduser_contact = make(map[pulid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.user_contact, ids[i])
+		m.removeduser_contact[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUserContact returns the removed IDs of the "user_contact" edge to the UserContact entity.
+func (m *RoomMutation) RemovedUserContactIDs() (ids []pulid.ID) {
+	for id := range m.removeduser_contact {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UserContactIDs returns the "user_contact" edge IDs in the mutation.
+func (m *RoomMutation) UserContactIDs() (ids []pulid.ID) {
+	for id := range m.user_contact {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUserContact resets all changes to the "user_contact" edge.
+func (m *RoomMutation) ResetUserContact() {
+	m.user_contact = nil
+	m.cleareduser_contact = false
+	m.removeduser_contact = nil
 }
 
 // AddUserIDs adds the "users" edge to the User entity by ids.
@@ -4428,6 +4498,9 @@ func (m *RoomMutation) ClearedFields() []string {
 	if m.FieldCleared(room.FieldDeletedAt) {
 		fields = append(fields, room.FieldDeletedAt)
 	}
+	if m.FieldCleared(room.FieldName) {
+		fields = append(fields, room.FieldName)
+	}
 	return fields
 }
 
@@ -4444,6 +4517,9 @@ func (m *RoomMutation) ClearField(name string) error {
 	switch name {
 	case room.FieldDeletedAt:
 		m.ClearDeletedAt()
+		return nil
+	case room.FieldName:
+		m.ClearName()
 		return nil
 	}
 	return fmt.Errorf("unknown Room nullable field %s", name)
@@ -4477,7 +4553,10 @@ func (m *RoomMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RoomMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
+	if m.user_contact != nil {
+		edges = append(edges, room.EdgeUserContact)
+	}
 	if m.users != nil {
 		edges = append(edges, room.EdgeUsers)
 	}
@@ -4506,6 +4585,12 @@ func (m *RoomMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *RoomMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case room.EdgeUserContact:
+		ids := make([]ent.Value, 0, len(m.user_contact))
+		for id := range m.user_contact {
+			ids = append(ids, id)
+		}
+		return ids
 	case room.EdgeUsers:
 		ids := make([]ent.Value, 0, len(m.users))
 		for id := range m.users {
@@ -4552,7 +4637,10 @@ func (m *RoomMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RoomMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
+	if m.removeduser_contact != nil {
+		edges = append(edges, room.EdgeUserContact)
+	}
 	if m.removedusers != nil {
 		edges = append(edges, room.EdgeUsers)
 	}
@@ -4578,6 +4666,12 @@ func (m *RoomMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *RoomMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case room.EdgeUserContact:
+		ids := make([]ent.Value, 0, len(m.removeduser_contact))
+		for id := range m.removeduser_contact {
+			ids = append(ids, id)
+		}
+		return ids
 	case room.EdgeUsers:
 		ids := make([]ent.Value, 0, len(m.removedusers))
 		for id := range m.removedusers {
@@ -4620,7 +4714,10 @@ func (m *RoomMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RoomMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
+	if m.cleareduser_contact {
+		edges = append(edges, room.EdgeUserContact)
+	}
 	if m.clearedusers {
 		edges = append(edges, room.EdgeUsers)
 	}
@@ -4649,6 +4746,8 @@ func (m *RoomMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *RoomMutation) EdgeCleared(name string) bool {
 	switch name {
+	case room.EdgeUserContact:
+		return m.cleareduser_contact
 	case room.EdgeUsers:
 		return m.clearedusers
 	case room.EdgeLastMessage:
@@ -4682,6 +4781,9 @@ func (m *RoomMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *RoomMutation) ResetEdge(name string) error {
 	switch name {
+	case room.EdgeUserContact:
+		m.ResetUserContact()
+		return nil
 	case room.EdgeUsers:
 		m.ResetUsers()
 		return nil
@@ -4714,6 +4816,7 @@ type RoomMemberMutation struct {
 	typ                      string
 	id                       *pulid.ID
 	deleted_at               *time.Time
+	name                     *string
 	unread_messages_count    *int
 	addunread_messages_count *int
 	joined_at                *time.Time
@@ -4878,6 +4981,55 @@ func (m *RoomMemberMutation) DeletedAtCleared() bool {
 func (m *RoomMemberMutation) ResetDeletedAt() {
 	m.deleted_at = nil
 	delete(m.clearedFields, roommember.FieldDeletedAt)
+}
+
+// SetName sets the "name" field.
+func (m *RoomMemberMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *RoomMemberMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the RoomMember entity.
+// If the RoomMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMemberMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ClearName clears the value of the "name" field.
+func (m *RoomMemberMutation) ClearName() {
+	m.name = nil
+	m.clearedFields[roommember.FieldName] = struct{}{}
+}
+
+// NameCleared returns if the "name" field was cleared in this mutation.
+func (m *RoomMemberMutation) NameCleared() bool {
+	_, ok := m.clearedFields[roommember.FieldName]
+	return ok
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *RoomMemberMutation) ResetName() {
+	m.name = nil
+	delete(m.clearedFields, roommember.FieldName)
 }
 
 // SetUnreadMessagesCount sets the "unread_messages_count" field.
@@ -5132,9 +5284,12 @@ func (m *RoomMemberMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoomMemberMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.deleted_at != nil {
 		fields = append(fields, roommember.FieldDeletedAt)
+	}
+	if m.name != nil {
+		fields = append(fields, roommember.FieldName)
 	}
 	if m.unread_messages_count != nil {
 		fields = append(fields, roommember.FieldUnreadMessagesCount)
@@ -5158,6 +5313,8 @@ func (m *RoomMemberMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case roommember.FieldDeletedAt:
 		return m.DeletedAt()
+	case roommember.FieldName:
+		return m.Name()
 	case roommember.FieldUnreadMessagesCount:
 		return m.UnreadMessagesCount()
 	case roommember.FieldUserID:
@@ -5177,6 +5334,8 @@ func (m *RoomMemberMutation) OldField(ctx context.Context, name string) (ent.Val
 	switch name {
 	case roommember.FieldDeletedAt:
 		return m.OldDeletedAt(ctx)
+	case roommember.FieldName:
+		return m.OldName(ctx)
 	case roommember.FieldUnreadMessagesCount:
 		return m.OldUnreadMessagesCount(ctx)
 	case roommember.FieldUserID:
@@ -5200,6 +5359,13 @@ func (m *RoomMemberMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDeletedAt(v)
+		return nil
+	case roommember.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
 		return nil
 	case roommember.FieldUnreadMessagesCount:
 		v, ok := value.(int)
@@ -5277,6 +5443,9 @@ func (m *RoomMemberMutation) ClearedFields() []string {
 	if m.FieldCleared(roommember.FieldDeletedAt) {
 		fields = append(fields, roommember.FieldDeletedAt)
 	}
+	if m.FieldCleared(roommember.FieldName) {
+		fields = append(fields, roommember.FieldName)
+	}
 	return fields
 }
 
@@ -5294,6 +5463,9 @@ func (m *RoomMemberMutation) ClearField(name string) error {
 	case roommember.FieldDeletedAt:
 		m.ClearDeletedAt()
 		return nil
+	case roommember.FieldName:
+		m.ClearName()
+		return nil
 	}
 	return fmt.Errorf("unknown RoomMember nullable field %s", name)
 }
@@ -5304,6 +5476,9 @@ func (m *RoomMemberMutation) ResetField(name string) error {
 	switch name {
 	case roommember.FieldDeletedAt:
 		m.ResetDeletedAt()
+		return nil
+	case roommember.FieldName:
+		m.ResetName()
 		return nil
 	case roommember.FieldUnreadMessagesCount:
 		m.ResetUnreadMessagesCount()

@@ -2,7 +2,8 @@
 CreateMessageInput is used for create Message object.
 """
 input SendMessageInput {
-  targetUserID: ID! @goTag(key: "validate", value: "required")
+  roomID: ID! @goTag(key: "validate", value: "required")
+  notifyUserID: ID
   replyTo: ID
   content: String! @goTag(key: "validate", value: "required,max=4096")
   files: [Upload!] @goTag(key: "validate", value: "max=10")
@@ -64,5 +65,5 @@ extend type Mutation {
 extend type Subscription {
   messageCreated(roomID: ID!): MessageEdge!
   messageUpdated(roomID: ID!): MessageEdge!
-  messageDeleted(roomID: ID!): MessageEdge!
+  messageDeleted(roomID: ID!): ID!
 }

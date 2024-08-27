@@ -2470,6 +2470,20 @@ func (rm *RoomMemberQuery) Paginate(
 }
 
 var (
+	// RoomMemberOrderFieldName orders RoomMember by name.
+	RoomMemberOrderFieldName = &RoomMemberOrderField{
+		Value: func(rm *RoomMember) (ent.Value, error) {
+			return rm.Name, nil
+		},
+		column: roommember.FieldName,
+		toTerm: roommember.ByName,
+		toCursor: func(rm *RoomMember) Cursor {
+			return Cursor{
+				ID:    rm.ID,
+				Value: rm.Name,
+			}
+		},
+	}
 	// RoomMemberOrderFieldUnreadMessagesCount orders RoomMember by unread_messages_count.
 	RoomMemberOrderFieldUnreadMessagesCount = &RoomMemberOrderField{
 		Value: func(rm *RoomMember) (ent.Value, error) {
@@ -2504,6 +2518,8 @@ var (
 func (f RoomMemberOrderField) String() string {
 	var str string
 	switch f.column {
+	case RoomMemberOrderFieldName.column:
+		str = "NAME"
 	case RoomMemberOrderFieldUnreadMessagesCount.column:
 		str = "UNREAD_MESSAGES_COUNT"
 	case RoomMemberOrderFieldJoinedAt.column:
@@ -2524,6 +2540,8 @@ func (f *RoomMemberOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("RoomMemberOrderField %T must be a string", v)
 	}
 	switch str {
+	case "NAME":
+		*f = *RoomMemberOrderFieldName
 	case "UNREAD_MESSAGES_COUNT":
 		*f = *RoomMemberOrderFieldUnreadMessagesCount
 	case "JOINED_AT":

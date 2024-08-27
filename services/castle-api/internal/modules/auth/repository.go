@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
@@ -36,18 +37,20 @@ func NewRepository(entClient *ent.Client) Repository {
 }
 
 func (r *repository) FindUserByID(ctx context.Context, userID pulid.ID) (*ent.User, error) {
-	return r.entClient.User.Get(ctx, userID)
+	return r.getClient(ctx).User.
+		Get(ctx, userID)
 }
 
 func (r *repository) FindUserByNickname(
 	ctx context.Context,
 	nickname string,
 ) (*ent.User, error) {
-	return r.entClient.User.
+	return r.getClient(ctx).User.
 		Query().
 		Where(
 			user.Nickname(nickname),
-		).Only(ctx)
+		).
+		Only(ctx)
 }
 
 func (r *repository) CreateUser(
@@ -57,11 +60,21 @@ func (r *repository) CreateUser(
 	nickname string,
 	password string,
 ) (*ent.User, error) {
-	return r.entClient.User.
+	return r.getClient(ctx).User.
 		Create().
 		SetFirstName(firstName).
 		SetLastName(lastName).
 		SetNickname(nickname).
 		SetPassword(password).
 		Save(ctx)
+}
+
+func (r *repository) getClient(ctx context.Context) *ent.Client {
+	var client *ent.Client
+	if clientFromCtx := ent.FromContext(ctx); clientFromCtx != nil {
+		client = clientFromCtx
+	} else {
+		client = r.entClient
+	}
+	return client
 }

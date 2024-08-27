@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"journeyhub/ent"
+	"journeyhub/ent/schema/pulid"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -46,4 +47,19 @@ func (s *loggingService) AddUserContact(
 		)
 	}(time.Now())
 	return s.Service.AddUserContact(ctx, pincode)
+}
+
+func (s *loggingService) DeleteUserContact(
+	ctx context.Context,
+	ID pulid.ID,
+) (usr *ent.UserContact, err error) {
+	defer func(begin time.Time) {
+		level.Debug(s.logger).Log(
+			"method", "DeleteUserContact",
+			"ID", ID,
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.DeleteUserContact(ctx, ID)
 }

@@ -16,6 +16,10 @@ type Service interface {
 		ctx context.Context,
 		pincode string,
 	) (*ent.UserContact, error)
+	DeleteUserContact(
+		ctx context.Context,
+		ID pulid.ID,
+	) (*ent.UserContact, error)
 }
 
 type service struct {
@@ -52,7 +56,8 @@ func (s *service) GenerateUserPinCode(
 	return &pincode, nil
 }
 
-func (s *service) AddUserContact(ctx context.Context,
+func (s *service) AddUserContact(
+	ctx context.Context,
 	pincode string,
 ) (*ent.UserContact, error) {
 	currentUserID, err := s.authService.Auth(ctx)
@@ -69,6 +74,23 @@ func (s *service) AddUserContact(ctx context.Context,
 		UserID:    currentUserID,
 		ContactID: pincodeUser.ID,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return userContact, nil
+}
+
+func (s *service) DeleteUserContact(
+	ctx context.Context,
+	ID pulid.ID,
+) (*ent.UserContact, error) {
+	_, err := s.authService.Auth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userContact, err := s.contactsRepository.Delete(ctx, ID)
 	if err != nil {
 		return nil, err
 	}

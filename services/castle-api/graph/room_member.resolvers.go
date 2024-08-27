@@ -16,25 +16,20 @@ import (
 
 // DeleteRoomMember is the resolver for the deleteRoomMember field.
 func (r *mutationResolver) DeleteRoomMember(ctx context.Context, roomMemberID pulid.ID) (*ent.RoomMemberEdge, error) {
-	// roomMember, err := r.roomsService.DeleteRoomMember(ctx, roomMemberID)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	entClient := r.dbService.Client()
-
-	roomMember, err := entClient.RoomMember.Get(ctx, roomMemberID)
+	roomMember, err := r.roomMemberService.DeleteRoomMember(ctx, roomMemberID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = entClient.RoomMember.
-		DeleteOneID(roomMemberID).
-		Exec(ctx)
+	return roomMember.ToEdge(ent.DefaultRoomMemberOrder), nil
+}
+
+// MarkRoomMemeberAsSeen is the resolver for the markRoomMemeberAsSeen field.
+func (r *mutationResolver) MarkRoomMemeberAsSeen(ctx context.Context, roomMemberID pulid.ID) (*ent.RoomMemberEdge, error) {
+	roomMember, err := r.roomMemberService.MarkRoomMemberAsSeen(ctx, roomMemberID)
 	if err != nil {
 		return nil, err
 	}
-
 	return roomMember.ToEdge(ent.DefaultRoomMemberOrder), nil
 }
 
@@ -60,4 +55,19 @@ func (r *queryResolver) RoomMembersByRoom(ctx context.Context, roomID pulid.ID, 
 			ent.WithRoomMemberOrder(orderBy),
 			ent.WithRoomMemberFilter(where.Filter),
 		)
+}
+
+// RoomMemberCreated is the resolver for the roomMemberCreated field.
+func (r *subscriptionResolver) RoomMemberCreated(ctx context.Context) (<-chan *ent.RoomMemberEdge, error) {
+	return r.roomMemberService.SubscribeToRoomMemberCreatedEvent(ctx)
+}
+
+// RoomMemberUpdated is the resolver for the roomMemberUpdated field.
+func (r *subscriptionResolver) RoomMemberUpdated(ctx context.Context) (<-chan *ent.RoomMemberEdge, error) {
+	return r.roomMemberService.SubscribeToRoomMemberUpdatedEvent(ctx)
+}
+
+// RoomMemberDeleted is the resolver for the roomMemberDeleted field.
+func (r *subscriptionResolver) RoomMemberDeleted(ctx context.Context) (<-chan pulid.ID, error) {
+	return r.roomMemberService.SubscribeToRoomMemberDeletedEvent(ctx)
 }

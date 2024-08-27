@@ -23,15 +23,15 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 func (s *loggingService) SendMessage(
 	ctx context.Context,
 	input SendMessageInput,
-) (msg *ent.MessageEdge, err error) {
+) (msg *ent.Message, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "SendMessage",
-			"targetUserID", input.TargetUserID,
-			"replyTo", input.ReplyTo,
-			"content", input.Content,
-			"filesCount", len(input.Files),
-			"message", msg.Node,
+			// "targetUserID", input.TargetUserID,
+			// "replyTo", input.ReplyTo,
+			// "content", input.Content,
+			// "filesCount", len(input.Files),
+			// "message", msg.Node,
 			"took", time.Since(begin),
 			"err", err,
 		)
@@ -58,7 +58,7 @@ func (s *loggingService) UpdateMessage(
 	ctx context.Context,
 	messageID pulid.ID,
 	input UpdateMessageInput,
-) (msg *ent.MessageEdge, err error) {
+) (msg *ent.Message, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "UpdateMessage",
@@ -90,7 +90,7 @@ func (s *loggingService) SubscribeToMessageUpdatedEvent(
 func (s *loggingService) DeleteMessage(
 	ctx context.Context,
 	messageID pulid.ID,
-) (msg *ent.MessageEdge, err error) {
+) (msg *ent.Message, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "DeleteMessage",
@@ -106,7 +106,7 @@ func (s *loggingService) DeleteMessage(
 func (s *loggingService) SubscribeToMessageDeletedEvent(
 	ctx context.Context,
 	roomID pulid.ID,
-) (ch <-chan *ent.MessageEdge, err error) {
+) (ch <-chan pulid.ID, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "SubscribeToMessageDeletedEvent",

@@ -144,6 +144,18 @@ func (mv *MessageVoice) File(ctx context.Context) (*File, error) {
 	return result, err
 }
 
+func (r *Room) UserContact(ctx context.Context) (result []*UserContact, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = r.NamedUserContact(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = r.Edges.UserContactOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = r.QueryUserContact().All(ctx)
+	}
+	return result, err
+}
+
 func (r *Room) Users(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *UserOrder, where *UserWhereInput,
 ) (*UserConnection, error) {
@@ -152,7 +164,7 @@ func (r *Room) Users(
 		WithUserFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := r.Edges.totalCount[0][alias]
+	totalCount, hasTotalCount := r.Edges.totalCount[1][alias]
 	if nodes, err := r.NamedUsers(alias); err == nil || hasTotalCount {
 		pager, err := newUserPager(opts, last != nil)
 		if err != nil {
@@ -181,7 +193,7 @@ func (r *Room) Messages(
 		WithMessageFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := r.Edges.totalCount[2][alias]
+	totalCount, hasTotalCount := r.Edges.totalCount[3][alias]
 	if nodes, err := r.NamedMessages(alias); err == nil || hasTotalCount {
 		pager, err := newMessagePager(opts, last != nil)
 		if err != nil {
@@ -202,7 +214,7 @@ func (r *Room) MessageVoices(
 		WithMessageVoiceFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := r.Edges.totalCount[3][alias]
+	totalCount, hasTotalCount := r.Edges.totalCount[4][alias]
 	if nodes, err := r.NamedMessageVoices(alias); err == nil || hasTotalCount {
 		pager, err := newMessageVoicePager(opts, last != nil)
 		if err != nil {
@@ -223,7 +235,7 @@ func (r *Room) MessageAttachments(
 		WithMessageAttachmentFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := r.Edges.totalCount[4][alias]
+	totalCount, hasTotalCount := r.Edges.totalCount[5][alias]
 	if nodes, err := r.NamedMessageAttachments(alias); err == nil || hasTotalCount {
 		pager, err := newMessageAttachmentPager(opts, last != nil)
 		if err != nil {
@@ -244,7 +256,7 @@ func (r *Room) MessageLinks(
 		WithMessageLinkFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := r.Edges.totalCount[5][alias]
+	totalCount, hasTotalCount := r.Edges.totalCount[6][alias]
 	if nodes, err := r.NamedMessageLinks(alias); err == nil || hasTotalCount {
 		pager, err := newMessageLinkPager(opts, last != nil)
 		if err != nil {
@@ -265,7 +277,7 @@ func (r *Room) RoomMembers(
 		WithRoomMemberFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := r.Edges.totalCount[6][alias]
+	totalCount, hasTotalCount := r.Edges.totalCount[7][alias]
 	if nodes, err := r.NamedRoomMembers(alias); err == nil || hasTotalCount {
 		pager, err := newRoomMemberPager(opts, last != nil)
 		if err != nil {

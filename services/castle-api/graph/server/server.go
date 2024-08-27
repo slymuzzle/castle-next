@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"journeyhub/ent"
 	"journeyhub/internal/modules/auth/jwtauth"
 
 	"github.com/go-kit/log"
@@ -27,7 +28,7 @@ func webSocketInit(ctx context.Context, ja *jwtauth.JWTAuth, initPayload transpo
 	return ctxNew, &initPayload, err
 }
 
-func NewDefaultServer(es graphql.ExecutableSchema, logger log.Logger, ja *jwtauth.JWTAuth) *handler.Server {
+func NewDefaultServer(es graphql.ExecutableSchema, logger log.Logger, ja *jwtauth.JWTAuth, entClient *ent.Client) *handler.Server {
 	srv := handler.New(es)
 
 	srv.AddTransport(&transport.Websocket{
@@ -63,6 +64,9 @@ func NewDefaultServer(es graphql.ExecutableSchema, logger log.Logger, ja *jwtaut
 	srv.Use(extension.AutomaticPersistedQuery{
 		Cache: lru.New(100),
 	})
+
+	// srv.Use(entgql.Transactioner{TxOpener: entClient})
+	// srv.Use(&debug.Tracer{})
 
 	return srv
 }

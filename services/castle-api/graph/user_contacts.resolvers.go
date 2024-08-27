@@ -7,6 +7,7 @@ package graph
 import (
 	"context"
 	"journeyhub/ent"
+	"journeyhub/ent/schema/pulid"
 )
 
 // GeneratePinCode is the resolver for the generatePinCode field.
@@ -14,7 +15,20 @@ func (r *mutationResolver) GeneratePinCode(ctx context.Context) (*string, error)
 	return r.contactsService.GenerateUserPinCode(ctx)
 }
 
-// AddContact is the resolver for the addContact field.
-func (r *mutationResolver) AddContact(ctx context.Context, pincode string) (*ent.UserContact, error) {
-	return r.contactsService.AddUserContact(ctx, pincode)
+// AddUserContact is the resolver for the addUserContact field.
+func (r *mutationResolver) AddUserContact(ctx context.Context, pincode string) (*ent.UserContactEdge, error) {
+	userContact, err := r.contactsService.AddUserContact(ctx, pincode)
+	if err != nil {
+		return nil, err
+	}
+	return userContact.ToEdge(ent.DefaultUserContactOrder), nil
+}
+
+// DeleteUserContact is the resolver for the deleteUserContact field.
+func (r *mutationResolver) DeleteUserContact(ctx context.Context, userContactID pulid.ID) (*ent.UserContactEdge, error) {
+	userContact, err := r.contactsService.DeleteUserContact(ctx, userContactID)
+	if err != nil {
+		return nil, err
+	}
+	return userContact.ToEdge(ent.DefaultUserContactOrder), nil
 }

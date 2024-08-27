@@ -186,6 +186,16 @@ func NameHasSuffix(v string) predicate.Room {
 	return predicate.Room(sql.FieldHasSuffix(FieldName, v))
 }
 
+// NameIsNil applies the IsNil predicate on the "name" field.
+func NameIsNil() predicate.Room {
+	return predicate.Room(sql.FieldIsNull(FieldName))
+}
+
+// NameNotNil applies the NotNil predicate on the "name" field.
+func NameNotNil() predicate.Room {
+	return predicate.Room(sql.FieldNotNull(FieldName))
+}
+
 // NameEqualFold applies the EqualFold predicate on the "name" field.
 func NameEqualFold(v string) predicate.Room {
 	return predicate.Room(sql.FieldEqualFold(FieldName, v))
@@ -334,6 +344,29 @@ func UpdatedAtLT(v time.Time) predicate.Room {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.Room {
 	return predicate.Room(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// HasUserContact applies the HasEdge predicate on the "user_contact" edge.
+func HasUserContact() predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, UserContactTable, UserContactColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserContactWith applies the HasEdge predicate on the "user_contact" edge with a given conditions (other predicates).
+func HasUserContactWith(preds ...predicate.UserContact) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := newUserContactStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // HasUsers applies the HasEdge predicate on the "users" edge.

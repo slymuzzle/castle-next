@@ -30,12 +30,13 @@ func main() {
 	)
 
 	opts := []entc.Option{
-		entc.FeatureNames("intercept", "schema/snapshot"),
 		entc.Extensions(ex),
 	}
 
 	if err := entc.Generate("./ent/schema", &gen.Config{
 		Features: []gen.Feature{
+			gen.FeatureIntercept,
+			gen.FeatureSnapshot,
 			gen.FeatureVersionedMigration,
 			gen.FeatureUpsert,
 		},

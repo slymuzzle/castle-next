@@ -61,6 +61,11 @@ func DeletedAt(v time.Time) predicate.RoomMember {
 	return predicate.RoomMember(sql.FieldEQ(FieldDeletedAt, v))
 }
 
+// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
+func Name(v string) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldEQ(FieldName, v))
+}
+
 // UnreadMessagesCount applies equality check predicate on the "unread_messages_count" field. It's identical to UnreadMessagesCountEQ.
 func UnreadMessagesCount(v int) predicate.RoomMember {
 	return predicate.RoomMember(sql.FieldEQ(FieldUnreadMessagesCount, v))
@@ -129,6 +134,81 @@ func DeletedAtIsNil() predicate.RoomMember {
 // DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
 func DeletedAtNotNil() predicate.RoomMember {
 	return predicate.RoomMember(sql.FieldNotNull(FieldDeletedAt))
+}
+
+// NameEQ applies the EQ predicate on the "name" field.
+func NameEQ(v string) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldEQ(FieldName, v))
+}
+
+// NameNEQ applies the NEQ predicate on the "name" field.
+func NameNEQ(v string) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldNEQ(FieldName, v))
+}
+
+// NameIn applies the In predicate on the "name" field.
+func NameIn(vs ...string) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldIn(FieldName, vs...))
+}
+
+// NameNotIn applies the NotIn predicate on the "name" field.
+func NameNotIn(vs ...string) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldNotIn(FieldName, vs...))
+}
+
+// NameGT applies the GT predicate on the "name" field.
+func NameGT(v string) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldGT(FieldName, v))
+}
+
+// NameGTE applies the GTE predicate on the "name" field.
+func NameGTE(v string) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldGTE(FieldName, v))
+}
+
+// NameLT applies the LT predicate on the "name" field.
+func NameLT(v string) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldLT(FieldName, v))
+}
+
+// NameLTE applies the LTE predicate on the "name" field.
+func NameLTE(v string) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldLTE(FieldName, v))
+}
+
+// NameContains applies the Contains predicate on the "name" field.
+func NameContains(v string) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldContains(FieldName, v))
+}
+
+// NameHasPrefix applies the HasPrefix predicate on the "name" field.
+func NameHasPrefix(v string) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldHasPrefix(FieldName, v))
+}
+
+// NameHasSuffix applies the HasSuffix predicate on the "name" field.
+func NameHasSuffix(v string) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldHasSuffix(FieldName, v))
+}
+
+// NameIsNil applies the IsNil predicate on the "name" field.
+func NameIsNil() predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldIsNull(FieldName))
+}
+
+// NameNotNil applies the NotNil predicate on the "name" field.
+func NameNotNil() predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldNotNull(FieldName))
+}
+
+// NameEqualFold applies the EqualFold predicate on the "name" field.
+func NameEqualFold(v string) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldEqualFold(FieldName, v))
+}
+
+// NameContainsFold applies the ContainsFold predicate on the "name" field.
+func NameContainsFold(v string) predicate.RoomMember {
+	return predicate.RoomMember(sql.FieldContainsFold(FieldName, v))
 }
 
 // UnreadMessagesCountEQ applies the EQ predicate on the "unread_messages_count" field.

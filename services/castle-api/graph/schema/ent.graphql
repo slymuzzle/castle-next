@@ -812,11 +812,12 @@ type Query {
 }
 type Room implements Node {
   id: ID!
-  name: String!
+  name: String
   version: Uint64!
   type: RoomType!
   createdAt: Time!
   updatedAt: Time!
+  userContact: [UserContact!]
   users(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -1037,6 +1038,7 @@ type RoomEdge {
 }
 type RoomMember implements Node {
   id: ID!
+  name: String
   unreadMessagesCount: Int!
   userID: ID!
   roomID: ID!
@@ -1091,6 +1093,7 @@ input RoomMemberOrder {
 Properties by which RoomMember connections can be ordered.
 """
 enum RoomMemberOrderField {
+  NAME
   UNREAD_MESSAGES_COUNT
   JOINED_AT
 }
@@ -1113,6 +1116,24 @@ input RoomMemberWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
+  """
+  name field predicates
+  """
+  name: String
+  nameNEQ: String
+  nameIn: [String!]
+  nameNotIn: [String!]
+  nameGT: String
+  nameGTE: String
+  nameLT: String
+  nameLTE: String
+  nameContains: String
+  nameHasPrefix: String
+  nameHasSuffix: String
+  nameIsNil: Boolean
+  nameNotNil: Boolean
+  nameEqualFold: String
+  nameContainsFold: String
   """
   unread_messages_count field predicates
   """
@@ -1199,6 +1220,8 @@ input RoomWhereInput {
   nameContains: String
   nameHasPrefix: String
   nameHasSuffix: String
+  nameIsNil: Boolean
+  nameNotNil: Boolean
   nameEqualFold: String
   nameContainsFold: String
   """
@@ -1241,6 +1264,11 @@ input RoomWhereInput {
   updatedAtGTE: Time
   updatedAtLT: Time
   updatedAtLTE: Time
+  """
+  user_contact edge predicates
+  """
+  hasUserContact: Boolean
+  hasUserContactWith: [UserContactWhereInput!]
   """
   users edge predicates
   """

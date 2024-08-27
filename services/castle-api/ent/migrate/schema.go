@@ -164,7 +164,7 @@ var (
 	RoomsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "name", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Nullable: true},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"Personal", "Group"}},
 		{Name: "created_at", Type: field.TypeTime},
@@ -181,7 +181,7 @@ var (
 				Symbol:     "rooms_messages_last_message",
 				Columns:    []*schema.Column{RoomsColumns[7]},
 				RefColumns: []*schema.Column{MessagesColumns[0]},
-				OnDelete:   schema.Cascade,
+				OnDelete:   schema.SetNull,
 			},
 		},
 	}
@@ -189,6 +189,7 @@ var (
 	RoomMembersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString, Nullable: true},
 		{Name: "unread_messages_count", Type: field.TypeInt, Default: 0},
 		{Name: "joined_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeString},
@@ -202,13 +203,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "room_members_users_user",
-				Columns:    []*schema.Column{RoomMembersColumns[4]},
+				Columns:    []*schema.Column{RoomMembersColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "room_members_rooms_room",
-				Columns:    []*schema.Column{RoomMembersColumns[5]},
+				Columns:    []*schema.Column{RoomMembersColumns[6]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -217,7 +218,7 @@ var (
 			{
 				Name:    "roommember_room_id_user_id",
 				Unique:  true,
-				Columns: []*schema.Column{RoomMembersColumns[5], RoomMembersColumns[4]},
+				Columns: []*schema.Column{RoomMembersColumns[6], RoomMembersColumns[5]},
 			},
 		},
 	}

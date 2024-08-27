@@ -21,24 +21,3 @@ extend type Mutation {
   updateRoom(roomID: ID!, input: UpdateRoomInput!): RoomEdge
   deleteRoom(roomID: ID!): RoomEdge
 }
-
-type LastMessageUpdatedEvent {
-  id: ID!
-  content: String!
-  createdAt: Time!
-  updatedAt: Time!
-}
-
-type RoomUpdatedEvent {
-  id: ID!
-  name: String!
-  version: Uint64!
-  type: RoomType!
-  lastMessage: LastMessageUpdatedEvent
-  createdAt: Time!
-  updatedAt: Time!
-}
-
-extend type Subscription {
-  roomsUpdated: RoomUpdatedEvent!
-}

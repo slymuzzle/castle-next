@@ -1746,6 +1746,8 @@ type RoomWhereInput struct {
 	NameContains     *string  `json:"nameContains,omitempty"`
 	NameHasPrefix    *string  `json:"nameHasPrefix,omitempty"`
 	NameHasSuffix    *string  `json:"nameHasSuffix,omitempty"`
+	NameIsNil        bool     `json:"nameIsNil,omitempty"`
+	NameNotNil       bool     `json:"nameNotNil,omitempty"`
 	NameEqualFold    *string  `json:"nameEqualFold,omitempty"`
 	NameContainsFold *string  `json:"nameContainsFold,omitempty"`
 
@@ -1784,6 +1786,10 @@ type RoomWhereInput struct {
 	UpdatedAtGTE   *time.Time  `json:"updatedAtGTE,omitempty"`
 	UpdatedAtLT    *time.Time  `json:"updatedAtLT,omitempty"`
 	UpdatedAtLTE   *time.Time  `json:"updatedAtLTE,omitempty"`
+
+	// "user_contact" edge predicates.
+	HasUserContact     *bool                    `json:"hasUserContact,omitempty"`
+	HasUserContactWith []*UserContactWhereInput `json:"hasUserContactWith,omitempty"`
 
 	// "users" edge predicates.
 	HasUsers     *bool             `json:"hasUsers,omitempty"`
@@ -1942,6 +1948,12 @@ func (i *RoomWhereInput) P() (predicate.Room, error) {
 	if i.NameHasSuffix != nil {
 		predicates = append(predicates, room.NameHasSuffix(*i.NameHasSuffix))
 	}
+	if i.NameIsNil {
+		predicates = append(predicates, room.NameIsNil())
+	}
+	if i.NameNotNil {
+		predicates = append(predicates, room.NameNotNil())
+	}
 	if i.NameEqualFold != nil {
 		predicates = append(predicates, room.NameEqualFold(*i.NameEqualFold))
 	}
@@ -2033,6 +2045,24 @@ func (i *RoomWhereInput) P() (predicate.Room, error) {
 		predicates = append(predicates, room.UpdatedAtLTE(*i.UpdatedAtLTE))
 	}
 
+	if i.HasUserContact != nil {
+		p := room.HasUserContact()
+		if !*i.HasUserContact {
+			p = room.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasUserContactWith) > 0 {
+		with := make([]predicate.UserContact, 0, len(i.HasUserContactWith))
+		for _, w := range i.HasUserContactWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasUserContactWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, room.HasUserContactWith(with...))
+	}
 	if i.HasUsers != nil {
 		p := room.HasUsers()
 		if !*i.HasUsers {
@@ -2185,6 +2215,23 @@ type RoomMemberWhereInput struct {
 	IDGTE   *pulid.ID  `json:"idGTE,omitempty"`
 	IDLT    *pulid.ID  `json:"idLT,omitempty"`
 	IDLTE   *pulid.ID  `json:"idLTE,omitempty"`
+
+	// "name" field predicates.
+	Name             *string  `json:"name,omitempty"`
+	NameNEQ          *string  `json:"nameNEQ,omitempty"`
+	NameIn           []string `json:"nameIn,omitempty"`
+	NameNotIn        []string `json:"nameNotIn,omitempty"`
+	NameGT           *string  `json:"nameGT,omitempty"`
+	NameGTE          *string  `json:"nameGTE,omitempty"`
+	NameLT           *string  `json:"nameLT,omitempty"`
+	NameLTE          *string  `json:"nameLTE,omitempty"`
+	NameContains     *string  `json:"nameContains,omitempty"`
+	NameHasPrefix    *string  `json:"nameHasPrefix,omitempty"`
+	NameHasSuffix    *string  `json:"nameHasSuffix,omitempty"`
+	NameIsNil        bool     `json:"nameIsNil,omitempty"`
+	NameNotNil       bool     `json:"nameNotNil,omitempty"`
+	NameEqualFold    *string  `json:"nameEqualFold,omitempty"`
+	NameContainsFold *string  `json:"nameContainsFold,omitempty"`
 
 	// "unread_messages_count" field predicates.
 	UnreadMessagesCount      *int  `json:"unreadMessagesCount,omitempty"`
@@ -2339,6 +2386,51 @@ func (i *RoomMemberWhereInput) P() (predicate.RoomMember, error) {
 	}
 	if i.IDLTE != nil {
 		predicates = append(predicates, roommember.IDLTE(*i.IDLTE))
+	}
+	if i.Name != nil {
+		predicates = append(predicates, roommember.NameEQ(*i.Name))
+	}
+	if i.NameNEQ != nil {
+		predicates = append(predicates, roommember.NameNEQ(*i.NameNEQ))
+	}
+	if len(i.NameIn) > 0 {
+		predicates = append(predicates, roommember.NameIn(i.NameIn...))
+	}
+	if len(i.NameNotIn) > 0 {
+		predicates = append(predicates, roommember.NameNotIn(i.NameNotIn...))
+	}
+	if i.NameGT != nil {
+		predicates = append(predicates, roommember.NameGT(*i.NameGT))
+	}
+	if i.NameGTE != nil {
+		predicates = append(predicates, roommember.NameGTE(*i.NameGTE))
+	}
+	if i.NameLT != nil {
+		predicates = append(predicates, roommember.NameLT(*i.NameLT))
+	}
+	if i.NameLTE != nil {
+		predicates = append(predicates, roommember.NameLTE(*i.NameLTE))
+	}
+	if i.NameContains != nil {
+		predicates = append(predicates, roommember.NameContains(*i.NameContains))
+	}
+	if i.NameHasPrefix != nil {
+		predicates = append(predicates, roommember.NameHasPrefix(*i.NameHasPrefix))
+	}
+	if i.NameHasSuffix != nil {
+		predicates = append(predicates, roommember.NameHasSuffix(*i.NameHasSuffix))
+	}
+	if i.NameIsNil {
+		predicates = append(predicates, roommember.NameIsNil())
+	}
+	if i.NameNotNil {
+		predicates = append(predicates, roommember.NameNotNil())
+	}
+	if i.NameEqualFold != nil {
+		predicates = append(predicates, roommember.NameEqualFold(*i.NameEqualFold))
+	}
+	if i.NameContainsFold != nil {
+		predicates = append(predicates, roommember.NameContainsFold(*i.NameContainsFold))
 	}
 	if i.UnreadMessagesCount != nil {
 		predicates = append(predicates, roommember.UnreadMessagesCountEQ(*i.UnreadMessagesCount))

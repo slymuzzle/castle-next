@@ -22,17 +22,32 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMess
 		return nil, validationErrors
 	}
 
-	return r.chatService.SendMessage(ctx, input)
+	msg, err := r.chatService.SendMessage(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return msg.ToEdge(ent.DefaultMessageOrder), nil
 }
 
 // UpdateMessage is the resolver for the updateMessage field.
 func (r *mutationResolver) UpdateMessage(ctx context.Context, messageID pulid.ID, input model.UpdateMessageInput) (*ent.MessageEdge, error) {
-	return r.chatService.UpdateMessage(ctx, messageID, input)
+	msg, err := r.chatService.UpdateMessage(ctx, messageID, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return msg.ToEdge(ent.DefaultMessageOrder), nil
 }
 
 // DeleteMessage is the resolver for the deleteMessage field.
 func (r *mutationResolver) DeleteMessage(ctx context.Context, messageID pulid.ID) (*ent.MessageEdge, error) {
-	return r.chatService.DeleteMessage(ctx, messageID)
+	msg, err := r.chatService.DeleteMessage(ctx, messageID)
+	if err != nil {
+		return nil, err
+	}
+
+	return msg.ToEdge(ent.DefaultMessageOrder), nil
 }
 
 // MessagesByRoom is the resolver for the messagesByRoom field.
@@ -70,7 +85,7 @@ func (r *subscriptionResolver) MessageUpdated(ctx context.Context, roomID pulid.
 }
 
 // MessageDeleted is the resolver for the messageDeleted field.
-func (r *subscriptionResolver) MessageDeleted(ctx context.Context, roomID pulid.ID) (<-chan *ent.MessageEdge, error) {
+func (r *subscriptionResolver) MessageDeleted(ctx context.Context, roomID pulid.ID) (<-chan pulid.ID, error) {
 	return r.chatService.SubscribeToMessageDeletedEvent(ctx, roomID)
 }
 
