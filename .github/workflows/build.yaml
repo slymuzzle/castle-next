@@ -15,15 +15,20 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - dockerfile: ./services/castle-api/Dockerfile
-            context: ./services/castle-api
-            target: server
-            image: castle-api
+          # - dockerfile: ./services/castle-api/Dockerfile
+          #   context: ./services/castle-api
+          #   target: server
+          #   image: castle-api
+          #
+          # - dockerfile: ./services/castle-api/Dockerfile
+          #   context: ./services/castle-api
+          #   target: migrations
+          #   image: castle-api-migrations
 
-          - dockerfile: ./services/castle-api/Dockerfile
-            context: ./services/castle-api
-            target: migrations
-            image: castle-api-migrations
+          - dockerfile: ./etc/postgres/Dockerfile
+            context: ./etc/postgres
+            target: base
+            image: postgres
 
     steps:
       - name: Checkout repository and submodules
