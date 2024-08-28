@@ -15,12 +15,12 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - dockerfile: Dockerfile
+          - dockerfile: ./services/castle-api/Dockerfile
             context: ./services/castle-api
             target: production
             image: castle-api
 
-          - dockerfile: Dockerfile
+          - dockerfile: ./services/castle-api/Dockerfile
             context: ./services/castle-api
             target: migrations
             image: castle-api-migrations
