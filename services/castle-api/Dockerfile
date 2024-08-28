@@ -1,7 +1,7 @@
 # ==================================================================================== #
 # BASE IMAGE
 # ==================================================================================== #
-FROM golang:1.22.5-alpine as base
+FROM golang:1.22.5-alpine AS base
 
 WORKDIR /workspace
 
@@ -21,7 +21,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 # ==================================================================================== #
 # DEVELOPMENT IMAGE
 # ==================================================================================== #
-FROM base as development
+FROM base AS development
 
 USER root
 
@@ -44,7 +44,7 @@ CMD ["task", "cleanup", "watch"]
 # ==================================================================================== #
 # BUILD IMAGE
 # ==================================================================================== #
-FROM base as build
+FROM base AS build
 
 # Add non-root user
 RUN adduser --system --uid 1001 nonroot
@@ -56,7 +56,7 @@ RUN task build
 # ==================================================================================== #
 # PRODUCTION IMAGE
 # ==================================================================================== #
-FROM alpine:3.20 as server
+FROM alpine:3.20 AS server
 
 WORKDIR /production
 
@@ -71,6 +71,6 @@ CMD ["/production/server"]
 # ==================================================================================== #
 # MIGRATIONS IMAGE
 # ==================================================================================== #
-FROM arigaio/atlas:0.25.0-alpine as migrations
+FROM arigaio/atlas:0.25.0-alpine AS migrations
 
 COPY migrations /migrations
