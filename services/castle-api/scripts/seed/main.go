@@ -1,12 +1,11 @@
-//go:build ignore
-
 package main
 
 import (
+	"os"
+
 	"journeyhub/internal/platform/config"
 	"journeyhub/internal/platform/db"
 	"journeyhub/scripts/seed/seeddata"
-	"os"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"

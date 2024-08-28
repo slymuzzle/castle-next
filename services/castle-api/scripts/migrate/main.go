@@ -1,13 +1,12 @@
-//go:build ignore
-
 package main
 
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"journeyhub/ent/migrate"
 	"journeyhub/internal/platform/config"
-	"os"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -57,7 +56,7 @@ func main() {
 	)
 
 	// Create a local migration directory able to understand Atlas migration file format for replay
-	if err = os.MkdirAll(dir, 0755); err != nil {
+	if err = os.MkdirAll(dir, 0o755); err != nil {
 		level.Error(logger).Log("msg", err)
 		os.Exit(1)
 	}

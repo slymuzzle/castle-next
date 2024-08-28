@@ -62,6 +62,7 @@ WORKDIR /production
 
 COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /workspace/.tmp/server server
+COPY --from=build /workspace/.tmp/seed seed
 COPY --from=build /workspace/configs configs
 
 USER nonroot
