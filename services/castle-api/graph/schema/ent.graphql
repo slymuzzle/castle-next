@@ -191,7 +191,7 @@ input FileWhereInput {
 }
 type Message implements Node {
   id: ID!
-  content: String!
+  content: String
   createdAt: Time!
   updatedAt: Time!
   voice: MessageVoice
@@ -628,6 +628,8 @@ input MessageWhereInput {
   contentContains: String
   contentHasPrefix: String
   contentHasSuffix: String
+  contentIsNil: Boolean
+  contentNotNil: Boolean
   contentEqualFold: String
   contentContainsFold: String
   """

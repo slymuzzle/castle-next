@@ -1,8 +1,9 @@
 package schema
 
 import (
-	"journeyhub/ent/schema/pulid"
 	"time"
+
+	"journeyhub/ent/schema/pulid"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
@@ -27,7 +28,8 @@ func (Message) Mixin() []ent.Mixin {
 // Fields of the Message.
 func (Message) Fields() []ent.Field {
 	return []ent.Field{
-		field.Text("content"),
+		field.Text("content").
+			Optional(),
 		field.Time("created_at").
 			Immutable().
 			Default(time.Now).

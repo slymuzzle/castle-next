@@ -35,6 +35,14 @@ func (mc *MessageCreate) SetContent(s string) *MessageCreate {
 	return mc
 }
 
+// SetNillableContent sets the "content" field if the given value is not nil.
+func (mc *MessageCreate) SetNillableContent(s *string) *MessageCreate {
+	if s != nil {
+		mc.SetContent(*s)
+	}
+	return mc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (mc *MessageCreate) SetCreatedAt(t time.Time) *MessageCreate {
 	mc.mutation.SetCreatedAt(t)
@@ -234,9 +242,6 @@ func (mc *MessageCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (mc *MessageCreate) check() error {
-	if _, ok := mc.mutation.Content(); !ok {
-		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "Message.content"`)}
-	}
 	if _, ok := mc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Message.created_at"`)}
 	}
@@ -454,6 +459,12 @@ func (u *MessageUpsert) UpdateContent() *MessageUpsert {
 	return u
 }
 
+// ClearContent clears the value of the "content" field.
+func (u *MessageUpsert) ClearContent() *MessageUpsert {
+	u.SetNull(message.FieldContent)
+	return u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (u *MessageUpsert) SetUpdatedAt(v time.Time) *MessageUpsert {
 	u.Set(message.FieldUpdatedAt, v)
@@ -528,6 +539,13 @@ func (u *MessageUpsertOne) SetContent(v string) *MessageUpsertOne {
 func (u *MessageUpsertOne) UpdateContent() *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
 		s.UpdateContent()
+	})
+}
+
+// ClearContent clears the value of the "content" field.
+func (u *MessageUpsertOne) ClearContent() *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.ClearContent()
 	})
 }
 
@@ -774,6 +792,13 @@ func (u *MessageUpsertBulk) SetContent(v string) *MessageUpsertBulk {
 func (u *MessageUpsertBulk) UpdateContent() *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
 		s.UpdateContent()
+	})
+}
+
+// ClearContent clears the value of the "content" field.
+func (u *MessageUpsertBulk) ClearContent() *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.ClearContent()
 	})
 }
 

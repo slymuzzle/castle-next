@@ -29,7 +29,7 @@ var (
 	// MessagesColumns holds the columns for the "messages" table.
 	MessagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
-		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "content", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "message_reply_to", Type: field.TypeString, Unique: true, Nullable: true},

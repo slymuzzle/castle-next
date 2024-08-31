@@ -1503,7 +1503,7 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 			it.ReplyTo = data
 		case "content":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

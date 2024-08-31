@@ -43,6 +43,27 @@ services:
     volumes:
       - ./services/castle-api:/workspace
 
+  castle-api-migrations:
+    <<: *template
+    build:
+      context: ./services/castle-api
+      dockerfile: Dockerfile
+    restart: no
+    command:
+      [
+        "migrate",
+        "apply",
+        "--dir",
+        "file://migrations",
+        "--url",
+        "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/castle?search_path=public&sslmode=disable",
+      ]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./services/castle-api/migrations:/migrations
+
   nats:
     <<: *template
     build:
@@ -80,20 +101,6 @@ services:
     healthcheck:
       <<: *healthcheck
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-
-  atlas:
-    <<: *template
-    image: ghcr.io/slymuzzle/castle-next/castle-api-migrations:master
-    restart: no
-    # build:
-    #   context: .
-    #   dockerfile: ./etc/atlas/Dockerfile
-    command: migrate apply --dir file://migrations -u "postgres://admin:123456@postgres:5432/castle?search_path=public&sslmode=disable"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    # volumes:
-    #   - ./services:/services
 
   nginx:
     <<: *template

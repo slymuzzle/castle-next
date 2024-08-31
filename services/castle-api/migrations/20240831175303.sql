@@ -49,7 +49,7 @@ CREATE UNIQUE INDEX "message_voices_message_voice_key" ON "message_voices" ("mes
 -- Create "messages" table
 CREATE TABLE "messages" (
   "id" character varying NOT NULL,
-  "content" text NOT NULL,
+  "content" text NULL,
   "created_at" timestamptz NOT NULL,
   "updated_at" timestamptz NOT NULL,
   "message_reply_to" character varying NULL,

@@ -48,6 +48,12 @@ func (mu *MessageUpdate) SetNillableContent(s *string) *MessageUpdate {
 	return mu
 }
 
+// ClearContent clears the value of the "content" field.
+func (mu *MessageUpdate) ClearContent() *MessageUpdate {
+	mu.mutation.ClearContent()
+	return mu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (mu *MessageUpdate) SetUpdatedAt(t time.Time) *MessageUpdate {
 	mu.mutation.SetUpdatedAt(t)
@@ -278,6 +284,9 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := mu.mutation.Content(); ok {
 		_spec.SetField(message.FieldContent, field.TypeString, value)
+	}
+	if mu.mutation.ContentCleared() {
+		_spec.ClearField(message.FieldContent, field.TypeString)
 	}
 	if value, ok := mu.mutation.UpdatedAt(); ok {
 		_spec.SetField(message.FieldUpdatedAt, field.TypeTime, value)
@@ -519,6 +528,12 @@ func (muo *MessageUpdateOne) SetNillableContent(s *string) *MessageUpdateOne {
 	if s != nil {
 		muo.SetContent(*s)
 	}
+	return muo
+}
+
+// ClearContent clears the value of the "content" field.
+func (muo *MessageUpdateOne) ClearContent() *MessageUpdateOne {
+	muo.mutation.ClearContent()
 	return muo
 }
 
@@ -782,6 +797,9 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 	}
 	if value, ok := muo.mutation.Content(); ok {
 		_spec.SetField(message.FieldContent, field.TypeString, value)
+	}
+	if muo.mutation.ContentCleared() {
+		_spec.ClearField(message.FieldContent, field.TypeString)
 	}
 	if value, ok := muo.mutation.UpdatedAt(); ok {
 		_spec.SetField(message.FieldUpdatedAt, field.TypeTime, value)

@@ -2016,7 +2016,7 @@ input FileWhereInput {
 }
 type Message implements Node {
   id: ID!
-  content: String!
+  content: String
   createdAt: Time!
   updatedAt: Time!
   voice: MessageVoice
@@ -2453,6 +2453,8 @@ input MessageWhereInput {
   contentContains: String
   contentHasPrefix: String
   contentHasSuffix: String
+  contentIsNil: Boolean
+  contentNotNil: Boolean
   contentEqualFold: String
   contentContainsFold: String
   """
@@ -3610,7 +3612,7 @@ input SendMessageInput {
   roomID: ID! @goTag(key: "validate", value: "required")
   notifyUserID: ID
   replyTo: ID
-  content: String! @goTag(key: "validate", value: "required,max=4096")
+  content: String @goTag(key: "validate", value: "max=4096")
   files: [Upload!] @goTag(key: "validate", value: "max=10")
   voice: Upload @goTag(key: "validate", value: "gql_upload_is_voice")
 }

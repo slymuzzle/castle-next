@@ -5,7 +5,7 @@ input SendMessageInput {
   roomID: ID! @goTag(key: "validate", value: "required")
   notifyUserID: ID
   replyTo: ID
-  content: String! @goTag(key: "validate", value: "required,max=4096")
+  content: String @goTag(key: "validate", value: "max=4096")
   files: [Upload!] @goTag(key: "validate", value: "max=10")
   voice: Upload @goTag(key: "validate", value: "gql_upload_is_voice")
 }

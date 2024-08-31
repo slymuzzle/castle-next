@@ -596,6 +596,8 @@ type MessageWhereInput struct {
 	ContentContains     *string  `json:"contentContains,omitempty"`
 	ContentHasPrefix    *string  `json:"contentHasPrefix,omitempty"`
 	ContentHasSuffix    *string  `json:"contentHasSuffix,omitempty"`
+	ContentIsNil        bool     `json:"contentIsNil,omitempty"`
+	ContentNotNil       bool     `json:"contentNotNil,omitempty"`
 	ContentEqualFold    *string  `json:"contentEqualFold,omitempty"`
 	ContentContainsFold *string  `json:"contentContainsFold,omitempty"`
 
@@ -771,6 +773,12 @@ func (i *MessageWhereInput) P() (predicate.Message, error) {
 	}
 	if i.ContentHasSuffix != nil {
 		predicates = append(predicates, message.ContentHasSuffix(*i.ContentHasSuffix))
+	}
+	if i.ContentIsNil {
+		predicates = append(predicates, message.ContentIsNil())
+	}
+	if i.ContentNotNil {
+		predicates = append(predicates, message.ContentNotNil())
 	}
 	if i.ContentEqualFold != nil {
 		predicates = append(predicates, message.ContentEqualFold(*i.ContentEqualFold))

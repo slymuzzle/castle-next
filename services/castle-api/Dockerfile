@@ -23,8 +23,6 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 # ==================================================================================== #
 FROM base AS development
 
-USER root
-
 ARG USER_UID=1000
 ARG USER_GID=${USER_UID}
 
@@ -35,6 +33,7 @@ SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 # Add group and user for dev environment
 RUN addgroup --system --gid ${USER_GID} devgroup \
     && adduser --system --uid ${USER_UID} devuser \
+    && chown -R devuser /go \
     && curl -sSf https://atlasgo.sh | ash
 
 USER devuser

@@ -1102,9 +1102,22 @@ func (m *MessageMutation) OldContent(ctx context.Context) (v string, err error) 
 	return oldValue.Content, nil
 }
 
+// ClearContent clears the value of the "content" field.
+func (m *MessageMutation) ClearContent() {
+	m.content = nil
+	m.clearedFields[message.FieldContent] = struct{}{}
+}
+
+// ContentCleared returns if the "content" field was cleared in this mutation.
+func (m *MessageMutation) ContentCleared() bool {
+	_, ok := m.clearedFields[message.FieldContent]
+	return ok
+}
+
 // ResetContent resets all changes to the "content" field.
 func (m *MessageMutation) ResetContent() {
 	m.content = nil
+	delete(m.clearedFields, message.FieldContent)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -1575,7 +1588,11 @@ func (m *MessageMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *MessageMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(message.FieldContent) {
+		fields = append(fields, message.FieldContent)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1588,6 +1605,11 @@ func (m *MessageMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *MessageMutation) ClearField(name string) error {
+	switch name {
+	case message.FieldContent:
+		m.ClearContent()
+		return nil
+	}
 	return fmt.Errorf("unknown Message nullable field %s", name)
 }
 

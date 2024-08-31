@@ -24,7 +24,7 @@ type Repository interface {
 		roomID pulid.ID,
 		currentUserID pulid.ID,
 		replyTo *pulid.ID,
-		content string,
+		content *string,
 		uploadAttachmentsFn UploadAttachmentsFn,
 		uploadVoiceFn UploadVoiceFn,
 	) (*ent.Message, error)
@@ -63,7 +63,7 @@ func (r *repository) CreateMessage(
 	roomID pulid.ID,
 	currentUserID pulid.ID,
 	replyTo *pulid.ID,
-	content string,
+	content *string,
 	uploadAttachmentsFn UploadAttachmentsFn,
 	uploadVoiceFn UploadVoiceFn,
 ) (*ent.Message, error) {
@@ -74,7 +74,7 @@ func (r *repository) CreateMessage(
 		SetRoomID(roomID).
 		SetUserID(currentUserID).
 		SetNillableReplyToID(replyTo).
-		SetContent(content).
+		SetNillableContent(content).
 		Save(ctx)
 	if msgErr != nil {
 		return nil, msgErr

@@ -1783,14 +1783,11 @@ func (ec *executionContext) _Message_content(ctx context.Context, field graphql.
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Message_content(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -10122,7 +10119,7 @@ func (ec *executionContext) unmarshalInputMessageWhereInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "content", "contentNEQ", "contentIn", "contentNotIn", "contentGT", "contentGTE", "contentLT", "contentLTE", "contentContains", "contentHasPrefix", "contentHasSuffix", "contentEqualFold", "contentContainsFold", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "hasVoice", "hasVoiceWith", "hasReplyTo", "hasReplyToWith", "hasAttachments", "hasAttachmentsWith", "hasLinks", "hasLinksWith", "hasUser", "hasUserWith", "hasRoom", "hasRoomWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "content", "contentNEQ", "contentIn", "contentNotIn", "contentGT", "contentGTE", "contentLT", "contentLTE", "contentContains", "contentHasPrefix", "contentHasSuffix", "contentIsNil", "contentNotNil", "contentEqualFold", "contentContainsFold", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "hasVoice", "hasVoiceWith", "hasReplyTo", "hasReplyToWith", "hasAttachments", "hasAttachmentsWith", "hasLinks", "hasLinksWith", "hasUser", "hasUserWith", "hasRoom", "hasRoomWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10283,6 +10280,20 @@ func (ec *executionContext) unmarshalInputMessageWhereInput(ctx context.Context,
 				return it, err
 			}
 			it.ContentHasSuffix = data
+		case "contentIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContentIsNil = data
+		case "contentNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContentNotNil = data
 		case "contentEqualFold":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentEqualFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -12682,9 +12693,6 @@ func (ec *executionContext) _Message(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "content":
 			out.Values[i] = ec._Message_content(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "createdAt":
 			out.Values[i] = ec._Message_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
