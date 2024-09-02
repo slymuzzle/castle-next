@@ -19,20 +19,20 @@ services:
       context: ./services/castle-api
       dockerfile: Dockerfile
       target: development
-    environment:
-      CASTLE_SERVER_PORT: 8080
-      CASTLE_NATS_HOST: nats
-      CASTLE_NATS_PORT: 4222
-      CASTLE_DATABASE_HOST: postgres
-      CASTLE_DATABASE_PORT: 5432
-      CASTLE_DATABASE_DATABASE: castle
-      CASTLE_DATABASE_USER: admin
-      CASTLE_DATABASE_PASSWORD: "123456"
-      CASTLE_DATABASE_DRIVER: postgres
-      CASTLE_S3_HOST: minio:9000
-      CASTLE_S3_ACCESS_KEY: admin
-      CASTLE_S3_SECRET_KEY: "12345678"
-      CASTLE_S3_BUCKET: media
+    # environment:
+    # CASTLE_SERVER_PORT: 8080
+    # CASTLE_NATS_HOST: nats
+    # CASTLE_NATS_PORT: 4222
+    # CASTLE_DATABASE_HOST: postgres
+    # CASTLE_DATABASE_PORT: 5432
+    # CASTLE_DATABASE_DATABASE: castle
+    # CASTLE_DATABASE_USER: admin
+    # CASTLE_DATABASE_PASSWORD: "123456"
+    # CASTLE_DATABASE_DRIVER: postgres
+    # CASTLE_S3_HOST: minio:9000
+    # CASTLE_S3_ACCESS_KEY: admin
+    # CASTLE_S3_SECRET_KEY: "12345678"
+    # CASTLE_S3_BUCKET: media
     depends_on:
       nats:
         condition: service_healthy

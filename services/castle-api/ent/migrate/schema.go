@@ -65,6 +65,7 @@ var (
 	// MessageAttachmentsColumns holds the columns for the "message_attachments" table.
 	MessageAttachmentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"Media", "File"}},
 		{Name: "order", Type: field.TypeUint},
 		{Name: "attached_at", Type: field.TypeTime},
 		{Name: "file_message_attachment", Type: field.TypeString, Unique: true},
@@ -79,19 +80,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "message_attachments_files_message_attachment",
-				Columns:    []*schema.Column{MessageAttachmentsColumns[3]},
+				Columns:    []*schema.Column{MessageAttachmentsColumns[4]},
 				RefColumns: []*schema.Column{FilesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "message_attachments_messages_attachments",
-				Columns:    []*schema.Column{MessageAttachmentsColumns[4]},
+				Columns:    []*schema.Column{MessageAttachmentsColumns[5]},
 				RefColumns: []*schema.Column{MessagesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "message_attachments_rooms_message_attachments",
-				Columns:    []*schema.Column{MessageAttachmentsColumns[5]},
+				Columns:    []*schema.Column{MessageAttachmentsColumns[6]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

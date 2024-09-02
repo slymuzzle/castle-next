@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"journeyhub/ent"
+	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"strconv"
@@ -1648,6 +1649,8 @@ func (ec *executionContext) fieldContext_File_messageAttachment(_ context.Contex
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_MessageAttachment_id(ctx, field)
+			case "type":
+				return ec.fieldContext_MessageAttachment_type(ctx, field)
 			case "order":
 				return ec.fieldContext_MessageAttachment_order(ctx, field)
 			case "attachedAt":
@@ -2045,6 +2048,8 @@ func (ec *executionContext) fieldContext_Message_attachments(_ context.Context, 
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_MessageAttachment_id(ctx, field)
+			case "type":
+				return ec.fieldContext_MessageAttachment_type(ctx, field)
 			case "order":
 				return ec.fieldContext_MessageAttachment_order(ctx, field)
 			case "attachedAt":
@@ -2296,6 +2301,50 @@ func (ec *executionContext) fieldContext_MessageAttachment_id(_ context.Context,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageAttachment_type(ctx context.Context, field graphql.CollectedField, obj *ent.MessageAttachment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageAttachment_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(messageattachment.Type)
+	fc.Result = res
+	return ec.marshalNMessageAttachmentType2journeyhubᚋentᚋmessageattachmentᚐType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageAttachment_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageAttachment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type MessageAttachmentType does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2780,6 +2829,8 @@ func (ec *executionContext) fieldContext_MessageAttachmentEdge_node(_ context.Co
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_MessageAttachment_id(ctx, field)
+			case "type":
+				return ec.fieldContext_MessageAttachment_type(ctx, field)
 			case "order":
 				return ec.fieldContext_MessageAttachment_order(ctx, field)
 			case "attachedAt":
@@ -9231,7 +9282,7 @@ func (ec *executionContext) unmarshalInputMessageAttachmentWhereInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "order", "orderNEQ", "orderIn", "orderNotIn", "orderGT", "orderGTE", "orderLT", "orderLTE", "attachedAt", "attachedAtNEQ", "attachedAtIn", "attachedAtNotIn", "attachedAtGT", "attachedAtGTE", "attachedAtLT", "attachedAtLTE", "hasRoom", "hasRoomWith", "hasMessage", "hasMessageWith", "hasFile", "hasFileWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "type", "typeNEQ", "typeIn", "typeNotIn", "order", "orderNEQ", "orderIn", "orderNotIn", "orderGT", "orderGTE", "orderLT", "orderLTE", "attachedAt", "attachedAtNEQ", "attachedAtIn", "attachedAtNotIn", "attachedAtGT", "attachedAtGTE", "attachedAtLT", "attachedAtLTE", "hasRoom", "hasRoomWith", "hasMessage", "hasMessageWith", "hasFile", "hasFileWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9315,6 +9366,34 @@ func (ec *executionContext) unmarshalInputMessageAttachmentWhereInput(ctx contex
 				return it, err
 			}
 			it.IDLTE = data
+		case "type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			data, err := ec.unmarshalOMessageAttachmentType2ᚖjourneyhubᚋentᚋmessageattachmentᚐType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Type = data
+		case "typeNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("typeNEQ"))
+			data, err := ec.unmarshalOMessageAttachmentType2ᚖjourneyhubᚋentᚋmessageattachmentᚐType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TypeNEQ = data
+		case "typeIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("typeIn"))
+			data, err := ec.unmarshalOMessageAttachmentType2ᚕjourneyhubᚋentᚋmessageattachmentᚐTypeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TypeIn = data
+		case "typeNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("typeNotIn"))
+			data, err := ec.unmarshalOMessageAttachmentType2ᚕjourneyhubᚋentᚋmessageattachmentᚐTypeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TypeNotIn = data
 		case "order":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
 			data, err := ec.unmarshalOUint2ᚖuint(ctx, v)
@@ -12940,6 +13019,11 @@ func (ec *executionContext) _MessageAttachment(ctx context.Context, sel ast.Sele
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "type":
+			out.Values[i] = ec._MessageAttachment_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "order":
 			out.Values[i] = ec._MessageAttachment_order(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -15347,6 +15431,16 @@ func (ec *executionContext) marshalNMessageAttachmentOrderField2ᚖjourneyhubᚋ
 	return v
 }
 
+func (ec *executionContext) unmarshalNMessageAttachmentType2journeyhubᚋentᚋmessageattachmentᚐType(ctx context.Context, v interface{}) (messageattachment.Type, error) {
+	var res messageattachment.Type
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMessageAttachmentType2journeyhubᚋentᚋmessageattachmentᚐType(ctx context.Context, sel ast.SelectionSet, v messageattachment.Type) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNMessageAttachmentWhereInput2ᚖjourneyhubᚋentᚐMessageAttachmentWhereInput(ctx context.Context, v interface{}) (*ent.MessageAttachmentWhereInput, error) {
 	res, err := ec.unmarshalInputMessageAttachmentWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -15943,6 +16037,89 @@ func (ec *executionContext) unmarshalOMessageAttachmentOrder2ᚖjourneyhubᚋent
 	}
 	res, err := ec.unmarshalInputMessageAttachmentOrder(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOMessageAttachmentType2ᚕjourneyhubᚋentᚋmessageattachmentᚐTypeᚄ(ctx context.Context, v interface{}) ([]messageattachment.Type, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]messageattachment.Type, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNMessageAttachmentType2journeyhubᚋentᚋmessageattachmentᚐType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOMessageAttachmentType2ᚕjourneyhubᚋentᚋmessageattachmentᚐTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []messageattachment.Type) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMessageAttachmentType2journeyhubᚋentᚋmessageattachmentᚐType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOMessageAttachmentType2ᚖjourneyhubᚋentᚋmessageattachmentᚐType(ctx context.Context, v interface{}) (*messageattachment.Type, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(messageattachment.Type)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMessageAttachmentType2ᚖjourneyhubᚋentᚋmessageattachmentᚐType(ctx context.Context, sel ast.SelectionSet, v *messageattachment.Type) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOMessageAttachmentWhereInput2ᚕᚖjourneyhubᚋentᚐMessageAttachmentWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.MessageAttachmentWhereInput, error) {

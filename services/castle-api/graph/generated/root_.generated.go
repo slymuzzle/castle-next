@@ -91,6 +91,7 @@ type ComplexityRoot struct {
 		Message    func(childComplexity int) int
 		Order      func(childComplexity int) int
 		Room       func(childComplexity int) int
+		Type       func(childComplexity int) int
 	}
 
 	MessageAttachmentConnection struct {
@@ -558,6 +559,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MessageAttachment.Room(childComplexity), true
+
+	case "MessageAttachment.type":
+		if e.complexity.MessageAttachment.Type == nil {
+			break
+		}
+
+		return e.complexity.MessageAttachment.Type(childComplexity), true
 
 	case "MessageAttachmentConnection.edges":
 		if e.complexity.MessageAttachmentConnection.Edges == nil {
@@ -1698,6 +1706,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSendMessageInput,
 		ec.unmarshalInputUpdateMessageInput,
 		ec.unmarshalInputUpdateRoomInput,
+		ec.unmarshalInputUploadMessageFile,
 		ec.unmarshalInputUserContactOrder,
 		ec.unmarshalInputUserContactWhereInput,
 		ec.unmarshalInputUserLoginInput,
@@ -2028,6 +2037,7 @@ type Message implements Node {
 }
 type MessageAttachment implements Node {
   id: ID!
+  type: MessageAttachmentType!
   order: Uint!
   attachedAt: Time!
   room: Room!
@@ -2081,8 +2091,16 @@ input MessageAttachmentOrder {
 Properties by which MessageAttachment connections can be ordered.
 """
 enum MessageAttachmentOrderField {
+  TYPE
   ORDER
   ATTACHED_AT
+}
+"""
+MessageAttachmentType is enum for the field type
+"""
+enum MessageAttachmentType @goModel(model: "journeyhub/ent/messageattachment.Type") {
+  Media
+  File
 }
 """
 MessageAttachmentWhereInput is used for filtering MessageAttachment objects.
@@ -2103,6 +2121,13 @@ input MessageAttachmentWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
+  """
+  type field predicates
+  """
+  type: MessageAttachmentType
+  typeNEQ: MessageAttachmentType
+  typeIn: [MessageAttachmentType!]
+  typeNotIn: [MessageAttachmentType!]
   """
   order field predicates
   """
@@ -3606,6 +3631,14 @@ input UserWhereInput {
 }
 `, BuiltIn: false},
 	{Name: "../schema/message.graphql", Input: `"""
+UploadMessageFile is used for upload message files.
+"""
+input UploadMessageFile {
+  type: MessageAttachmentType!
+  file: Upload!
+}
+
+"""
 CreateMessageInput is used for create Message object.
 """
 input SendMessageInput {
@@ -3613,7 +3646,7 @@ input SendMessageInput {
   notifyUserID: ID
   replyTo: ID
   content: String @goTag(key: "validate", value: "max=4096")
-  files: [Upload!] @goTag(key: "validate", value: "max=10")
+  files: [UploadMessageFile!] @goTag(key: "validate", value: "max=10")
   voice: Upload @goTag(key: "validate", value: "gql_upload_is_voice")
 }
 

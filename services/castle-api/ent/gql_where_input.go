@@ -970,6 +970,12 @@ type MessageAttachmentWhereInput struct {
 	IDLT    *pulid.ID  `json:"idLT,omitempty"`
 	IDLTE   *pulid.ID  `json:"idLTE,omitempty"`
 
+	// "type" field predicates.
+	Type      *messageattachment.Type  `json:"type,omitempty"`
+	TypeNEQ   *messageattachment.Type  `json:"typeNEQ,omitempty"`
+	TypeIn    []messageattachment.Type `json:"typeIn,omitempty"`
+	TypeNotIn []messageattachment.Type `json:"typeNotIn,omitempty"`
+
 	// "order" field predicates.
 	Order      *uint  `json:"order,omitempty"`
 	OrderNEQ   *uint  `json:"orderNEQ,omitempty"`
@@ -1097,6 +1103,18 @@ func (i *MessageAttachmentWhereInput) P() (predicate.MessageAttachment, error) {
 	}
 	if i.IDLTE != nil {
 		predicates = append(predicates, messageattachment.IDLTE(*i.IDLTE))
+	}
+	if i.Type != nil {
+		predicates = append(predicates, messageattachment.TypeEQ(*i.Type))
+	}
+	if i.TypeNEQ != nil {
+		predicates = append(predicates, messageattachment.TypeNEQ(*i.TypeNEQ))
+	}
+	if len(i.TypeIn) > 0 {
+		predicates = append(predicates, messageattachment.TypeIn(i.TypeIn...))
+	}
+	if len(i.TypeNotIn) > 0 {
+		predicates = append(predicates, messageattachment.TypeNotIn(i.TypeNotIn...))
 	}
 	if i.Order != nil {
 		predicates = append(predicates, messageattachment.OrderEQ(*i.Order))

@@ -11,11 +11,11 @@ import (
 	"journeyhub/internal/modules/auth/jwtauth"
 	"journeyhub/internal/modules/chat"
 	"journeyhub/internal/modules/contacts"
+	"journeyhub/internal/modules/media"
 	"journeyhub/internal/modules/roommembers"
 	"journeyhub/internal/modules/rooms"
 	"journeyhub/internal/platform/config"
 	"journeyhub/internal/platform/db"
-	"journeyhub/internal/platform/media"
 	"journeyhub/internal/platform/nats"
 	"journeyhub/internal/platform/validation"
 

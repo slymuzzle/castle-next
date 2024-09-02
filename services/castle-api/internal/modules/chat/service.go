@@ -8,9 +8,9 @@ import (
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/graph/model"
 	"journeyhub/internal/modules/auth"
+	"journeyhub/internal/modules/media"
 	"journeyhub/internal/modules/roommembers"
 	"journeyhub/internal/modules/rooms"
-	"journeyhub/internal/platform/media"
 	"journeyhub/internal/platform/nats"
 )
 
@@ -97,7 +97,7 @@ func (s *service) SendMessage(
 	if input.Files != nil && len(input.Files) > 0 {
 		uploadAttachmentsFn = func(m *ent.Message) ([]*media.UploadInfo, error) {
 			uploadPrefix := fmt.Sprintf("rooms/%s/%s/attachments", input.RoomID, m.ID)
-			return s.mediaService.UploadFiles(ctx, uploadPrefix, input.Files)
+			return s.mediaService.UploadMessageFiles(ctx, uploadPrefix, input.Files)
 		}
 	}
 

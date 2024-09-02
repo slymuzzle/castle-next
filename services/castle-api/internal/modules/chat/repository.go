@@ -5,7 +5,7 @@ import (
 
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
-	"journeyhub/internal/platform/media"
+	"journeyhub/internal/modules/media"
 )
 
 type (
@@ -106,6 +106,7 @@ func (r *repository) CreateMessage(
 			msgFiles,
 			func(a *ent.MessageAttachmentCreate, i int) {
 				a.SetMessage(msg).
+					SetType(uAtchInfo[i].Type).
 					SetRoomID(roomID).
 					SetFile(msgFiles[i]).
 					SetOrder(uint(i))

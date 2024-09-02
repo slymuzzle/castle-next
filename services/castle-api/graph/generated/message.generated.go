@@ -1510,7 +1510,7 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 			it.Content = data
 		case "files":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("files"))
-			data, err := ec.unmarshalOUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx, v)
+			data, err := ec.unmarshalOUploadMessageFile2ᚕᚖjourneyhubᚋgraphᚋmodelᚐUploadMessageFileᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -1549,6 +1549,40 @@ func (ec *executionContext) unmarshalInputUpdateMessageInput(ctx context.Context
 				return it, err
 			}
 			it.Content = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUploadMessageFile(ctx context.Context, obj interface{}) (model.UploadMessageFile, error) {
+	var it model.UploadMessageFile
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"type", "file"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			data, err := ec.unmarshalNMessageAttachmentType2journeyhubᚋentᚋmessageattachmentᚐType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Type = data
+		case "file":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
+			data, err := ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.File = data
 		}
 	}
 
@@ -1699,6 +1733,31 @@ func (ec *executionContext) unmarshalNSendMessageInput2journeyhubᚋgraphᚋmode
 func (ec *executionContext) unmarshalNUpdateMessageInput2journeyhubᚋgraphᚋmodelᚐUpdateMessageInput(ctx context.Context, v interface{}) (model.UpdateMessageInput, error) {
 	res, err := ec.unmarshalInputUpdateMessageInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUploadMessageFile2ᚖjourneyhubᚋgraphᚋmodelᚐUploadMessageFile(ctx context.Context, v interface{}) (*model.UploadMessageFile, error) {
+	res, err := ec.unmarshalInputUploadMessageFile(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOUploadMessageFile2ᚕᚖjourneyhubᚋgraphᚋmodelᚐUploadMessageFileᚄ(ctx context.Context, v interface{}) ([]*model.UploadMessageFile, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.UploadMessageFile, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNUploadMessageFile2ᚖjourneyhubᚋgraphᚋmodelᚐUploadMessageFile(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 // endregion ***************************** type.gotpl *****************************

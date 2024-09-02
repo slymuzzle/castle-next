@@ -7,8 +7,12 @@ import (
 
 	"journeyhub/ent"
 	"journeyhub/ent/file"
+	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/schema/pulid"
+	"journeyhub/graph/model"
 	"journeyhub/internal/platform/config"
+
+	"github.com/gabriel-vasile/mimetype"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/minio/minio-go/v7"
@@ -16,12 +20,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type (
-	UploadFile = graphql.Upload
-)
-
 type UploadInfo struct {
 	ID          pulid.ID
+	Type        messageattachment.Type
+	Name        string
 	Filename    string
 	ContentType string
 	Size        int64
@@ -31,15 +33,15 @@ type UploadInfo struct {
 }
 
 type Service interface {
-	UploadFiles(
+	UploadMessageFiles(
 		ctx context.Context,
 		prefix string,
-		files []*UploadFile,
+		files []*model.UploadMessageFile,
 	) ([]*UploadInfo, error)
 	UploadFile(
 		ctx context.Context,
 		prefix string,
-		file *UploadFile,
+		file *graphql.Upload,
 	) (*UploadInfo, error)
 	Config() config.S3Config
 }
@@ -77,10 +79,10 @@ func NewService(config config.S3Config) (Service, error) {
 	}, nil
 }
 
-func (s *service) UploadFiles(
+func (s *service) UploadMessageFiles(
 	ctx context.Context,
 	prefix string,
-	files []*UploadFile,
+	files []*model.UploadMessageFile,
 ) ([]*UploadInfo, error) {
 	uploadInfoCh := make(chan *UploadInfo, len(files))
 
@@ -89,7 +91,8 @@ func (s *service) UploadFiles(
 
 	for _, file := range files {
 		eg.Go(func() error {
-			uploadInfo, err := s.UploadFile(egCtx, prefix, file)
+			uploadInfo, err := s.UploadFile(egCtx, prefix, &file.File)
+			uploadInfo.Type = file.Type
 			if err != nil {
 				return err
 			}
@@ -115,7 +118,7 @@ func (s *service) UploadFiles(
 func (s *service) UploadFile(
 	ctx context.Context,
 	prefix string,
-	file *UploadFile,
+	file *graphql.Upload,
 ) (*UploadInfo, error) {
 	uploadID := pulid.MustNew(s.uploadIDPrefix)
 
@@ -126,6 +129,11 @@ func (s *service) UploadFile(
 		filepath.Ext(file.Filename),
 	)
 
+	mtype, err := mimetype.DetectReader(file.File)
+	if err != nil {
+		return nil, err
+	}
+
 	uploadInfo, err := s.minioClient.PutObject(
 		ctx,
 		s.config.Bucket,
@@ -133,7 +141,7 @@ func (s *service) UploadFile(
 		file.File,
 		file.Size,
 		minio.PutObjectOptions{
-			ContentType: file.ContentType,
+			ContentType: mtype.String(),
 		},
 	)
 	if err != nil {
@@ -143,7 +151,7 @@ func (s *service) UploadFile(
 	return &UploadInfo{
 		ID:          uploadID,
 		Filename:    file.Filename,
-		ContentType: file.ContentType,
+		ContentType: mtype.String(),
 		Size:        uploadInfo.Size,
 		Location:    uploadInfo.Location,
 		Bucket:      uploadInfo.Bucket,

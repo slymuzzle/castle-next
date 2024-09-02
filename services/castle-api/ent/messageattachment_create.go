@@ -27,6 +27,12 @@ type MessageAttachmentCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetType sets the "type" field.
+func (mac *MessageAttachmentCreate) SetType(m messageattachment.Type) *MessageAttachmentCreate {
+	mac.mutation.SetType(m)
+	return mac
+}
+
 // SetOrder sets the "order" field.
 func (mac *MessageAttachmentCreate) SetOrder(u uint) *MessageAttachmentCreate {
 	mac.mutation.SetOrder(u)
@@ -141,6 +147,14 @@ func (mac *MessageAttachmentCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (mac *MessageAttachmentCreate) check() error {
+	if _, ok := mac.mutation.GetType(); !ok {
+		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "MessageAttachment.type"`)}
+	}
+	if v, ok := mac.mutation.GetType(); ok {
+		if err := messageattachment.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "MessageAttachment.type": %w`, err)}
+		}
+	}
 	if _, ok := mac.mutation.Order(); !ok {
 		return &ValidationError{Name: "order", err: errors.New(`ent: missing required field "MessageAttachment.order"`)}
 	}
@@ -191,6 +205,10 @@ func (mac *MessageAttachmentCreate) createSpec() (*MessageAttachment, *sqlgraph.
 	if id, ok := mac.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
+	}
+	if value, ok := mac.mutation.GetType(); ok {
+		_spec.SetField(messageattachment.FieldType, field.TypeEnum, value)
+		_node.Type = value
 	}
 	if value, ok := mac.mutation.Order(); ok {
 		_spec.SetField(messageattachment.FieldOrder, field.TypeUint, value)
@@ -258,7 +276,7 @@ func (mac *MessageAttachmentCreate) createSpec() (*MessageAttachment, *sqlgraph.
 // of the `INSERT` statement. For example:
 //
 //	client.MessageAttachment.Create().
-//		SetOrder(v).
+//		SetType(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -267,7 +285,7 @@ func (mac *MessageAttachmentCreate) createSpec() (*MessageAttachment, *sqlgraph.
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.MessageAttachmentUpsert) {
-//			SetOrder(v+v).
+//			SetType(v+v).
 //		}).
 //		Exec(ctx)
 func (mac *MessageAttachmentCreate) OnConflict(opts ...sql.ConflictOption) *MessageAttachmentUpsertOne {
@@ -302,6 +320,18 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetType sets the "type" field.
+func (u *MessageAttachmentUpsert) SetType(v messageattachment.Type) *MessageAttachmentUpsert {
+	u.Set(messageattachment.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *MessageAttachmentUpsert) UpdateType() *MessageAttachmentUpsert {
+	u.SetExcluded(messageattachment.FieldType)
+	return u
+}
 
 // SetOrder sets the "order" field.
 func (u *MessageAttachmentUpsert) SetOrder(v uint) *MessageAttachmentUpsert {
@@ -370,6 +400,20 @@ func (u *MessageAttachmentUpsertOne) Update(set func(*MessageAttachmentUpsert)) 
 		set(&MessageAttachmentUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetType sets the "type" field.
+func (u *MessageAttachmentUpsertOne) SetType(v messageattachment.Type) *MessageAttachmentUpsertOne {
+	return u.Update(func(s *MessageAttachmentUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *MessageAttachmentUpsertOne) UpdateType() *MessageAttachmentUpsertOne {
+	return u.Update(func(s *MessageAttachmentUpsert) {
+		s.UpdateType()
+	})
 }
 
 // SetOrder sets the "order" field.
@@ -529,7 +573,7 @@ func (macb *MessageAttachmentCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.MessageAttachmentUpsert) {
-//			SetOrder(v+v).
+//			SetType(v+v).
 //		}).
 //		Exec(ctx)
 func (macb *MessageAttachmentCreateBulk) OnConflict(opts ...sql.ConflictOption) *MessageAttachmentUpsertBulk {
@@ -609,6 +653,20 @@ func (u *MessageAttachmentUpsertBulk) Update(set func(*MessageAttachmentUpsert))
 		set(&MessageAttachmentUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetType sets the "type" field.
+func (u *MessageAttachmentUpsertBulk) SetType(v messageattachment.Type) *MessageAttachmentUpsertBulk {
+	return u.Update(func(s *MessageAttachmentUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *MessageAttachmentUpsertBulk) UpdateType() *MessageAttachmentUpsertBulk {
+	return u.Update(func(s *MessageAttachmentUpsert) {
+		s.UpdateType()
+	})
 }
 
 // SetOrder sets the "order" field.

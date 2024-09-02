@@ -4,6 +4,7 @@ package model
 
 import (
 	"journeyhub/ent"
+	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
 	"time"
@@ -41,12 +42,12 @@ type RoomMemberUpdatedEvent struct {
 
 // CreateMessageInput is used for create Message object.
 type SendMessageInput struct {
-	RoomID       pulid.ID          `json:"roomID" validate:"required"`
-	NotifyUserID *pulid.ID         `json:"notifyUserID,omitempty"`
-	ReplyTo      *pulid.ID         `json:"replyTo,omitempty"`
-	Content      *string           `json:"content,omitempty" validate:"max=4096"`
-	Files        []*graphql.Upload `json:"files,omitempty" validate:"max=10"`
-	Voice        *graphql.Upload   `json:"voice,omitempty" validate:"gql_upload_is_voice"`
+	RoomID       pulid.ID             `json:"roomID" validate:"required"`
+	NotifyUserID *pulid.ID            `json:"notifyUserID,omitempty"`
+	ReplyTo      *pulid.ID            `json:"replyTo,omitempty"`
+	Content      *string              `json:"content,omitempty" validate:"max=4096"`
+	Files        []*UploadMessageFile `json:"files,omitempty" validate:"max=10"`
+	Voice        *graphql.Upload      `json:"voice,omitempty" validate:"gql_upload_is_voice"`
 }
 
 type Subscription struct {
@@ -63,6 +64,12 @@ type UpdateRoomInput struct {
 	AddUserIDs    []pulid.ID `json:"addUserIDs,omitempty"`
 	RemoveUserIDs []pulid.ID `json:"removeUserIDs,omitempty"`
 	ClearUsers    *bool      `json:"clearUsers,omitempty"`
+}
+
+// UploadMessageFile is used for upload message files.
+type UploadMessageFile struct {
+	Type messageattachment.Type `json:"type"`
+	File graphql.Upload         `json:"file"`
 }
 
 // UserLoginInput is used for user login.

@@ -65,7 +65,7 @@ func init() {
 	messageattachmentFields := schema.MessageAttachment{}.Fields()
 	_ = messageattachmentFields
 	// messageattachmentDescAttachedAt is the schema descriptor for attached_at field.
-	messageattachmentDescAttachedAt := messageattachmentFields[1].Descriptor()
+	messageattachmentDescAttachedAt := messageattachmentFields[2].Descriptor()
 	// messageattachment.DefaultAttachedAt holds the default value on creation for the attached_at field.
 	messageattachment.DefaultAttachedAt = messageattachmentDescAttachedAt.Default.(func() time.Time)
 	// messageattachmentDescID is the schema descriptor for id field.

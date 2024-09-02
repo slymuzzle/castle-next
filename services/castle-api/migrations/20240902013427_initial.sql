@@ -14,6 +14,7 @@ CREATE TABLE "files" (
 -- Create "message_attachments" table
 CREATE TABLE "message_attachments" (
   "id" character varying NOT NULL,
+  "type" character varying NOT NULL,
   "order" bigint NOT NULL,
   "attached_at" timestamptz NOT NULL,
   "file_message_attachment" character varying NOT NULL,

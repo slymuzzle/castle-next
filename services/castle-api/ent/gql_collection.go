@@ -397,6 +397,11 @@ func (ma *MessageAttachmentQuery) collectField(ctx context.Context, oneNode bool
 				return err
 			}
 			ma.withFile = query
+		case "type":
+			if _, ok := fieldSeen[messageattachment.FieldType]; !ok {
+				selectedFields = append(selectedFields, messageattachment.FieldType)
+				fieldSeen[messageattachment.FieldType] = struct{}{}
+			}
 		case "order":
 			if _, ok := fieldSeen[messageattachment.FieldOrder]; !ok {
 				selectedFields = append(selectedFields, messageattachment.FieldOrder)

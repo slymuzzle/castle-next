@@ -31,6 +31,20 @@ func (mau *MessageAttachmentUpdate) Where(ps ...predicate.MessageAttachment) *Me
 	return mau
 }
 
+// SetType sets the "type" field.
+func (mau *MessageAttachmentUpdate) SetType(m messageattachment.Type) *MessageAttachmentUpdate {
+	mau.mutation.SetType(m)
+	return mau
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (mau *MessageAttachmentUpdate) SetNillableType(m *messageattachment.Type) *MessageAttachmentUpdate {
+	if m != nil {
+		mau.SetType(*m)
+	}
+	return mau
+}
+
 // SetOrder sets the "order" field.
 func (mau *MessageAttachmentUpdate) SetOrder(u uint) *MessageAttachmentUpdate {
 	mau.mutation.ResetOrder()
@@ -137,6 +151,11 @@ func (mau *MessageAttachmentUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (mau *MessageAttachmentUpdate) check() error {
+	if v, ok := mau.mutation.GetType(); ok {
+		if err := messageattachment.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "MessageAttachment.type": %w`, err)}
+		}
+	}
 	if mau.mutation.RoomCleared() && len(mau.mutation.RoomIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "MessageAttachment.room"`)
 	}
@@ -160,6 +179,9 @@ func (mau *MessageAttachmentUpdate) sqlSave(ctx context.Context) (n int, err err
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := mau.mutation.GetType(); ok {
+		_spec.SetField(messageattachment.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := mau.mutation.Order(); ok {
 		_spec.SetField(messageattachment.FieldOrder, field.TypeUint, value)
@@ -272,6 +294,20 @@ type MessageAttachmentUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *MessageAttachmentMutation
+}
+
+// SetType sets the "type" field.
+func (mauo *MessageAttachmentUpdateOne) SetType(m messageattachment.Type) *MessageAttachmentUpdateOne {
+	mauo.mutation.SetType(m)
+	return mauo
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (mauo *MessageAttachmentUpdateOne) SetNillableType(m *messageattachment.Type) *MessageAttachmentUpdateOne {
+	if m != nil {
+		mauo.SetType(*m)
+	}
+	return mauo
 }
 
 // SetOrder sets the "order" field.
@@ -393,6 +429,11 @@ func (mauo *MessageAttachmentUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (mauo *MessageAttachmentUpdateOne) check() error {
+	if v, ok := mauo.mutation.GetType(); ok {
+		if err := messageattachment.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "MessageAttachment.type": %w`, err)}
+		}
+	}
 	if mauo.mutation.RoomCleared() && len(mauo.mutation.RoomIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "MessageAttachment.room"`)
 	}
@@ -433,6 +474,9 @@ func (mauo *MessageAttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Mes
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := mauo.mutation.GetType(); ok {
+		_spec.SetField(messageattachment.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := mauo.mutation.Order(); ok {
 		_spec.SetField(messageattachment.FieldOrder, field.TypeUint, value)

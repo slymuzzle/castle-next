@@ -203,6 +203,7 @@ type Message implements Node {
 }
 type MessageAttachment implements Node {
   id: ID!
+  type: MessageAttachmentType!
   order: Uint!
   attachedAt: Time!
   room: Room!
@@ -256,8 +257,16 @@ input MessageAttachmentOrder {
 Properties by which MessageAttachment connections can be ordered.
 """
 enum MessageAttachmentOrderField {
+  TYPE
   ORDER
   ATTACHED_AT
+}
+"""
+MessageAttachmentType is enum for the field type
+"""
+enum MessageAttachmentType @goModel(model: "journeyhub/ent/messageattachment.Type") {
+  Media
+  File
 }
 """
 MessageAttachmentWhereInput is used for filtering MessageAttachment objects.
@@ -278,6 +287,13 @@ input MessageAttachmentWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
+  """
+  type field predicates
+  """
+  type: MessageAttachmentType
+  typeNEQ: MessageAttachmentType
+  typeIn: [MessageAttachmentType!]
+  typeNotIn: [MessageAttachmentType!]
   """
   order field predicates
   """

@@ -1,8 +1,9 @@
 package schema
 
 import (
-	"journeyhub/ent/schema/pulid"
 	"time"
+
+	"journeyhub/ent/schema/pulid"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
@@ -26,6 +27,11 @@ func (MessageAttachment) Mixin() []ent.Mixin {
 // Fields of the MessageAttachment.
 func (MessageAttachment) Fields() []ent.Field {
 	return []ent.Field{
+		field.Enum("type").
+			Values("Media", "File").
+			Annotations(
+				entgql.OrderField("TYPE"),
+			),
 		field.Uint("order").
 			Annotations(
 				entgql.Type("Uint"),

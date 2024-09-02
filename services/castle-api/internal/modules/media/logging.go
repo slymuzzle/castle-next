@@ -4,8 +4,10 @@ import (
 	"context"
 	"time"
 
+	"journeyhub/graph/model"
 	"journeyhub/internal/platform/config"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 )
@@ -19,27 +21,27 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) UploadFiles(
+func (s *loggingService) UploadMessageFiles(
 	ctx context.Context,
 	prefix string,
-	files []*UploadFile,
+	files []*model.UploadMessageFile,
 ) ([]*UploadInfo, error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
-			"method", "UploadFiles",
+			"method", "UploadMessageFiles",
 			"host", s.Service.Config().Host,
 			"ssl", s.Service.Config().Ssl,
 			"count", len(files),
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.Service.UploadFiles(ctx, prefix, files)
+	return s.Service.UploadMessageFiles(ctx, prefix, files)
 }
 
 func (s *loggingService) UploadFile(
 	ctx context.Context,
 	prefix string,
-	file *UploadFile,
+	file *graphql.Upload,
 ) (*UploadInfo, error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(

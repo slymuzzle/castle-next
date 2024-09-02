@@ -1,4 +1,12 @@
 """
+UploadMessageFile is used for upload message files.
+"""
+input UploadMessageFile {
+  type: MessageAttachmentType!
+  file: Upload!
+}
+
+"""
 CreateMessageInput is used for create Message object.
 """
 input SendMessageInput {
@@ -6,7 +14,7 @@ input SendMessageInput {
   notifyUserID: ID
   replyTo: ID
   content: String @goTag(key: "validate", value: "max=4096")
-  files: [Upload!] @goTag(key: "validate", value: "max=10")
+  files: [UploadMessageFile!] @goTag(key: "validate", value: "max=10")
   voice: Upload @goTag(key: "validate", value: "gql_upload_is_voice")
 }
 

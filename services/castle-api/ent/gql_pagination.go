@@ -1088,6 +1088,20 @@ func (ma *MessageAttachmentQuery) Paginate(
 }
 
 var (
+	// MessageAttachmentOrderFieldType orders MessageAttachment by type.
+	MessageAttachmentOrderFieldType = &MessageAttachmentOrderField{
+		Value: func(ma *MessageAttachment) (ent.Value, error) {
+			return ma.Type, nil
+		},
+		column: messageattachment.FieldType,
+		toTerm: messageattachment.ByType,
+		toCursor: func(ma *MessageAttachment) Cursor {
+			return Cursor{
+				ID:    ma.ID,
+				Value: ma.Type,
+			}
+		},
+	}
 	// MessageAttachmentOrderFieldOrder orders MessageAttachment by order.
 	MessageAttachmentOrderFieldOrder = &MessageAttachmentOrderField{
 		Value: func(ma *MessageAttachment) (ent.Value, error) {
@@ -1122,6 +1136,8 @@ var (
 func (f MessageAttachmentOrderField) String() string {
 	var str string
 	switch f.column {
+	case MessageAttachmentOrderFieldType.column:
+		str = "TYPE"
 	case MessageAttachmentOrderFieldOrder.column:
 		str = "ORDER"
 	case MessageAttachmentOrderFieldAttachedAt.column:
@@ -1142,6 +1158,8 @@ func (f *MessageAttachmentOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("MessageAttachmentOrderField %T must be a string", v)
 	}
 	switch str {
+	case "TYPE":
+		*f = *MessageAttachmentOrderFieldType
 	case "ORDER":
 		*f = *MessageAttachmentOrderFieldOrder
 	case "ATTACHED_AT":

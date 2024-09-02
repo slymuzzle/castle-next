@@ -66,6 +66,26 @@ func AttachedAt(v time.Time) predicate.MessageAttachment {
 	return predicate.MessageAttachment(sql.FieldEQ(FieldAttachedAt, v))
 }
 
+// TypeEQ applies the EQ predicate on the "type" field.
+func TypeEQ(v Type) predicate.MessageAttachment {
+	return predicate.MessageAttachment(sql.FieldEQ(FieldType, v))
+}
+
+// TypeNEQ applies the NEQ predicate on the "type" field.
+func TypeNEQ(v Type) predicate.MessageAttachment {
+	return predicate.MessageAttachment(sql.FieldNEQ(FieldType, v))
+}
+
+// TypeIn applies the In predicate on the "type" field.
+func TypeIn(vs ...Type) predicate.MessageAttachment {
+	return predicate.MessageAttachment(sql.FieldIn(FieldType, vs...))
+}
+
+// TypeNotIn applies the NotIn predicate on the "type" field.
+func TypeNotIn(vs ...Type) predicate.MessageAttachment {
+	return predicate.MessageAttachment(sql.FieldNotIn(FieldType, vs...))
+}
+
 // OrderEQ applies the EQ predicate on the "order" field.
 func OrderEQ(v uint) predicate.MessageAttachment {
 	return predicate.MessageAttachment(sql.FieldEQ(FieldOrder, v))
