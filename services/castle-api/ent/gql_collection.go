@@ -212,6 +212,19 @@ func (m *MessageQuery) collectField(ctx context.Context, oneNode bool, opCtx *gr
 			}
 			m.withReplyTo = query
 
+		case "replies":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&MessageClient{config: m.config}).Query()
+			)
+			if err := query.collectField(ctx, false, opCtx, field, path, mayAddCondition(satisfies, messageImplementors)...); err != nil {
+				return err
+			}
+			m.WithNamedReplies(alias, func(wq *MessageQuery) {
+				*wq = *query
+			})
+
 		case "attachments":
 			var (
 				alias = field.Alias

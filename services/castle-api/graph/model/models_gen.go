@@ -42,11 +42,11 @@ type RoomMemberUpdatedEvent struct {
 
 // CreateMessageInput is used for create Message object.
 type SendMessageInput struct {
-	RoomID       pulid.ID             `json:"roomID" validate:"required"`
+	RoomID       pulid.ID             `json:"roomID"`
 	NotifyUserID *pulid.ID            `json:"notifyUserID,omitempty"`
 	ReplyTo      *pulid.ID            `json:"replyTo,omitempty"`
-	Content      *string              `json:"content,omitempty" validate:"max=4096"`
-	Files        []*UploadMessageFile `json:"files,omitempty" validate:"max=10"`
+	Content      *string              `json:"content,omitempty" validate:"omitempty,max=4096"`
+	Files        []*UploadMessageFile `json:"files,omitempty" validate:"max=20"`
 	Voice        *graphql.Upload      `json:"voice,omitempty" validate:"gql_upload_is_voice"`
 }
 
@@ -55,7 +55,7 @@ type Subscription struct {
 
 // UpdateMessageInput is used for update Message object.
 type UpdateMessageInput struct {
-	Content string `json:"content" validate:"required"`
+	Content string `json:"content" validate:"omitempty,max=4096"`
 }
 
 // UpdateRoomInput is used for update Room object.

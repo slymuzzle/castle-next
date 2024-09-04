@@ -629,6 +629,10 @@ type MessageWhereInput struct {
 	HasReplyTo     *bool                `json:"hasReplyTo,omitempty"`
 	HasReplyToWith []*MessageWhereInput `json:"hasReplyToWith,omitempty"`
 
+	// "replies" edge predicates.
+	HasReplies     *bool                `json:"hasReplies,omitempty"`
+	HasRepliesWith []*MessageWhereInput `json:"hasRepliesWith,omitempty"`
+
 	// "attachments" edge predicates.
 	HasAttachments     *bool                          `json:"hasAttachments,omitempty"`
 	HasAttachmentsWith []*MessageAttachmentWhereInput `json:"hasAttachmentsWith,omitempty"`
@@ -870,6 +874,24 @@ func (i *MessageWhereInput) P() (predicate.Message, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, message.HasReplyToWith(with...))
+	}
+	if i.HasReplies != nil {
+		p := message.HasReplies()
+		if !*i.HasReplies {
+			p = message.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasRepliesWith) > 0 {
+		with := make([]predicate.Message, 0, len(i.HasRepliesWith))
+		for _, w := range i.HasRepliesWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasRepliesWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, message.HasRepliesWith(with...))
 	}
 	if i.HasAttachments != nil {
 		p := message.HasAttachments()

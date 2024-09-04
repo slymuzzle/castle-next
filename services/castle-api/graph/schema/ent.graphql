@@ -196,6 +196,7 @@ type Message implements Node {
   updatedAt: Time!
   voice: MessageVoice
   replyTo: Message
+  replies: [Message!]
   attachments: [MessageAttachment!]
   links: [MessageLink!]
   user: User
@@ -680,6 +681,11 @@ input MessageWhereInput {
   """
   hasReplyTo: Boolean
   hasReplyToWith: [MessageWhereInput!]
+  """
+  replies edge predicates
+  """
+  hasReplies: Boolean
+  hasRepliesWith: [MessageWhereInput!]
   """
   attachments edge predicates
   """

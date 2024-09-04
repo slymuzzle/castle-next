@@ -57,8 +57,8 @@ func NewDefaultServer(es graphql.ExecutableSchema, logger log.Logger, ja *jwtaut
 	srv.AddTransport(transport.GET{})
 	srv.AddTransport(transport.POST{})
 	srv.AddTransport(transport.MultipartForm{
-		MaxUploadSize: 100 << 20,
-		MaxMemory:     100 << 20,
+		MaxUploadSize: 1024 << 20,
+		MaxMemory:     1024 << 20,
 	})
 
 	srv.SetQueryCache(lru.New(1000))

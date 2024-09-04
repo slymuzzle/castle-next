@@ -53,14 +53,12 @@ CREATE TABLE "messages" (
   "content" text NULL,
   "created_at" timestamptz NOT NULL,
   "updated_at" timestamptz NOT NULL,
-  "message_reply_to" character varying NULL,
+  "message_replies" character varying NULL,
   "room_messages" character varying NULL,
   "user_messages" character varying NULL,
   PRIMARY KEY ("id"),
-  CONSTRAINT "messages_messages_reply_to" FOREIGN KEY ("message_reply_to") REFERENCES "messages" ("id") ON UPDATE NO ACTION ON DELETE SET NULL
+  CONSTRAINT "messages_messages_replies" FOREIGN KEY ("message_replies") REFERENCES "messages" ("id") ON UPDATE NO ACTION ON DELETE SET NULL
 );
--- Create index "messages_message_reply_to_key" to table: "messages"
-CREATE UNIQUE INDEX "messages_message_reply_to_key" ON "messages" ("message_reply_to");
 -- Create "room_members" table
 CREATE TABLE "room_members" (
   "id" character varying NOT NULL,

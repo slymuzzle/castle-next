@@ -952,6 +952,9 @@ type MessageMutation struct {
 	clearedvoice       bool
 	reply_to           *pulid.ID
 	clearedreply_to    bool
+	replies            map[pulid.ID]struct{}
+	removedreplies     map[pulid.ID]struct{}
+	clearedreplies     bool
 	attachments        map[pulid.ID]struct{}
 	removedattachments map[pulid.ID]struct{}
 	clearedattachments bool
@@ -1268,6 +1271,60 @@ func (m *MessageMutation) ReplyToIDs() (ids []pulid.ID) {
 func (m *MessageMutation) ResetReplyTo() {
 	m.reply_to = nil
 	m.clearedreply_to = false
+}
+
+// AddReplyIDs adds the "replies" edge to the Message entity by ids.
+func (m *MessageMutation) AddReplyIDs(ids ...pulid.ID) {
+	if m.replies == nil {
+		m.replies = make(map[pulid.ID]struct{})
+	}
+	for i := range ids {
+		m.replies[ids[i]] = struct{}{}
+	}
+}
+
+// ClearReplies clears the "replies" edge to the Message entity.
+func (m *MessageMutation) ClearReplies() {
+	m.clearedreplies = true
+}
+
+// RepliesCleared reports if the "replies" edge to the Message entity was cleared.
+func (m *MessageMutation) RepliesCleared() bool {
+	return m.clearedreplies
+}
+
+// RemoveReplyIDs removes the "replies" edge to the Message entity by IDs.
+func (m *MessageMutation) RemoveReplyIDs(ids ...pulid.ID) {
+	if m.removedreplies == nil {
+		m.removedreplies = make(map[pulid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.replies, ids[i])
+		m.removedreplies[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedReplies returns the removed IDs of the "replies" edge to the Message entity.
+func (m *MessageMutation) RemovedRepliesIDs() (ids []pulid.ID) {
+	for id := range m.removedreplies {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RepliesIDs returns the "replies" edge IDs in the mutation.
+func (m *MessageMutation) RepliesIDs() (ids []pulid.ID) {
+	for id := range m.replies {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetReplies resets all changes to the "replies" edge.
+func (m *MessageMutation) ResetReplies() {
+	m.replies = nil
+	m.clearedreplies = false
+	m.removedreplies = nil
 }
 
 // AddAttachmentIDs adds the "attachments" edge to the MessageAttachment entity by ids.
@@ -1632,12 +1689,15 @@ func (m *MessageMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *MessageMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.voice != nil {
 		edges = append(edges, message.EdgeVoice)
 	}
 	if m.reply_to != nil {
 		edges = append(edges, message.EdgeReplyTo)
+	}
+	if m.replies != nil {
+		edges = append(edges, message.EdgeReplies)
 	}
 	if m.attachments != nil {
 		edges = append(edges, message.EdgeAttachments)
@@ -1666,6 +1726,12 @@ func (m *MessageMutation) AddedIDs(name string) []ent.Value {
 		if id := m.reply_to; id != nil {
 			return []ent.Value{*id}
 		}
+	case message.EdgeReplies:
+		ids := make([]ent.Value, 0, len(m.replies))
+		for id := range m.replies {
+			ids = append(ids, id)
+		}
+		return ids
 	case message.EdgeAttachments:
 		ids := make([]ent.Value, 0, len(m.attachments))
 		for id := range m.attachments {
@@ -1692,7 +1758,10 @@ func (m *MessageMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *MessageMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
+	if m.removedreplies != nil {
+		edges = append(edges, message.EdgeReplies)
+	}
 	if m.removedattachments != nil {
 		edges = append(edges, message.EdgeAttachments)
 	}
@@ -1706,6 +1775,12 @@ func (m *MessageMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *MessageMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case message.EdgeReplies:
+		ids := make([]ent.Value, 0, len(m.removedreplies))
+		for id := range m.removedreplies {
+			ids = append(ids, id)
+		}
+		return ids
 	case message.EdgeAttachments:
 		ids := make([]ent.Value, 0, len(m.removedattachments))
 		for id := range m.removedattachments {
@@ -1724,12 +1799,15 @@ func (m *MessageMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *MessageMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedvoice {
 		edges = append(edges, message.EdgeVoice)
 	}
 	if m.clearedreply_to {
 		edges = append(edges, message.EdgeReplyTo)
+	}
+	if m.clearedreplies {
+		edges = append(edges, message.EdgeReplies)
 	}
 	if m.clearedattachments {
 		edges = append(edges, message.EdgeAttachments)
@@ -1754,6 +1832,8 @@ func (m *MessageMutation) EdgeCleared(name string) bool {
 		return m.clearedvoice
 	case message.EdgeReplyTo:
 		return m.clearedreply_to
+	case message.EdgeReplies:
+		return m.clearedreplies
 	case message.EdgeAttachments:
 		return m.clearedattachments
 	case message.EdgeLinks:
@@ -1795,6 +1875,9 @@ func (m *MessageMutation) ResetEdge(name string) error {
 		return nil
 	case message.EdgeReplyTo:
 		m.ResetReplyTo()
+		return nil
+	case message.EdgeReplies:
+		m.ResetReplies()
 		return nil
 	case message.EdgeAttachments:
 		m.ResetAttachments()

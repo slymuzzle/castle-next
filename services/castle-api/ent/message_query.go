@@ -31,6 +31,7 @@ type MessageQuery struct {
 	predicates           []predicate.Message
 	withVoice            *MessageVoiceQuery
 	withReplyTo          *MessageQuery
+	withReplies          *MessageQuery
 	withAttachments      *MessageAttachmentQuery
 	withLinks            *MessageLinkQuery
 	withUser             *UserQuery
@@ -38,6 +39,7 @@ type MessageQuery struct {
 	withFKs              bool
 	modifiers            []func(*sql.Selector)
 	loadTotal            []func(context.Context, []*Message) error
+	withNamedReplies     map[string]*MessageQuery
 	withNamedAttachments map[string]*MessageAttachmentQuery
 	withNamedLinks       map[string]*MessageLinkQuery
 	// intermediate query (i.e. traversal path).
@@ -112,7 +114,29 @@ func (mq *MessageQuery) QueryReplyTo() *MessageQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(message.Table, message.FieldID, selector),
 			sqlgraph.To(message.Table, message.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, message.ReplyToTable, message.ReplyToColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.ReplyToTable, message.ReplyToColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryReplies chains the current query on the "replies" edge.
+func (mq *MessageQuery) QueryReplies() *MessageQuery {
+	query := (&MessageClient{config: mq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, selector),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, message.RepliesTable, message.RepliesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
 		return fromU, nil
@@ -402,6 +426,7 @@ func (mq *MessageQuery) Clone() *MessageQuery {
 		predicates:      append([]predicate.Message{}, mq.predicates...),
 		withVoice:       mq.withVoice.Clone(),
 		withReplyTo:     mq.withReplyTo.Clone(),
+		withReplies:     mq.withReplies.Clone(),
 		withAttachments: mq.withAttachments.Clone(),
 		withLinks:       mq.withLinks.Clone(),
 		withUser:        mq.withUser.Clone(),
@@ -431,6 +456,17 @@ func (mq *MessageQuery) WithReplyTo(opts ...func(*MessageQuery)) *MessageQuery {
 		opt(query)
 	}
 	mq.withReplyTo = query
+	return mq
+}
+
+// WithReplies tells the query-builder to eager-load the nodes that are connected to
+// the "replies" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithReplies(opts ...func(*MessageQuery)) *MessageQuery {
+	query := (&MessageClient{config: mq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withReplies = query
 	return mq
 }
 
@@ -557,9 +593,10 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 		nodes       = []*Message{}
 		withFKs     = mq.withFKs
 		_spec       = mq.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			mq.withVoice != nil,
 			mq.withReplyTo != nil,
+			mq.withReplies != nil,
 			mq.withAttachments != nil,
 			mq.withLinks != nil,
 			mq.withUser != nil,
@@ -605,6 +642,13 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 			return nil, err
 		}
 	}
+	if query := mq.withReplies; query != nil {
+		if err := mq.loadReplies(ctx, query, nodes,
+			func(n *Message) { n.Edges.Replies = []*Message{} },
+			func(n *Message, e *Message) { n.Edges.Replies = append(n.Edges.Replies, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := mq.withAttachments; query != nil {
 		if err := mq.loadAttachments(ctx, query, nodes,
 			func(n *Message) { n.Edges.Attachments = []*MessageAttachment{} },
@@ -628,6 +672,13 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 	if query := mq.withRoom; query != nil {
 		if err := mq.loadRoom(ctx, query, nodes, nil,
 			func(n *Message, e *Room) { n.Edges.Room = e }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range mq.withNamedReplies {
+		if err := mq.loadReplies(ctx, query, nodes,
+			func(n *Message) { n.appendNamedReplies(name) },
+			func(n *Message, e *Message) { n.appendNamedReplies(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -685,10 +736,10 @@ func (mq *MessageQuery) loadReplyTo(ctx context.Context, query *MessageQuery, no
 	ids := make([]pulid.ID, 0, len(nodes))
 	nodeids := make(map[pulid.ID][]*Message)
 	for i := range nodes {
-		if nodes[i].message_reply_to == nil {
+		if nodes[i].message_replies == nil {
 			continue
 		}
-		fk := *nodes[i].message_reply_to
+		fk := *nodes[i].message_replies
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -705,11 +756,42 @@ func (mq *MessageQuery) loadReplyTo(ctx context.Context, query *MessageQuery, no
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "message_reply_to" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "message_replies" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (mq *MessageQuery) loadReplies(ctx context.Context, query *MessageQuery, nodes []*Message, init func(*Message), assign func(*Message, *Message)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[pulid.ID]*Message)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(message.RepliesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.message_replies
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "message_replies" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "message_replies" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -922,6 +1004,20 @@ func (mq *MessageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedReplies tells the query-builder to eager-load the nodes that are connected to the "replies"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithNamedReplies(name string, opts ...func(*MessageQuery)) *MessageQuery {
+	query := (&MessageClient{config: mq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if mq.withNamedReplies == nil {
+		mq.withNamedReplies = make(map[string]*MessageQuery)
+	}
+	mq.withNamedReplies[name] = query
+	return mq
 }
 
 // WithNamedAttachments tells the query-builder to eager-load the nodes that are connected to the "attachments"

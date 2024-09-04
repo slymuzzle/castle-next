@@ -32,7 +32,7 @@ var (
 		{Name: "content", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "message_reply_to", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "message_replies", Type: field.TypeString, Nullable: true},
 		{Name: "room_messages", Type: field.TypeString, Nullable: true},
 		{Name: "user_messages", Type: field.TypeString, Nullable: true},
 	}
@@ -43,7 +43,7 @@ var (
 		PrimaryKey: []*schema.Column{MessagesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "messages_messages_reply_to",
+				Symbol:     "messages_messages_replies",
 				Columns:    []*schema.Column{MessagesColumns[4]},
 				RefColumns: []*schema.Column{MessagesColumns[0]},
 				OnDelete:   schema.SetNull,

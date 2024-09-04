@@ -570,7 +570,23 @@ func (c *MessageClient) QueryReplyTo(m *Message) *MessageQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(message.Table, message.FieldID, id),
 			sqlgraph.To(message.Table, message.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, message.ReplyToTable, message.ReplyToColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.ReplyToTable, message.ReplyToColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryReplies queries the replies edge of a Message.
+func (c *MessageClient) QueryReplies(m *Message) *MessageQuery {
+	query := (&MessageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, id),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, message.RepliesTable, message.RepliesColumn),
 		)
 		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
 		return fromV, nil

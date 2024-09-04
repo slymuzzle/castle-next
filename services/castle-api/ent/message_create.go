@@ -123,6 +123,21 @@ func (mc *MessageCreate) SetReplyTo(m *Message) *MessageCreate {
 	return mc.SetReplyToID(m.ID)
 }
 
+// AddReplyIDs adds the "replies" edge to the Message entity by IDs.
+func (mc *MessageCreate) AddReplyIDs(ids ...pulid.ID) *MessageCreate {
+	mc.mutation.AddReplyIDs(ids...)
+	return mc
+}
+
+// AddReplies adds the "replies" edges to the Message entity.
+func (mc *MessageCreate) AddReplies(m ...*Message) *MessageCreate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mc.AddReplyIDs(ids...)
+}
+
 // AddAttachmentIDs adds the "attachments" edge to the MessageAttachment entity by IDs.
 func (mc *MessageCreate) AddAttachmentIDs(ids ...pulid.ID) *MessageCreate {
 	mc.mutation.AddAttachmentIDs(ids...)
@@ -314,11 +329,11 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 	}
 	if nodes := mc.mutation.ReplyToIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
 			Table:   message.ReplyToTable,
 			Columns: []string{message.ReplyToColumn},
-			Bidi:    true,
+			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
 			},
@@ -326,7 +341,23 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.message_reply_to = &nodes[0]
+		_node.message_replies = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := mc.mutation.RepliesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.RepliesTable,
+			Columns: []string{message.RepliesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := mc.mutation.AttachmentsIDs(); len(nodes) > 0 {

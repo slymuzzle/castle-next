@@ -98,6 +98,21 @@ func (mu *MessageUpdate) SetReplyTo(m *Message) *MessageUpdate {
 	return mu.SetReplyToID(m.ID)
 }
 
+// AddReplyIDs adds the "replies" edge to the Message entity by IDs.
+func (mu *MessageUpdate) AddReplyIDs(ids ...pulid.ID) *MessageUpdate {
+	mu.mutation.AddReplyIDs(ids...)
+	return mu
+}
+
+// AddReplies adds the "replies" edges to the Message entity.
+func (mu *MessageUpdate) AddReplies(m ...*Message) *MessageUpdate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mu.AddReplyIDs(ids...)
+}
+
 // AddAttachmentIDs adds the "attachments" edge to the MessageAttachment entity by IDs.
 func (mu *MessageUpdate) AddAttachmentIDs(ids ...pulid.ID) *MessageUpdate {
 	mu.mutation.AddAttachmentIDs(ids...)
@@ -181,6 +196,27 @@ func (mu *MessageUpdate) ClearVoice() *MessageUpdate {
 func (mu *MessageUpdate) ClearReplyTo() *MessageUpdate {
 	mu.mutation.ClearReplyTo()
 	return mu
+}
+
+// ClearReplies clears all "replies" edges to the Message entity.
+func (mu *MessageUpdate) ClearReplies() *MessageUpdate {
+	mu.mutation.ClearReplies()
+	return mu
+}
+
+// RemoveReplyIDs removes the "replies" edge to Message entities by IDs.
+func (mu *MessageUpdate) RemoveReplyIDs(ids ...pulid.ID) *MessageUpdate {
+	mu.mutation.RemoveReplyIDs(ids...)
+	return mu
+}
+
+// RemoveReplies removes "replies" edges to Message entities.
+func (mu *MessageUpdate) RemoveReplies(m ...*Message) *MessageUpdate {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mu.RemoveReplyIDs(ids...)
 }
 
 // ClearAttachments clears all "attachments" edges to the MessageAttachment entity.
@@ -322,11 +358,11 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if mu.mutation.ReplyToCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
 			Table:   message.ReplyToTable,
 			Columns: []string{message.ReplyToColumn},
-			Bidi:    true,
+			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
 			},
@@ -335,11 +371,56 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := mu.mutation.ReplyToIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
 			Table:   message.ReplyToTable,
 			Columns: []string{message.ReplyToColumn},
-			Bidi:    true,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if mu.mutation.RepliesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.RepliesTable,
+			Columns: []string{message.RepliesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RemovedRepliesIDs(); len(nodes) > 0 && !mu.mutation.RepliesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.RepliesTable,
+			Columns: []string{message.RepliesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RepliesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.RepliesTable,
+			Columns: []string{message.RepliesColumn},
+			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
 			},
@@ -581,6 +662,21 @@ func (muo *MessageUpdateOne) SetReplyTo(m *Message) *MessageUpdateOne {
 	return muo.SetReplyToID(m.ID)
 }
 
+// AddReplyIDs adds the "replies" edge to the Message entity by IDs.
+func (muo *MessageUpdateOne) AddReplyIDs(ids ...pulid.ID) *MessageUpdateOne {
+	muo.mutation.AddReplyIDs(ids...)
+	return muo
+}
+
+// AddReplies adds the "replies" edges to the Message entity.
+func (muo *MessageUpdateOne) AddReplies(m ...*Message) *MessageUpdateOne {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return muo.AddReplyIDs(ids...)
+}
+
 // AddAttachmentIDs adds the "attachments" edge to the MessageAttachment entity by IDs.
 func (muo *MessageUpdateOne) AddAttachmentIDs(ids ...pulid.ID) *MessageUpdateOne {
 	muo.mutation.AddAttachmentIDs(ids...)
@@ -664,6 +760,27 @@ func (muo *MessageUpdateOne) ClearVoice() *MessageUpdateOne {
 func (muo *MessageUpdateOne) ClearReplyTo() *MessageUpdateOne {
 	muo.mutation.ClearReplyTo()
 	return muo
+}
+
+// ClearReplies clears all "replies" edges to the Message entity.
+func (muo *MessageUpdateOne) ClearReplies() *MessageUpdateOne {
+	muo.mutation.ClearReplies()
+	return muo
+}
+
+// RemoveReplyIDs removes the "replies" edge to Message entities by IDs.
+func (muo *MessageUpdateOne) RemoveReplyIDs(ids ...pulid.ID) *MessageUpdateOne {
+	muo.mutation.RemoveReplyIDs(ids...)
+	return muo
+}
+
+// RemoveReplies removes "replies" edges to Message entities.
+func (muo *MessageUpdateOne) RemoveReplies(m ...*Message) *MessageUpdateOne {
+	ids := make([]pulid.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return muo.RemoveReplyIDs(ids...)
 }
 
 // ClearAttachments clears all "attachments" edges to the MessageAttachment entity.
@@ -835,11 +952,11 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 	}
 	if muo.mutation.ReplyToCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
 			Table:   message.ReplyToTable,
 			Columns: []string{message.ReplyToColumn},
-			Bidi:    true,
+			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
 			},
@@ -848,11 +965,56 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 	}
 	if nodes := muo.mutation.ReplyToIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
 			Table:   message.ReplyToTable,
 			Columns: []string{message.ReplyToColumn},
-			Bidi:    true,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if muo.mutation.RepliesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.RepliesTable,
+			Columns: []string{message.RepliesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RemovedRepliesIDs(); len(nodes) > 0 && !muo.mutation.RepliesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.RepliesTable,
+			Columns: []string{message.RepliesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RepliesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.RepliesTable,
+			Columns: []string{message.RepliesColumn},
+			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeString),
 			},

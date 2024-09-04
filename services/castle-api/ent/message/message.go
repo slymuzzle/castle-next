@@ -25,6 +25,8 @@ const (
 	EdgeVoice = "voice"
 	// EdgeReplyTo holds the string denoting the reply_to edge name in mutations.
 	EdgeReplyTo = "reply_to"
+	// EdgeReplies holds the string denoting the replies edge name in mutations.
+	EdgeReplies = "replies"
 	// EdgeAttachments holds the string denoting the attachments edge name in mutations.
 	EdgeAttachments = "attachments"
 	// EdgeLinks holds the string denoting the links edge name in mutations.
@@ -45,7 +47,11 @@ const (
 	// ReplyToTable is the table that holds the reply_to relation/edge.
 	ReplyToTable = "messages"
 	// ReplyToColumn is the table column denoting the reply_to relation/edge.
-	ReplyToColumn = "message_reply_to"
+	ReplyToColumn = "message_replies"
+	// RepliesTable is the table that holds the replies relation/edge.
+	RepliesTable = "messages"
+	// RepliesColumn is the table column denoting the replies relation/edge.
+	RepliesColumn = "message_replies"
 	// AttachmentsTable is the table that holds the attachments relation/edge.
 	AttachmentsTable = "message_attachments"
 	// AttachmentsInverseTable is the table name for the MessageAttachment entity.
@@ -87,7 +93,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "messages"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"message_reply_to",
+	"message_replies",
 	"room_messages",
 	"user_messages",
 }
@@ -155,6 +161,20 @@ func ByReplyToField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
+// ByRepliesCount orders the results by replies count.
+func ByRepliesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRepliesStep(), opts...)
+	}
+}
+
+// ByReplies orders the results by replies terms.
+func ByReplies(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRepliesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByAttachmentsCount orders the results by attachments count.
 func ByAttachmentsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -207,7 +227,14 @@ func newReplyToStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(Table, FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, false, ReplyToTable, ReplyToColumn),
+		sqlgraph.Edge(sqlgraph.M2O, true, ReplyToTable, ReplyToColumn),
+	)
+}
+func newRepliesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RepliesTable, RepliesColumn),
 	)
 }
 func newAttachmentsStep() *sqlgraph.Step {

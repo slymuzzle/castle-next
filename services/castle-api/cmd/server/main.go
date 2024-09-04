@@ -78,7 +78,7 @@ func main() {
 	defer dbService.Close()
 
 	// Initialize ent client
-	entClient := dbService.Client().Debug()
+	entClient := dbService.Client()
 
 	// Ent hooks stack
 	entLogger := log.With(logger, "component", "ent")

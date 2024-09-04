@@ -254,7 +254,7 @@ func HasReplyTo() predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, ReplyToTable, ReplyToColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ReplyToTable, ReplyToColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -264,6 +264,29 @@ func HasReplyTo() predicate.Message {
 func HasReplyToWith(preds ...predicate.Message) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		step := newReplyToStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasReplies applies the HasEdge predicate on the "replies" edge.
+func HasReplies() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RepliesTable, RepliesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRepliesWith applies the HasEdge predicate on the "replies" edge with a given conditions (other predicates).
+func HasRepliesWith(preds ...predicate.Message) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := newRepliesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

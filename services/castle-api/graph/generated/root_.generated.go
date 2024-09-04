@@ -77,6 +77,7 @@ type ComplexityRoot struct {
 		CreatedAt   func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Links       func(childComplexity int) int
+		Replies     func(childComplexity int) int
 		ReplyTo     func(childComplexity int) int
 		Room        func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
@@ -482,6 +483,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Message.Links(childComplexity), true
+
+	case "Message.replies":
+		if e.complexity.Message.Replies == nil {
+			break
+		}
+
+		return e.complexity.Message.Replies(childComplexity), true
 
 	case "Message.replyTo":
 		if e.complexity.Message.ReplyTo == nil {
@@ -2030,6 +2038,7 @@ type Message implements Node {
   updatedAt: Time!
   voice: MessageVoice
   replyTo: Message
+  replies: [Message!]
   attachments: [MessageAttachment!]
   links: [MessageLink!]
   user: User
@@ -2514,6 +2523,11 @@ input MessageWhereInput {
   """
   hasReplyTo: Boolean
   hasReplyToWith: [MessageWhereInput!]
+  """
+  replies edge predicates
+  """
+  hasReplies: Boolean
+  hasRepliesWith: [MessageWhereInput!]
   """
   attachments edge predicates
   """
@@ -3642,11 +3656,11 @@ input UploadMessageFile {
 CreateMessageInput is used for create Message object.
 """
 input SendMessageInput {
-  roomID: ID! @goTag(key: "validate", value: "required")
+  roomID: ID!
   notifyUserID: ID
   replyTo: ID
-  content: String @goTag(key: "validate", value: "max=4096")
-  files: [UploadMessageFile!] @goTag(key: "validate", value: "max=10")
+  content: String @goTag(key: "validate", value: "omitempty,max=4096")
+  files: [UploadMessageFile!] @goTag(key: "validate", value: "max=20")
   voice: Upload @goTag(key: "validate", value: "gql_upload_is_voice")
 }
 
@@ -3654,7 +3668,7 @@ input SendMessageInput {
 UpdateMessageInput is used for update Message object.
 """
 input UpdateMessageInput {
-  content: String! @goTag(key: "validate", value: "required")
+  content: String! @goTag(key: "validate", value: "omitempty,max=4096")
 }
 
 extend type Query {

@@ -40,6 +40,18 @@ func (m *Message) ReplyTo(ctx context.Context) (*Message, error) {
 	return result, MaskNotFound(err)
 }
 
+func (m *Message) Replies(ctx context.Context) (result []*Message, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = m.NamedReplies(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = m.Edges.RepliesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = m.QueryReplies().All(ctx)
+	}
+	return result, err
+}
+
 func (m *Message) Attachments(ctx context.Context) (result []*MessageAttachment, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = m.NamedAttachments(graphql.GetFieldContext(ctx).Field.Alias)

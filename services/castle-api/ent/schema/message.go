@@ -53,7 +53,8 @@ func (Message) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 			),
-		edge.To("reply_to", Message.Type).
+		edge.To("replies", Message.Type).
+			From("reply_to").
 			Unique().
 			Annotations(
 				entsql.OnDelete(entsql.SetNull),

@@ -3,6 +3,7 @@ package media
 import (
 	"context"
 	"fmt"
+	"io"
 	"path/filepath"
 
 	"journeyhub/ent"
@@ -87,15 +88,15 @@ func (s *service) UploadMessageFiles(
 	uploadInfoCh := make(chan *UploadInfo, len(files))
 
 	eg, egCtx := errgroup.WithContext(ctx)
-	eg.SetLimit(10)
+	eg.SetLimit(20)
 
 	for _, file := range files {
 		eg.Go(func() error {
 			uploadInfo, err := s.UploadFile(egCtx, prefix, &file.File)
-			uploadInfo.Type = file.Type
 			if err != nil {
 				return err
 			}
+			uploadInfo.Type = file.Type
 			uploadInfoCh <- uploadInfo
 			return nil
 		})
@@ -130,6 +131,11 @@ func (s *service) UploadFile(
 	)
 
 	mtype, err := mimetype.DetectReader(file.File)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = file.File.Seek(0, io.SeekStart)
 	if err != nil {
 		return nil, err
 	}

@@ -10,11 +10,11 @@ input UploadMessageFile {
 CreateMessageInput is used for create Message object.
 """
 input SendMessageInput {
-  roomID: ID! @goTag(key: "validate", value: "required")
+  roomID: ID!
   notifyUserID: ID
   replyTo: ID
-  content: String @goTag(key: "validate", value: "max=4096")
-  files: [UploadMessageFile!] @goTag(key: "validate", value: "max=10")
+  content: String @goTag(key: "validate", value: "omitempty,max=4096")
+  files: [UploadMessageFile!] @goTag(key: "validate", value: "max=20")
   voice: Upload @goTag(key: "validate", value: "gql_upload_is_voice")
 }
 
@@ -22,7 +22,7 @@ input SendMessageInput {
 UpdateMessageInput is used for update Message object.
 """
 input UpdateMessageInput {
-  content: String! @goTag(key: "validate", value: "required")
+  content: String! @goTag(key: "validate", value: "omitempty,max=4096")
 }
 
 extend type Query {
