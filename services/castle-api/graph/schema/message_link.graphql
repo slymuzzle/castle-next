@@ -1,3 +1,13 @@
+"""
+CreateMessageLinkInput is used for create message link object.
+"""
+input CreateMessageLinkInput {
+  link: String!
+  title: String
+  description: String
+  imageURL: String
+}
+
 extend type Query {
   messageLinksByRoom(
     """
@@ -28,7 +38,7 @@ extend type Query {
     """
     Ordering options for MessageLinks returned from the connection.
     """
-    orderBy: MessageLinkOrder
+    orderBy: [MessageLinkOrder!]
 
     """
     Filtering options for MessageLinks returned from the connection.

@@ -28,7 +28,7 @@ extend type Query {
     """
     Ordering options for MessageVoices returned from the connection.
     """
-    orderBy: MessageVoiceOrder
+    orderBy: [MessageVoiceOrder!]
 
     """
     Filtering options for MessageVoices returned from the connection.

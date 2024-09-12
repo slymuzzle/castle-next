@@ -11,13 +11,13 @@ import (
 	"github.com/go-kit/log/level"
 )
 
-type loggingService struct {
+type serviceLogging struct {
 	logger log.Logger
 	Service
 }
 
-func NewLoggingService(logger log.Logger, s Service) Service {
-	return &loggingService{logger, s}
+func NewServiceLogging(logger log.Logger, s Service) Service {
+	return &serviceLogging{logger, s}
 }
 
 // func (s *loggingService) FindOrCreatePersonalRoom(
@@ -35,7 +35,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 // 	return s.Service.FindOrCreatePersonalRoom(ctx, targetUserID)
 // }
 
-func (s *loggingService) FindRoomByMessage(
+func (s *serviceLogging) FindRoomByMessage(
 	ctx context.Context,
 	messageID pulid.ID,
 ) (room *ent.Room, err error) {
@@ -50,7 +50,7 @@ func (s *loggingService) FindRoomByMessage(
 	return s.Service.FindRoomByMessage(ctx, messageID)
 }
 
-func (s *loggingService) IncrementRoomVersion(
+func (s *serviceLogging) IncrementRoomVersion(
 	ctx context.Context,
 	ID pulid.ID,
 	lastMessage *ent.Message,
@@ -66,7 +66,7 @@ func (s *loggingService) IncrementRoomVersion(
 	return s.Service.IncrementRoomVersion(ctx, ID, lastMessage)
 }
 
-func (s *loggingService) DeleteRoom(
+func (s *serviceLogging) DeleteRoom(
 	ctx context.Context,
 	ID pulid.ID,
 ) (room *ent.Room, err error) {

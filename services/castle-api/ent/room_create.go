@@ -59,6 +59,20 @@ func (rc *RoomCreate) SetNillableName(s *string) *RoomCreate {
 	return rc
 }
 
+// SetDescription sets the "description" field.
+func (rc *RoomCreate) SetDescription(s string) *RoomCreate {
+	rc.mutation.SetDescription(s)
+	return rc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (rc *RoomCreate) SetNillableDescription(s *string) *RoomCreate {
+	if s != nil {
+		rc.SetDescription(*s)
+	}
+	return rc
+}
+
 // SetVersion sets the "version" field.
 func (rc *RoomCreate) SetVersion(u uint64) *RoomCreate {
 	rc.mutation.SetVersion(u)
@@ -378,6 +392,10 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 		_spec.SetField(room.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
+	if value, ok := rc.mutation.Description(); ok {
+		_spec.SetField(room.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
 	if value, ok := rc.mutation.Version(); ok {
 		_spec.SetField(room.FieldVersion, field.TypeUint64, value)
 		_node.Version = value
@@ -618,6 +636,24 @@ func (u *RoomUpsert) ClearName() *RoomUpsert {
 	return u
 }
 
+// SetDescription sets the "description" field.
+func (u *RoomUpsert) SetDescription(v string) *RoomUpsert {
+	u.Set(room.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *RoomUpsert) UpdateDescription() *RoomUpsert {
+	u.SetExcluded(room.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *RoomUpsert) ClearDescription() *RoomUpsert {
+	u.SetNull(room.FieldDescription)
+	return u
+}
+
 // SetVersion sets the "version" field.
 func (u *RoomUpsert) SetVersion(v uint64) *RoomUpsert {
 	u.Set(room.FieldVersion, v)
@@ -750,6 +786,27 @@ func (u *RoomUpsertOne) UpdateName() *RoomUpsertOne {
 func (u *RoomUpsertOne) ClearName() *RoomUpsertOne {
 	return u.Update(func(s *RoomUpsert) {
 		s.ClearName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *RoomUpsertOne) SetDescription(v string) *RoomUpsertOne {
+	return u.Update(func(s *RoomUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *RoomUpsertOne) UpdateDescription() *RoomUpsertOne {
+	return u.Update(func(s *RoomUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *RoomUpsertOne) ClearDescription() *RoomUpsertOne {
+	return u.Update(func(s *RoomUpsert) {
+		s.ClearDescription()
 	})
 }
 
@@ -1059,6 +1116,27 @@ func (u *RoomUpsertBulk) UpdateName() *RoomUpsertBulk {
 func (u *RoomUpsertBulk) ClearName() *RoomUpsertBulk {
 	return u.Update(func(s *RoomUpsert) {
 		s.ClearName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *RoomUpsertBulk) SetDescription(v string) *RoomUpsertBulk {
+	return u.Update(func(s *RoomUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *RoomUpsertBulk) UpdateDescription() *RoomUpsertBulk {
+	return u.Update(func(s *RoomUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *RoomUpsertBulk) ClearDescription() *RoomUpsertBulk {
+	return u.Update(func(s *RoomUpsert) {
+		s.ClearDescription()
 	})
 }
 

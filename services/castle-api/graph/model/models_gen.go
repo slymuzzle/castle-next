@@ -12,6 +12,14 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+// CreateMessageLinkInput is used for create message link object.
+type CreateMessageLinkInput struct {
+	Link        string  `json:"link"`
+	Title       *string `json:"title,omitempty"`
+	Description *string `json:"description,omitempty"`
+	ImageURL    *string `json:"imageURL,omitempty"`
+}
+
 // CreateRoomInput is used for create Room object.
 type CreateRoomInput struct {
 	Name    string     `json:"name"`
@@ -42,12 +50,13 @@ type RoomMemberUpdatedEvent struct {
 
 // CreateMessageInput is used for create Message object.
 type SendMessageInput struct {
-	RoomID       pulid.ID             `json:"roomID"`
-	NotifyUserID *pulid.ID            `json:"notifyUserID,omitempty"`
-	ReplyTo      *pulid.ID            `json:"replyTo,omitempty"`
-	Content      *string              `json:"content,omitempty" validate:"omitempty,max=4096"`
-	Files        []*UploadMessageFile `json:"files,omitempty" validate:"max=20"`
-	Voice        *graphql.Upload      `json:"voice,omitempty" validate:"gql_upload_is_voice"`
+	RoomID       pulid.ID                  `json:"roomID"`
+	NotifyUserID *pulid.ID                 `json:"notifyUserID,omitempty"`
+	ReplyTo      *pulid.ID                 `json:"replyTo,omitempty"`
+	Content      *string                   `json:"content,omitempty" validate:"omitempty,max=4096"`
+	Files        []*UploadMessageFileInput `json:"files,omitempty" validate:"max=20"`
+	Voice        *graphql.Upload           `json:"voice,omitempty" validate:"gql_upload_is_voice"`
+	Links        []*CreateMessageLinkInput `json:"links,omitempty"`
 }
 
 type Subscription struct {
@@ -55,7 +64,8 @@ type Subscription struct {
 
 // UpdateMessageInput is used for update Message object.
 type UpdateMessageInput struct {
-	Content string `json:"content" validate:"omitempty,max=4096"`
+	Content      string                    `json:"content" validate:"omitempty,max=4096"`
+	ReplaceLinks []*CreateMessageLinkInput `json:"replaceLinks,omitempty"`
 }
 
 // UpdateRoomInput is used for update Room object.
@@ -67,7 +77,7 @@ type UpdateRoomInput struct {
 }
 
 // UploadMessageFile is used for upload message files.
-type UploadMessageFile struct {
+type UploadMessageFileInput struct {
 	Type messageattachment.Type `json:"type"`
 	File graphql.Upload         `json:"file"`
 }

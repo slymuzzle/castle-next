@@ -338,12 +338,12 @@ func (mlq *MessageLinkQuery) WithMessage(opts ...func(*MessageQuery)) *MessageLi
 // Example:
 //
 //	var v []struct {
-//		URL string `json:"url,omitempty"`
+//		Link string `json:"link,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.MessageLink.Query().
-//		GroupBy(messagelink.FieldURL).
+//		GroupBy(messagelink.FieldLink).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (mlq *MessageLinkQuery) GroupBy(field string, fields ...string) *MessageLinkGroupBy {
@@ -361,11 +361,11 @@ func (mlq *MessageLinkQuery) GroupBy(field string, fields ...string) *MessageLin
 // Example:
 //
 //	var v []struct {
-//		URL string `json:"url,omitempty"`
+//		Link string `json:"link,omitempty"`
 //	}
 //
 //	client.MessageLink.Query().
-//		Select(messagelink.FieldURL).
+//		Select(messagelink.FieldLink).
 //		Scan(ctx, &v)
 func (mlq *MessageLinkQuery) Select(fields ...string) *MessageLinkSelect {
 	mlq.ctx.Fields = append(mlq.ctx.Fields, fields...)

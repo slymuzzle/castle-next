@@ -27,7 +27,10 @@ CREATE UNIQUE INDEX "message_attachments_file_message_attachment_key" ON "messag
 -- Create "message_links" table
 CREATE TABLE "message_links" (
   "id" character varying NOT NULL,
-  "url" character varying NOT NULL,
+  "link" character varying NOT NULL,
+  "title" character varying NULL,
+  "description" character varying NULL,
+  "image_url" character varying NULL,
   "created_at" timestamptz NOT NULL,
   "updated_at" timestamptz NOT NULL,
   "message_links" character varying NOT NULL,
@@ -66,6 +69,7 @@ CREATE TABLE "room_members" (
   "name" character varying NULL,
   "unread_messages_count" bigint NOT NULL DEFAULT 0,
   "joined_at" timestamptz NOT NULL,
+  "updated_at" timestamptz NOT NULL,
   "user_id" character varying NOT NULL,
   "room_id" character varying NOT NULL,
   PRIMARY KEY ("id")
@@ -77,6 +81,7 @@ CREATE TABLE "rooms" (
   "id" character varying NOT NULL,
   "deleted_at" timestamptz NULL,
   "name" character varying NULL,
+  "description" character varying NULL,
   "version" bigint NOT NULL DEFAULT 1,
   "type" character varying NOT NULL,
   "created_at" timestamptz NOT NULL,

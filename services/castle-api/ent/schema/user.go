@@ -95,6 +95,7 @@ func (User) Edges() []ent.Edge {
 // Annotations of the User.
 func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
+		entgql.MultiOrder(),
 		entgql.RelayConnection(),
 	}
 }

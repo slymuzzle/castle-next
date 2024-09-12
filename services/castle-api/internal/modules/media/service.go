@@ -37,7 +37,7 @@ type Service interface {
 	UploadMessageFiles(
 		ctx context.Context,
 		prefix string,
-		files []*model.UploadMessageFile,
+		files []*model.UploadMessageFileInput,
 	) ([]*UploadInfo, error)
 	UploadFile(
 		ctx context.Context,
@@ -83,7 +83,7 @@ func NewService(config config.S3Config) (Service, error) {
 func (s *service) UploadMessageFiles(
 	ctx context.Context,
 	prefix string,
-	files []*model.UploadMessageFile,
+	files []*model.UploadMessageFileInput,
 ) ([]*UploadInfo, error) {
 	uploadInfoCh := make(chan *UploadInfo, len(files))
 

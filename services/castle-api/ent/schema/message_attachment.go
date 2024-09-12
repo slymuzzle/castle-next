@@ -67,6 +67,7 @@ func (MessageAttachment) Edges() []ent.Edge {
 // Annotations of the MessageAttachment.
 func (MessageAttachment) Annotations() []schema.Annotation {
 	return []schema.Annotation{
+		entgql.MultiOrder(),
 		entgql.RelayConnection(),
 	}
 }

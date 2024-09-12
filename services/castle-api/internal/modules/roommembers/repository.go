@@ -154,7 +154,6 @@ func (r *repository) RestoreByRoom(
 	roomMembers, err := client.RoomMember.
 		Query().
 		Where(
-			roommember.UserIDNEQ(currentUserID),
 			roommember.RoomID(roomID),
 			roommember.DeletedAtNotNil(),
 		).All(mixin.SkipSoftDelete(ctx))
@@ -165,7 +164,6 @@ func (r *repository) RestoreByRoom(
 	err = client.RoomMember.
 		Update().
 		Where(
-			roommember.UserIDNEQ(currentUserID),
 			roommember.RoomID(roomID),
 			roommember.DeletedAtNotNil(),
 		).

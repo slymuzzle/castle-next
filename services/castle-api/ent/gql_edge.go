@@ -169,7 +169,7 @@ func (r *Room) UserContact(ctx context.Context) (result []*UserContact, err erro
 }
 
 func (r *Room) Users(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *UserOrder, where *UserWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*UserOrder, where *UserWhereInput,
 ) (*UserConnection, error) {
 	opts := []UserPaginateOption{
 		WithUserOrder(orderBy),
@@ -219,7 +219,7 @@ func (r *Room) Messages(
 }
 
 func (r *Room) MessageVoices(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *MessageVoiceOrder, where *MessageVoiceWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*MessageVoiceOrder, where *MessageVoiceWhereInput,
 ) (*MessageVoiceConnection, error) {
 	opts := []MessageVoicePaginateOption{
 		WithMessageVoiceOrder(orderBy),
@@ -240,7 +240,7 @@ func (r *Room) MessageVoices(
 }
 
 func (r *Room) MessageAttachments(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *MessageAttachmentOrder, where *MessageAttachmentWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*MessageAttachmentOrder, where *MessageAttachmentWhereInput,
 ) (*MessageAttachmentConnection, error) {
 	opts := []MessageAttachmentPaginateOption{
 		WithMessageAttachmentOrder(orderBy),
@@ -261,7 +261,7 @@ func (r *Room) MessageAttachments(
 }
 
 func (r *Room) MessageLinks(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *MessageLinkOrder, where *MessageLinkWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*MessageLinkOrder, where *MessageLinkWhereInput,
 ) (*MessageLinkConnection, error) {
 	opts := []MessageLinkPaginateOption{
 		WithMessageLinkOrder(orderBy),
@@ -319,7 +319,7 @@ func (rm *RoomMember) Room(ctx context.Context) (*Room, error) {
 }
 
 func (u *User) Contacts(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *UserOrder, where *UserWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*UserOrder, where *UserWhereInput,
 ) (*UserConnection, error) {
 	opts := []UserPaginateOption{
 		WithUserOrder(orderBy),

@@ -59,15 +59,15 @@ func (r *queryResolver) RoomMembersByRoom(ctx context.Context, roomID pulid.ID, 
 
 // RoomMemberCreated is the resolver for the roomMemberCreated field.
 func (r *subscriptionResolver) RoomMemberCreated(ctx context.Context) (<-chan *ent.RoomMemberEdge, error) {
-	return r.roomMemberService.SubscribeToRoomMemberCreatedEvent(ctx)
+	return r.roomMemberService.Subscriptions().SubscribeToRoomMemberCreatedEvent(ctx)
 }
 
 // RoomMemberUpdated is the resolver for the roomMemberUpdated field.
 func (r *subscriptionResolver) RoomMemberUpdated(ctx context.Context) (<-chan *ent.RoomMemberEdge, error) {
-	return r.roomMemberService.SubscribeToRoomMemberUpdatedEvent(ctx)
+	return r.roomMemberService.Subscriptions().SubscribeToRoomMemberUpdatedEvent(ctx)
 }
 
 // RoomMemberDeleted is the resolver for the roomMemberDeleted field.
 func (r *subscriptionResolver) RoomMemberDeleted(ctx context.Context) (<-chan pulid.ID, error) {
-	return r.roomMemberService.SubscribeToRoomMemberDeletedEvent(ctx)
+	return r.roomMemberService.Subscriptions().SubscribeToRoomMemberDeletedEvent(ctx)
 }

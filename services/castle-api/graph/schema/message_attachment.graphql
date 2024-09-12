@@ -28,7 +28,7 @@ extend type Query {
     """
     Ordering options for MessageAttachments returned from the connection.
     """
-    orderBy: MessageAttachmentOrder
+    orderBy: [MessageAttachmentOrder!]
 
     """
     Filtering options for MessageAttachments returned from the connection.

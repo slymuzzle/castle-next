@@ -94,6 +94,20 @@ func (rmc *RoomMemberCreate) SetNillableJoinedAt(t *time.Time) *RoomMemberCreate
 	return rmc
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (rmc *RoomMemberCreate) SetUpdatedAt(t time.Time) *RoomMemberCreate {
+	rmc.mutation.SetUpdatedAt(t)
+	return rmc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (rmc *RoomMemberCreate) SetNillableUpdatedAt(t *time.Time) *RoomMemberCreate {
+	if t != nil {
+		rmc.SetUpdatedAt(*t)
+	}
+	return rmc
+}
+
 // SetID sets the "id" field.
 func (rmc *RoomMemberCreate) SetID(pu pulid.ID) *RoomMemberCreate {
 	rmc.mutation.SetID(pu)
@@ -166,6 +180,13 @@ func (rmc *RoomMemberCreate) defaults() error {
 		v := roommember.DefaultJoinedAt()
 		rmc.mutation.SetJoinedAt(v)
 	}
+	if _, ok := rmc.mutation.UpdatedAt(); !ok {
+		if roommember.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized roommember.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := roommember.DefaultUpdatedAt()
+		rmc.mutation.SetUpdatedAt(v)
+	}
 	if _, ok := rmc.mutation.ID(); !ok {
 		if roommember.DefaultID == nil {
 			return fmt.Errorf("ent: uninitialized roommember.DefaultID (forgotten import ent/runtime?)")
@@ -189,6 +210,9 @@ func (rmc *RoomMemberCreate) check() error {
 	}
 	if _, ok := rmc.mutation.JoinedAt(); !ok {
 		return &ValidationError{Name: "joined_at", err: errors.New(`ent: missing required field "RoomMember.joined_at"`)}
+	}
+	if _, ok := rmc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "RoomMember.updated_at"`)}
 	}
 	if len(rmc.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "RoomMember.user"`)}
@@ -247,6 +271,10 @@ func (rmc *RoomMemberCreate) createSpec() (*RoomMember, *sqlgraph.CreateSpec) {
 	if value, ok := rmc.mutation.JoinedAt(); ok {
 		_spec.SetField(roommember.FieldJoinedAt, field.TypeTime, value)
 		_node.JoinedAt = value
+	}
+	if value, ok := rmc.mutation.UpdatedAt(); ok {
+		_spec.SetField(roommember.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if nodes := rmc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -412,6 +440,18 @@ func (u *RoomMemberUpsert) UpdateRoomID() *RoomMemberUpsert {
 	return u
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RoomMemberUpsert) SetUpdatedAt(v time.Time) *RoomMemberUpsert {
+	u.Set(roommember.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RoomMemberUpsert) UpdateUpdatedAt() *RoomMemberUpsert {
+	u.SetExcluded(roommember.FieldUpdatedAt)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -551,6 +591,20 @@ func (u *RoomMemberUpsertOne) SetRoomID(v pulid.ID) *RoomMemberUpsertOne {
 func (u *RoomMemberUpsertOne) UpdateRoomID() *RoomMemberUpsertOne {
 	return u.Update(func(s *RoomMemberUpsert) {
 		s.UpdateRoomID()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RoomMemberUpsertOne) SetUpdatedAt(v time.Time) *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RoomMemberUpsertOne) UpdateUpdatedAt() *RoomMemberUpsertOne {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.UpdateUpdatedAt()
 	})
 }
 
@@ -860,6 +914,20 @@ func (u *RoomMemberUpsertBulk) SetRoomID(v pulid.ID) *RoomMemberUpsertBulk {
 func (u *RoomMemberUpsertBulk) UpdateRoomID() *RoomMemberUpsertBulk {
 	return u.Update(func(s *RoomMemberUpsert) {
 		s.UpdateRoomID()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RoomMemberUpsertBulk) SetUpdatedAt(v time.Time) *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RoomMemberUpsertBulk) UpdateUpdatedAt() *RoomMemberUpsertBulk {
+	return u.Update(func(s *RoomMemberUpsert) {
+		s.UpdateUpdatedAt()
 	})
 }
 

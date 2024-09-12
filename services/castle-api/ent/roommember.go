@@ -32,6 +32,8 @@ type RoomMember struct {
 	RoomID pulid.ID `json:"room_id,omitempty"`
 	// JoinedAt holds the value of the "joined_at" field.
 	JoinedAt time.Time `json:"joined_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RoomMemberQuery when eager-loading is set.
 	Edges        RoomMemberEdges `json:"edges"`
@@ -84,7 +86,7 @@ func (*RoomMember) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case roommember.FieldName:
 			values[i] = new(sql.NullString)
-		case roommember.FieldDeletedAt, roommember.FieldJoinedAt:
+		case roommember.FieldDeletedAt, roommember.FieldJoinedAt, roommember.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -142,6 +144,12 @@ func (rm *RoomMember) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field joined_at", values[i])
 			} else if value.Valid {
 				rm.JoinedAt = value.Time
+			}
+		case roommember.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				rm.UpdatedAt = value.Time
 			}
 		default:
 			rm.selectValues.Set(columns[i], values[i])
@@ -206,6 +214,9 @@ func (rm *RoomMember) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("joined_at=")
 	builder.WriteString(rm.JoinedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(rm.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

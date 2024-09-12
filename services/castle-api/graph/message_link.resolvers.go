@@ -15,7 +15,7 @@ import (
 )
 
 // MessageLinksByRoom is the resolver for the messageLinksByRoom field.
-func (r *queryResolver) MessageLinksByRoom(ctx context.Context, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageLinkOrder, where *ent.MessageLinkWhereInput) (*ent.MessageLinkConnection, error) {
+func (r *queryResolver) MessageLinksByRoom(ctx context.Context, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageLinkOrder, where *ent.MessageLinkWhereInput) (*ent.MessageLinkConnection, error) {
 	_, err := r.authService.Auth(ctx)
 	if err != nil {
 		return nil, err

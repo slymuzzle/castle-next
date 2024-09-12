@@ -27,7 +27,7 @@ func main() {
 
 	var configService config.Service
 	configService = config.NewService()
-	configService = config.NewLoggingService(
+	configService = config.NewServiceLogging(
 		log.With(logger, "component", "config"),
 		configService,
 	)
@@ -40,7 +40,7 @@ func main() {
 
 	var dbService db.Service
 	dbService = db.NewService(config.Database)
-	dbService = db.NewLoggingService(
+	dbService = db.NewServiceLogging(
 		log.With(logger, "component", "database"),
 		dbService,
 	)

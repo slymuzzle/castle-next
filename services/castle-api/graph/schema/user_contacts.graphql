@@ -21,3 +21,12 @@ extend type Mutation {
   addUserContact(pincode: String!): UserContactEdge
   deleteUserContact(userContactID: ID!): UserContactEdge
 }
+
+extend type Query {
+  userContact(
+    """
+    Returns element by the specified userContactID.
+    """
+    userContactID: ID!
+  ): UserContactEdge!
+}

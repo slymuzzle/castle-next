@@ -50,6 +50,12 @@ func (RoomMember) Fields() []ent.Field {
 			Annotations(
 				entgql.OrderField("JOINED_AT"),
 			),
+		field.Time("updated_at").
+			Default(time.Now).
+			UpdateDefault(time.Now).
+			Annotations(
+				entgql.OrderField("UPDATED_AT"),
+			),
 	}
 }
 

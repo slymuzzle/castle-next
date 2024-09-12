@@ -15,7 +15,7 @@ import (
 )
 
 // MessageVoicesByRoom is the resolver for the messageVoicesByRoom field.
-func (r *queryResolver) MessageVoicesByRoom(ctx context.Context, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageVoiceOrder, where *ent.MessageVoiceWhereInput) (*ent.MessageVoiceConnection, error) {
+func (r *queryResolver) MessageVoicesByRoom(ctx context.Context, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageVoiceOrder, where *ent.MessageVoiceWhereInput) (*ent.MessageVoiceConnection, error) {
 	_, err := r.authService.Auth(ctx)
 	if err != nil {
 		return nil, err

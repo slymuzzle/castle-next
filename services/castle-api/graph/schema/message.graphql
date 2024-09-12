@@ -1,7 +1,7 @@
 """
 UploadMessageFile is used for upload message files.
 """
-input UploadMessageFile {
+input UploadMessageFileInput {
   type: MessageAttachmentType!
   file: Upload!
 }
@@ -14,8 +14,9 @@ input SendMessageInput {
   notifyUserID: ID
   replyTo: ID
   content: String @goTag(key: "validate", value: "omitempty,max=4096")
-  files: [UploadMessageFile!] @goTag(key: "validate", value: "max=20")
+  files: [UploadMessageFileInput!] @goTag(key: "validate", value: "max=20")
   voice: Upload @goTag(key: "validate", value: "gql_upload_is_voice")
+  links: [CreateMessageLinkInput!]
 }
 
 """
@@ -23,6 +24,7 @@ UpdateMessageInput is used for update Message object.
 """
 input UpdateMessageInput {
   content: String! @goTag(key: "validate", value: "omitempty,max=4096")
+  replaceLinks: [CreateMessageLinkInput!]
 }
 
 extend type Query {

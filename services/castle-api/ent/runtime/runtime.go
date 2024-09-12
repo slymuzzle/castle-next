@@ -78,11 +78,11 @@ func init() {
 	messagelinkFields := schema.MessageLink{}.Fields()
 	_ = messagelinkFields
 	// messagelinkDescCreatedAt is the schema descriptor for created_at field.
-	messagelinkDescCreatedAt := messagelinkFields[1].Descriptor()
+	messagelinkDescCreatedAt := messagelinkFields[4].Descriptor()
 	// messagelink.DefaultCreatedAt holds the default value on creation for the created_at field.
 	messagelink.DefaultCreatedAt = messagelinkDescCreatedAt.Default.(func() time.Time)
 	// messagelinkDescUpdatedAt is the schema descriptor for updated_at field.
-	messagelinkDescUpdatedAt := messagelinkFields[2].Descriptor()
+	messagelinkDescUpdatedAt := messagelinkFields[5].Descriptor()
 	// messagelink.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	messagelink.DefaultUpdatedAt = messagelinkDescUpdatedAt.Default.(func() time.Time)
 	// messagelink.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -114,17 +114,17 @@ func init() {
 	roomFields := schema.Room{}.Fields()
 	_ = roomFields
 	// roomDescVersion is the schema descriptor for version field.
-	roomDescVersion := roomFields[1].Descriptor()
+	roomDescVersion := roomFields[2].Descriptor()
 	// room.DefaultVersion holds the default value on creation for the version field.
 	room.DefaultVersion = roomDescVersion.Default.(uint64)
 	// room.VersionValidator is a validator for the "version" field. It is called by the builders before save.
 	room.VersionValidator = roomDescVersion.Validators[0].(func(uint64) error)
 	// roomDescCreatedAt is the schema descriptor for created_at field.
-	roomDescCreatedAt := roomFields[3].Descriptor()
+	roomDescCreatedAt := roomFields[4].Descriptor()
 	// room.DefaultCreatedAt holds the default value on creation for the created_at field.
 	room.DefaultCreatedAt = roomDescCreatedAt.Default.(func() time.Time)
 	// roomDescUpdatedAt is the schema descriptor for updated_at field.
-	roomDescUpdatedAt := roomFields[4].Descriptor()
+	roomDescUpdatedAt := roomFields[5].Descriptor()
 	// room.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	room.DefaultUpdatedAt = roomDescUpdatedAt.Default.(func() time.Time)
 	// room.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -150,6 +150,12 @@ func init() {
 	roommemberDescJoinedAt := roommemberFields[4].Descriptor()
 	// roommember.DefaultJoinedAt holds the default value on creation for the joined_at field.
 	roommember.DefaultJoinedAt = roommemberDescJoinedAt.Default.(func() time.Time)
+	// roommemberDescUpdatedAt is the schema descriptor for updated_at field.
+	roommemberDescUpdatedAt := roommemberFields[5].Descriptor()
+	// roommember.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	roommember.DefaultUpdatedAt = roommemberDescUpdatedAt.Default.(func() time.Time)
+	// roommember.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	roommember.UpdateDefaultUpdatedAt = roommemberDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// roommemberDescID is the schema descriptor for id field.
 	roommemberDescID := roommemberMixinFields0[0].Descriptor()
 	// roommember.DefaultID holds the default value on creation for the id field.

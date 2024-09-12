@@ -2562,7 +2562,10 @@ type MessageLinkMutation struct {
 	op             Op
 	typ            string
 	id             *pulid.ID
-	url            *string
+	link           *string
+	title          *string
+	description    *string
+	image_url      *string
 	created_at     *time.Time
 	updated_at     *time.Time
 	clearedFields  map[string]struct{}
@@ -2679,40 +2682,187 @@ func (m *MessageLinkMutation) IDs(ctx context.Context) ([]pulid.ID, error) {
 	}
 }
 
-// SetURL sets the "url" field.
-func (m *MessageLinkMutation) SetURL(s string) {
-	m.url = &s
+// SetLink sets the "link" field.
+func (m *MessageLinkMutation) SetLink(s string) {
+	m.link = &s
 }
 
-// URL returns the value of the "url" field in the mutation.
-func (m *MessageLinkMutation) URL() (r string, exists bool) {
-	v := m.url
+// Link returns the value of the "link" field in the mutation.
+func (m *MessageLinkMutation) Link() (r string, exists bool) {
+	v := m.link
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldURL returns the old "url" field's value of the MessageLink entity.
+// OldLink returns the old "link" field's value of the MessageLink entity.
 // If the MessageLink object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageLinkMutation) OldURL(ctx context.Context) (v string, err error) {
+func (m *MessageLinkMutation) OldLink(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldURL is only allowed on UpdateOne operations")
+		return v, errors.New("OldLink is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldURL requires an ID field in the mutation")
+		return v, errors.New("OldLink requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldURL: %w", err)
+		return v, fmt.Errorf("querying old value for OldLink: %w", err)
 	}
-	return oldValue.URL, nil
+	return oldValue.Link, nil
 }
 
-// ResetURL resets all changes to the "url" field.
-func (m *MessageLinkMutation) ResetURL() {
-	m.url = nil
+// ResetLink resets all changes to the "link" field.
+func (m *MessageLinkMutation) ResetLink() {
+	m.link = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *MessageLinkMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *MessageLinkMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the MessageLink entity.
+// If the MessageLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLinkMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ClearTitle clears the value of the "title" field.
+func (m *MessageLinkMutation) ClearTitle() {
+	m.title = nil
+	m.clearedFields[messagelink.FieldTitle] = struct{}{}
+}
+
+// TitleCleared returns if the "title" field was cleared in this mutation.
+func (m *MessageLinkMutation) TitleCleared() bool {
+	_, ok := m.clearedFields[messagelink.FieldTitle]
+	return ok
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *MessageLinkMutation) ResetTitle() {
+	m.title = nil
+	delete(m.clearedFields, messagelink.FieldTitle)
+}
+
+// SetDescription sets the "description" field.
+func (m *MessageLinkMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *MessageLinkMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the MessageLink entity.
+// If the MessageLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLinkMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *MessageLinkMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[messagelink.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *MessageLinkMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[messagelink.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *MessageLinkMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, messagelink.FieldDescription)
+}
+
+// SetImageURL sets the "image_url" field.
+func (m *MessageLinkMutation) SetImageURL(s string) {
+	m.image_url = &s
+}
+
+// ImageURL returns the value of the "image_url" field in the mutation.
+func (m *MessageLinkMutation) ImageURL() (r string, exists bool) {
+	v := m.image_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldImageURL returns the old "image_url" field's value of the MessageLink entity.
+// If the MessageLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLinkMutation) OldImageURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldImageURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldImageURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldImageURL: %w", err)
+	}
+	return oldValue.ImageURL, nil
+}
+
+// ClearImageURL clears the value of the "image_url" field.
+func (m *MessageLinkMutation) ClearImageURL() {
+	m.image_url = nil
+	m.clearedFields[messagelink.FieldImageURL] = struct{}{}
+}
+
+// ImageURLCleared returns if the "image_url" field was cleared in this mutation.
+func (m *MessageLinkMutation) ImageURLCleared() bool {
+	_, ok := m.clearedFields[messagelink.FieldImageURL]
+	return ok
+}
+
+// ResetImageURL resets all changes to the "image_url" field.
+func (m *MessageLinkMutation) ResetImageURL() {
+	m.image_url = nil
+	delete(m.clearedFields, messagelink.FieldImageURL)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -2899,9 +3049,18 @@ func (m *MessageLinkMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MessageLinkMutation) Fields() []string {
-	fields := make([]string, 0, 3)
-	if m.url != nil {
-		fields = append(fields, messagelink.FieldURL)
+	fields := make([]string, 0, 6)
+	if m.link != nil {
+		fields = append(fields, messagelink.FieldLink)
+	}
+	if m.title != nil {
+		fields = append(fields, messagelink.FieldTitle)
+	}
+	if m.description != nil {
+		fields = append(fields, messagelink.FieldDescription)
+	}
+	if m.image_url != nil {
+		fields = append(fields, messagelink.FieldImageURL)
 	}
 	if m.created_at != nil {
 		fields = append(fields, messagelink.FieldCreatedAt)
@@ -2917,8 +3076,14 @@ func (m *MessageLinkMutation) Fields() []string {
 // schema.
 func (m *MessageLinkMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case messagelink.FieldURL:
-		return m.URL()
+	case messagelink.FieldLink:
+		return m.Link()
+	case messagelink.FieldTitle:
+		return m.Title()
+	case messagelink.FieldDescription:
+		return m.Description()
+	case messagelink.FieldImageURL:
+		return m.ImageURL()
 	case messagelink.FieldCreatedAt:
 		return m.CreatedAt()
 	case messagelink.FieldUpdatedAt:
@@ -2932,8 +3097,14 @@ func (m *MessageLinkMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *MessageLinkMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case messagelink.FieldURL:
-		return m.OldURL(ctx)
+	case messagelink.FieldLink:
+		return m.OldLink(ctx)
+	case messagelink.FieldTitle:
+		return m.OldTitle(ctx)
+	case messagelink.FieldDescription:
+		return m.OldDescription(ctx)
+	case messagelink.FieldImageURL:
+		return m.OldImageURL(ctx)
 	case messagelink.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case messagelink.FieldUpdatedAt:
@@ -2947,12 +3118,33 @@ func (m *MessageLinkMutation) OldField(ctx context.Context, name string) (ent.Va
 // type.
 func (m *MessageLinkMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case messagelink.FieldURL:
+	case messagelink.FieldLink:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetURL(v)
+		m.SetLink(v)
+		return nil
+	case messagelink.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case messagelink.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case messagelink.FieldImageURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetImageURL(v)
 		return nil
 	case messagelink.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -2997,7 +3189,17 @@ func (m *MessageLinkMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *MessageLinkMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(messagelink.FieldTitle) {
+		fields = append(fields, messagelink.FieldTitle)
+	}
+	if m.FieldCleared(messagelink.FieldDescription) {
+		fields = append(fields, messagelink.FieldDescription)
+	}
+	if m.FieldCleared(messagelink.FieldImageURL) {
+		fields = append(fields, messagelink.FieldImageURL)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -3010,6 +3212,17 @@ func (m *MessageLinkMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *MessageLinkMutation) ClearField(name string) error {
+	switch name {
+	case messagelink.FieldTitle:
+		m.ClearTitle()
+		return nil
+	case messagelink.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case messagelink.FieldImageURL:
+		m.ClearImageURL()
+		return nil
+	}
 	return fmt.Errorf("unknown MessageLink nullable field %s", name)
 }
 
@@ -3017,8 +3230,17 @@ func (m *MessageLinkMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *MessageLinkMutation) ResetField(name string) error {
 	switch name {
-	case messagelink.FieldURL:
-		m.ResetURL()
+	case messagelink.FieldLink:
+		m.ResetLink()
+		return nil
+	case messagelink.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case messagelink.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case messagelink.FieldImageURL:
+		m.ResetImageURL()
 		return nil
 	case messagelink.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -3647,6 +3869,7 @@ type RoomMutation struct {
 	id                         *pulid.ID
 	deleted_at                 *time.Time
 	name                       *string
+	description                *string
 	version                    *uint64
 	addversion                 *int64
 	_type                      *room.Type
@@ -3881,6 +4104,55 @@ func (m *RoomMutation) NameCleared() bool {
 func (m *RoomMutation) ResetName() {
 	m.name = nil
 	delete(m.clearedFields, room.FieldName)
+}
+
+// SetDescription sets the "description" field.
+func (m *RoomMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *RoomMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *RoomMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[room.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *RoomMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[room.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *RoomMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, room.FieldDescription)
 }
 
 // SetVersion sets the "version" field.
@@ -4498,12 +4770,15 @@ func (m *RoomMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoomMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.deleted_at != nil {
 		fields = append(fields, room.FieldDeletedAt)
 	}
 	if m.name != nil {
 		fields = append(fields, room.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, room.FieldDescription)
 	}
 	if m.version != nil {
 		fields = append(fields, room.FieldVersion)
@@ -4529,6 +4804,8 @@ func (m *RoomMutation) Field(name string) (ent.Value, bool) {
 		return m.DeletedAt()
 	case room.FieldName:
 		return m.Name()
+	case room.FieldDescription:
+		return m.Description()
 	case room.FieldVersion:
 		return m.Version()
 	case room.FieldType:
@@ -4550,6 +4827,8 @@ func (m *RoomMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDeletedAt(ctx)
 	case room.FieldName:
 		return m.OldName(ctx)
+	case room.FieldDescription:
+		return m.OldDescription(ctx)
 	case room.FieldVersion:
 		return m.OldVersion(ctx)
 	case room.FieldType:
@@ -4580,6 +4859,13 @@ func (m *RoomMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case room.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
 		return nil
 	case room.FieldVersion:
 		v, ok := value.(uint64)
@@ -4660,6 +4946,9 @@ func (m *RoomMutation) ClearedFields() []string {
 	if m.FieldCleared(room.FieldName) {
 		fields = append(fields, room.FieldName)
 	}
+	if m.FieldCleared(room.FieldDescription) {
+		fields = append(fields, room.FieldDescription)
+	}
 	return fields
 }
 
@@ -4680,6 +4969,9 @@ func (m *RoomMutation) ClearField(name string) error {
 	case room.FieldName:
 		m.ClearName()
 		return nil
+	case room.FieldDescription:
+		m.ClearDescription()
+		return nil
 	}
 	return fmt.Errorf("unknown Room nullable field %s", name)
 }
@@ -4693,6 +4985,9 @@ func (m *RoomMutation) ResetField(name string) error {
 		return nil
 	case room.FieldName:
 		m.ResetName()
+		return nil
+	case room.FieldDescription:
+		m.ResetDescription()
 		return nil
 	case room.FieldVersion:
 		m.ResetVersion()
@@ -4979,6 +5274,7 @@ type RoomMemberMutation struct {
 	unread_messages_count    *int
 	addunread_messages_count *int
 	joined_at                *time.Time
+	updated_at               *time.Time
 	clearedFields            map[string]struct{}
 	user                     *pulid.ID
 	cleareduser              bool
@@ -5355,6 +5651,42 @@ func (m *RoomMemberMutation) ResetJoinedAt() {
 	m.joined_at = nil
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (m *RoomMemberMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *RoomMemberMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the RoomMember entity.
+// If the RoomMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMemberMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *RoomMemberMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
 // ClearUser clears the "user" edge to the User entity.
 func (m *RoomMemberMutation) ClearUser() {
 	m.cleareduser = true
@@ -5443,7 +5775,7 @@ func (m *RoomMemberMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoomMemberMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.deleted_at != nil {
 		fields = append(fields, roommember.FieldDeletedAt)
 	}
@@ -5461,6 +5793,9 @@ func (m *RoomMemberMutation) Fields() []string {
 	}
 	if m.joined_at != nil {
 		fields = append(fields, roommember.FieldJoinedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, roommember.FieldUpdatedAt)
 	}
 	return fields
 }
@@ -5482,6 +5817,8 @@ func (m *RoomMemberMutation) Field(name string) (ent.Value, bool) {
 		return m.RoomID()
 	case roommember.FieldJoinedAt:
 		return m.JoinedAt()
+	case roommember.FieldUpdatedAt:
+		return m.UpdatedAt()
 	}
 	return nil, false
 }
@@ -5503,6 +5840,8 @@ func (m *RoomMemberMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldRoomID(ctx)
 	case roommember.FieldJoinedAt:
 		return m.OldJoinedAt(ctx)
+	case roommember.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown RoomMember field %s", name)
 }
@@ -5553,6 +5892,13 @@ func (m *RoomMemberMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetJoinedAt(v)
+		return nil
+	case roommember.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
 		return nil
 	}
 	return fmt.Errorf("unknown RoomMember field %s", name)
@@ -5650,6 +5996,9 @@ func (m *RoomMemberMutation) ResetField(name string) error {
 		return nil
 	case roommember.FieldJoinedAt:
 		m.ResetJoinedAt()
+		return nil
+	case roommember.FieldUpdatedAt:
+		m.ResetUpdatedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown RoomMember field %s", name)

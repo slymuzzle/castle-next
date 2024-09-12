@@ -13,16 +13,16 @@ import (
 	"github.com/go-kit/log/level"
 )
 
-type loggingService struct {
+type serviceLogging struct {
 	logger log.Logger
 	Service
 }
 
-func NewLoggingService(logger log.Logger, s Service) Service {
-	return &loggingService{logger, s}
+func NewServiceLogging(logger log.Logger, s Service) Service {
+	return &serviceLogging{logger, s}
 }
 
-func (s *loggingService) Register(
+func (s *serviceLogging) Register(
 	ctx context.Context,
 	firstName string,
 	lastName string,
@@ -49,7 +49,7 @@ func (s *loggingService) Register(
 	)
 }
 
-func (s *loggingService) Login(
+func (s *serviceLogging) Login(
 	ctx context.Context,
 	nicknameOrEmail string,
 	password string,
@@ -70,7 +70,7 @@ func (s *loggingService) Login(
 	)
 }
 
-func (s *loggingService) Auth(ctx context.Context) (userID pulid.ID, err error) {
+func (s *serviceLogging) Auth(ctx context.Context) (userID pulid.ID, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "User",
@@ -83,7 +83,7 @@ func (s *loggingService) Auth(ctx context.Context) (userID pulid.ID, err error) 
 	return s.Service.Auth(ctx)
 }
 
-func (s *loggingService) AuthUser(ctx context.Context) (user *ent.User, err error) {
+func (s *serviceLogging) AuthUser(ctx context.Context) (user *ent.User, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "User",
@@ -96,7 +96,7 @@ func (s *loggingService) AuthUser(ctx context.Context) (user *ent.User, err erro
 	return s.Service.AuthUser(ctx)
 }
 
-func (s *loggingService) JWTAuthClient() *jwtauth.JWTAuth {
+func (s *serviceLogging) JWTAuthClient() *jwtauth.JWTAuth {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "JWTAuth",

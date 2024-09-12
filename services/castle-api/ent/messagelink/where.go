@@ -56,9 +56,24 @@ func IDLTE(id pulid.ID) predicate.MessageLink {
 	return predicate.MessageLink(sql.FieldLTE(FieldID, id))
 }
 
-// URL applies equality check predicate on the "url" field. It's identical to URLEQ.
-func URL(v string) predicate.MessageLink {
-	return predicate.MessageLink(sql.FieldEQ(FieldURL, v))
+// Link applies equality check predicate on the "link" field. It's identical to LinkEQ.
+func Link(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldEQ(FieldLink, v))
+}
+
+// Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
+func Title(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldEQ(FieldTitle, v))
+}
+
+// Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
+func Description(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldEQ(FieldDescription, v))
+}
+
+// ImageURL applies equality check predicate on the "image_url" field. It's identical to ImageURLEQ.
+func ImageURL(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldEQ(FieldImageURL, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -71,69 +86,294 @@ func UpdatedAt(v time.Time) predicate.MessageLink {
 	return predicate.MessageLink(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// URLEQ applies the EQ predicate on the "url" field.
-func URLEQ(v string) predicate.MessageLink {
-	return predicate.MessageLink(sql.FieldEQ(FieldURL, v))
+// LinkEQ applies the EQ predicate on the "link" field.
+func LinkEQ(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldEQ(FieldLink, v))
 }
 
-// URLNEQ applies the NEQ predicate on the "url" field.
-func URLNEQ(v string) predicate.MessageLink {
-	return predicate.MessageLink(sql.FieldNEQ(FieldURL, v))
+// LinkNEQ applies the NEQ predicate on the "link" field.
+func LinkNEQ(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldNEQ(FieldLink, v))
 }
 
-// URLIn applies the In predicate on the "url" field.
-func URLIn(vs ...string) predicate.MessageLink {
-	return predicate.MessageLink(sql.FieldIn(FieldURL, vs...))
+// LinkIn applies the In predicate on the "link" field.
+func LinkIn(vs ...string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldIn(FieldLink, vs...))
 }
 
-// URLNotIn applies the NotIn predicate on the "url" field.
-func URLNotIn(vs ...string) predicate.MessageLink {
-	return predicate.MessageLink(sql.FieldNotIn(FieldURL, vs...))
+// LinkNotIn applies the NotIn predicate on the "link" field.
+func LinkNotIn(vs ...string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldNotIn(FieldLink, vs...))
 }
 
-// URLGT applies the GT predicate on the "url" field.
-func URLGT(v string) predicate.MessageLink {
-	return predicate.MessageLink(sql.FieldGT(FieldURL, v))
+// LinkGT applies the GT predicate on the "link" field.
+func LinkGT(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldGT(FieldLink, v))
 }
 
-// URLGTE applies the GTE predicate on the "url" field.
-func URLGTE(v string) predicate.MessageLink {
-	return predicate.MessageLink(sql.FieldGTE(FieldURL, v))
+// LinkGTE applies the GTE predicate on the "link" field.
+func LinkGTE(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldGTE(FieldLink, v))
 }
 
-// URLLT applies the LT predicate on the "url" field.
-func URLLT(v string) predicate.MessageLink {
-	return predicate.MessageLink(sql.FieldLT(FieldURL, v))
+// LinkLT applies the LT predicate on the "link" field.
+func LinkLT(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldLT(FieldLink, v))
 }
 
-// URLLTE applies the LTE predicate on the "url" field.
-func URLLTE(v string) predicate.MessageLink {
-	return predicate.MessageLink(sql.FieldLTE(FieldURL, v))
+// LinkLTE applies the LTE predicate on the "link" field.
+func LinkLTE(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldLTE(FieldLink, v))
 }
 
-// URLContains applies the Contains predicate on the "url" field.
-func URLContains(v string) predicate.MessageLink {
-	return predicate.MessageLink(sql.FieldContains(FieldURL, v))
+// LinkContains applies the Contains predicate on the "link" field.
+func LinkContains(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldContains(FieldLink, v))
 }
 
-// URLHasPrefix applies the HasPrefix predicate on the "url" field.
-func URLHasPrefix(v string) predicate.MessageLink {
-	return predicate.MessageLink(sql.FieldHasPrefix(FieldURL, v))
+// LinkHasPrefix applies the HasPrefix predicate on the "link" field.
+func LinkHasPrefix(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldHasPrefix(FieldLink, v))
 }
 
-// URLHasSuffix applies the HasSuffix predicate on the "url" field.
-func URLHasSuffix(v string) predicate.MessageLink {
-	return predicate.MessageLink(sql.FieldHasSuffix(FieldURL, v))
+// LinkHasSuffix applies the HasSuffix predicate on the "link" field.
+func LinkHasSuffix(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldHasSuffix(FieldLink, v))
 }
 
-// URLEqualFold applies the EqualFold predicate on the "url" field.
-func URLEqualFold(v string) predicate.MessageLink {
-	return predicate.MessageLink(sql.FieldEqualFold(FieldURL, v))
+// LinkEqualFold applies the EqualFold predicate on the "link" field.
+func LinkEqualFold(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldEqualFold(FieldLink, v))
 }
 
-// URLContainsFold applies the ContainsFold predicate on the "url" field.
-func URLContainsFold(v string) predicate.MessageLink {
-	return predicate.MessageLink(sql.FieldContainsFold(FieldURL, v))
+// LinkContainsFold applies the ContainsFold predicate on the "link" field.
+func LinkContainsFold(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldContainsFold(FieldLink, v))
+}
+
+// TitleEQ applies the EQ predicate on the "title" field.
+func TitleEQ(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldEQ(FieldTitle, v))
+}
+
+// TitleNEQ applies the NEQ predicate on the "title" field.
+func TitleNEQ(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldNEQ(FieldTitle, v))
+}
+
+// TitleIn applies the In predicate on the "title" field.
+func TitleIn(vs ...string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldIn(FieldTitle, vs...))
+}
+
+// TitleNotIn applies the NotIn predicate on the "title" field.
+func TitleNotIn(vs ...string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldNotIn(FieldTitle, vs...))
+}
+
+// TitleGT applies the GT predicate on the "title" field.
+func TitleGT(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldGT(FieldTitle, v))
+}
+
+// TitleGTE applies the GTE predicate on the "title" field.
+func TitleGTE(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldGTE(FieldTitle, v))
+}
+
+// TitleLT applies the LT predicate on the "title" field.
+func TitleLT(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldLT(FieldTitle, v))
+}
+
+// TitleLTE applies the LTE predicate on the "title" field.
+func TitleLTE(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldLTE(FieldTitle, v))
+}
+
+// TitleContains applies the Contains predicate on the "title" field.
+func TitleContains(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldContains(FieldTitle, v))
+}
+
+// TitleHasPrefix applies the HasPrefix predicate on the "title" field.
+func TitleHasPrefix(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldHasPrefix(FieldTitle, v))
+}
+
+// TitleHasSuffix applies the HasSuffix predicate on the "title" field.
+func TitleHasSuffix(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldHasSuffix(FieldTitle, v))
+}
+
+// TitleIsNil applies the IsNil predicate on the "title" field.
+func TitleIsNil() predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldIsNull(FieldTitle))
+}
+
+// TitleNotNil applies the NotNil predicate on the "title" field.
+func TitleNotNil() predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldNotNull(FieldTitle))
+}
+
+// TitleEqualFold applies the EqualFold predicate on the "title" field.
+func TitleEqualFold(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldEqualFold(FieldTitle, v))
+}
+
+// TitleContainsFold applies the ContainsFold predicate on the "title" field.
+func TitleContainsFold(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldContainsFold(FieldTitle, v))
+}
+
+// DescriptionEQ applies the EQ predicate on the "description" field.
+func DescriptionEQ(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldEQ(FieldDescription, v))
+}
+
+// DescriptionNEQ applies the NEQ predicate on the "description" field.
+func DescriptionNEQ(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldNEQ(FieldDescription, v))
+}
+
+// DescriptionIn applies the In predicate on the "description" field.
+func DescriptionIn(vs ...string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldIn(FieldDescription, vs...))
+}
+
+// DescriptionNotIn applies the NotIn predicate on the "description" field.
+func DescriptionNotIn(vs ...string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldNotIn(FieldDescription, vs...))
+}
+
+// DescriptionGT applies the GT predicate on the "description" field.
+func DescriptionGT(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldGT(FieldDescription, v))
+}
+
+// DescriptionGTE applies the GTE predicate on the "description" field.
+func DescriptionGTE(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldGTE(FieldDescription, v))
+}
+
+// DescriptionLT applies the LT predicate on the "description" field.
+func DescriptionLT(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldLT(FieldDescription, v))
+}
+
+// DescriptionLTE applies the LTE predicate on the "description" field.
+func DescriptionLTE(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldLTE(FieldDescription, v))
+}
+
+// DescriptionContains applies the Contains predicate on the "description" field.
+func DescriptionContains(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldContains(FieldDescription, v))
+}
+
+// DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
+func DescriptionHasPrefix(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldHasPrefix(FieldDescription, v))
+}
+
+// DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
+func DescriptionHasSuffix(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldHasSuffix(FieldDescription, v))
+}
+
+// DescriptionIsNil applies the IsNil predicate on the "description" field.
+func DescriptionIsNil() predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldIsNull(FieldDescription))
+}
+
+// DescriptionNotNil applies the NotNil predicate on the "description" field.
+func DescriptionNotNil() predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldNotNull(FieldDescription))
+}
+
+// DescriptionEqualFold applies the EqualFold predicate on the "description" field.
+func DescriptionEqualFold(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldEqualFold(FieldDescription, v))
+}
+
+// DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
+func DescriptionContainsFold(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// ImageURLEQ applies the EQ predicate on the "image_url" field.
+func ImageURLEQ(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldEQ(FieldImageURL, v))
+}
+
+// ImageURLNEQ applies the NEQ predicate on the "image_url" field.
+func ImageURLNEQ(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldNEQ(FieldImageURL, v))
+}
+
+// ImageURLIn applies the In predicate on the "image_url" field.
+func ImageURLIn(vs ...string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldIn(FieldImageURL, vs...))
+}
+
+// ImageURLNotIn applies the NotIn predicate on the "image_url" field.
+func ImageURLNotIn(vs ...string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldNotIn(FieldImageURL, vs...))
+}
+
+// ImageURLGT applies the GT predicate on the "image_url" field.
+func ImageURLGT(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldGT(FieldImageURL, v))
+}
+
+// ImageURLGTE applies the GTE predicate on the "image_url" field.
+func ImageURLGTE(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldGTE(FieldImageURL, v))
+}
+
+// ImageURLLT applies the LT predicate on the "image_url" field.
+func ImageURLLT(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldLT(FieldImageURL, v))
+}
+
+// ImageURLLTE applies the LTE predicate on the "image_url" field.
+func ImageURLLTE(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldLTE(FieldImageURL, v))
+}
+
+// ImageURLContains applies the Contains predicate on the "image_url" field.
+func ImageURLContains(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldContains(FieldImageURL, v))
+}
+
+// ImageURLHasPrefix applies the HasPrefix predicate on the "image_url" field.
+func ImageURLHasPrefix(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldHasPrefix(FieldImageURL, v))
+}
+
+// ImageURLHasSuffix applies the HasSuffix predicate on the "image_url" field.
+func ImageURLHasSuffix(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldHasSuffix(FieldImageURL, v))
+}
+
+// ImageURLIsNil applies the IsNil predicate on the "image_url" field.
+func ImageURLIsNil() predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldIsNull(FieldImageURL))
+}
+
+// ImageURLNotNil applies the NotNil predicate on the "image_url" field.
+func ImageURLNotNil() predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldNotNull(FieldImageURL))
+}
+
+// ImageURLEqualFold applies the EqualFold predicate on the "image_url" field.
+func ImageURLEqualFold(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldEqualFold(FieldImageURL, v))
+}
+
+// ImageURLContainsFold applies the ContainsFold predicate on the "image_url" field.
+func ImageURLContainsFold(v string) predicate.MessageLink {
+	return predicate.MessageLink(sql.FieldContainsFold(FieldImageURL, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

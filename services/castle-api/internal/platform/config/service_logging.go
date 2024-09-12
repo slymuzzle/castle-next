@@ -7,16 +7,16 @@ import (
 	"github.com/go-kit/log/level"
 )
 
-type loggingService struct {
+type serviceLogging struct {
 	logger log.Logger
 	Service
 }
 
-func NewLoggingService(logger log.Logger, s Service) Service {
-	return &loggingService{logger, s}
+func NewServiceLogging(logger log.Logger, s Service) Service {
+	return &serviceLogging{logger, s}
 }
 
-func (s *loggingService) LoadConfig() (cfg Config, err error) {
+func (s *serviceLogging) LoadConfig() (cfg Config, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "LoadConfig",

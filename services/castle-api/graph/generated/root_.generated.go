@@ -118,12 +118,15 @@ type ComplexityRoot struct {
 	}
 
 	MessageLink struct {
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Message   func(childComplexity int) int
-		Room      func(childComplexity int) int
-		URL       func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		ImageURL    func(childComplexity int) int
+		Link        func(childComplexity int) int
+		Message     func(childComplexity int) int
+		Room        func(childComplexity int) int
+		Title       func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
 	}
 
 	MessageLinkConnection struct {
@@ -180,32 +183,35 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		MessageAttachmentsByRoom func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageAttachmentOrder, where *ent.MessageAttachmentWhereInput) int
-		MessageLinksByRoom       func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageLinkOrder, where *ent.MessageLinkWhereInput) int
-		MessageVoicesByRoom      func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageVoiceOrder, where *ent.MessageVoiceWhereInput) int
+		MessageAttachmentsByRoom func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageAttachmentOrder, where *ent.MessageAttachmentWhereInput) int
+		MessageLinksByRoom       func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageLinkOrder, where *ent.MessageLinkWhereInput) int
+		MessageVoicesByRoom      func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageVoiceOrder, where *ent.MessageVoiceWhereInput) int
 		MessagesByRoom           func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) int
 		Node                     func(childComplexity int, id pulid.ID) int
 		Nodes                    func(childComplexity int, ids []pulid.ID) int
+		Room                     func(childComplexity int, roomID pulid.ID) int
 		RoomMembers              func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
 		RoomMembersByRoom        func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
 		Self                     func(childComplexity int) int
+		UserContact              func(childComplexity int, userContactID pulid.ID) int
 		UserContacts             func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserContactOrder, where *ent.UserContactWhereInput) int
 	}
 
 	Room struct {
 		CreatedAt          func(childComplexity int) int
+		Description        func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		LastMessage        func(childComplexity int) int
-		MessageAttachments func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageAttachmentOrder, where *ent.MessageAttachmentWhereInput) int
-		MessageLinks       func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageLinkOrder, where *ent.MessageLinkWhereInput) int
-		MessageVoices      func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageVoiceOrder, where *ent.MessageVoiceWhereInput) int
+		MessageAttachments func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageAttachmentOrder, where *ent.MessageAttachmentWhereInput) int
+		MessageLinks       func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageLinkOrder, where *ent.MessageLinkWhereInput) int
+		MessageVoices      func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageVoiceOrder, where *ent.MessageVoiceWhereInput) int
 		Messages           func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) int
 		Name               func(childComplexity int) int
 		RoomMembers        func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
 		Type               func(childComplexity int) int
 		UpdatedAt          func(childComplexity int) int
 		UserContact        func(childComplexity int) int
-		Users              func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) int
+		Users              func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) int
 		Version            func(childComplexity int) int
 	}
 
@@ -227,6 +233,7 @@ type ComplexityRoot struct {
 		Room                func(childComplexity int) int
 		RoomID              func(childComplexity int) int
 		UnreadMessagesCount func(childComplexity int) int
+		UpdatedAt           func(childComplexity int) int
 		User                func(childComplexity int) int
 		UserID              func(childComplexity int) int
 	}
@@ -263,7 +270,7 @@ type ComplexityRoot struct {
 
 	User struct {
 		ContactPin   func(childComplexity int) int
-		Contacts     func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) int
+		Contacts     func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) int
 		CreatedAt    func(childComplexity int) int
 		Email        func(childComplexity int) int
 		FirstName    func(childComplexity int) int
@@ -652,12 +659,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MessageLink.CreatedAt(childComplexity), true
 
+	case "MessageLink.description":
+		if e.complexity.MessageLink.Description == nil {
+			break
+		}
+
+		return e.complexity.MessageLink.Description(childComplexity), true
+
 	case "MessageLink.id":
 		if e.complexity.MessageLink.ID == nil {
 			break
 		}
 
 		return e.complexity.MessageLink.ID(childComplexity), true
+
+	case "MessageLink.imageURL":
+		if e.complexity.MessageLink.ImageURL == nil {
+			break
+		}
+
+		return e.complexity.MessageLink.ImageURL(childComplexity), true
+
+	case "MessageLink.link":
+		if e.complexity.MessageLink.Link == nil {
+			break
+		}
+
+		return e.complexity.MessageLink.Link(childComplexity), true
 
 	case "MessageLink.message":
 		if e.complexity.MessageLink.Message == nil {
@@ -673,12 +701,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MessageLink.Room(childComplexity), true
 
-	case "MessageLink.url":
-		if e.complexity.MessageLink.URL == nil {
+	case "MessageLink.title":
+		if e.complexity.MessageLink.Title == nil {
 			break
 		}
 
-		return e.complexity.MessageLink.URL(childComplexity), true
+		return e.complexity.MessageLink.Title(childComplexity), true
 
 	case "MessageLink.updatedAt":
 		if e.complexity.MessageLink.UpdatedAt == nil {
@@ -981,7 +1009,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.MessageAttachmentsByRoom(childComplexity, args["roomID"].(pulid.ID), args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.MessageAttachmentOrder), args["where"].(*ent.MessageAttachmentWhereInput)), true
+		return e.complexity.Query.MessageAttachmentsByRoom(childComplexity, args["roomID"].(pulid.ID), args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.MessageAttachmentOrder), args["where"].(*ent.MessageAttachmentWhereInput)), true
 
 	case "Query.messageLinksByRoom":
 		if e.complexity.Query.MessageLinksByRoom == nil {
@@ -993,7 +1021,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.MessageLinksByRoom(childComplexity, args["roomID"].(pulid.ID), args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.MessageLinkOrder), args["where"].(*ent.MessageLinkWhereInput)), true
+		return e.complexity.Query.MessageLinksByRoom(childComplexity, args["roomID"].(pulid.ID), args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.MessageLinkOrder), args["where"].(*ent.MessageLinkWhereInput)), true
 
 	case "Query.messageVoicesByRoom":
 		if e.complexity.Query.MessageVoicesByRoom == nil {
@@ -1005,7 +1033,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.MessageVoicesByRoom(childComplexity, args["roomID"].(pulid.ID), args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.MessageVoiceOrder), args["where"].(*ent.MessageVoiceWhereInput)), true
+		return e.complexity.Query.MessageVoicesByRoom(childComplexity, args["roomID"].(pulid.ID), args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.MessageVoiceOrder), args["where"].(*ent.MessageVoiceWhereInput)), true
 
 	case "Query.messagesByRoom":
 		if e.complexity.Query.MessagesByRoom == nil {
@@ -1043,6 +1071,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Nodes(childComplexity, args["ids"].([]pulid.ID)), true
 
+	case "Query.room":
+		if e.complexity.Query.Room == nil {
+			break
+		}
+
+		args, err := ec.field_Query_room_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Room(childComplexity, args["roomID"].(pulid.ID)), true
+
 	case "Query.roomMembers":
 		if e.complexity.Query.RoomMembers == nil {
 			break
@@ -1074,6 +1114,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Self(childComplexity), true
 
+	case "Query.userContact":
+		if e.complexity.Query.UserContact == nil {
+			break
+		}
+
+		args, err := ec.field_Query_userContact_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.UserContact(childComplexity, args["userContactID"].(pulid.ID)), true
+
 	case "Query.userContacts":
 		if e.complexity.Query.UserContacts == nil {
 			break
@@ -1092,6 +1144,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Room.CreatedAt(childComplexity), true
+
+	case "Room.description":
+		if e.complexity.Room.Description == nil {
+			break
+		}
+
+		return e.complexity.Room.Description(childComplexity), true
 
 	case "Room.id":
 		if e.complexity.Room.ID == nil {
@@ -1117,7 +1176,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Room.MessageAttachments(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.MessageAttachmentOrder), args["where"].(*ent.MessageAttachmentWhereInput)), true
+		return e.complexity.Room.MessageAttachments(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.MessageAttachmentOrder), args["where"].(*ent.MessageAttachmentWhereInput)), true
 
 	case "Room.messageLinks":
 		if e.complexity.Room.MessageLinks == nil {
@@ -1129,7 +1188,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Room.MessageLinks(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.MessageLinkOrder), args["where"].(*ent.MessageLinkWhereInput)), true
+		return e.complexity.Room.MessageLinks(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.MessageLinkOrder), args["where"].(*ent.MessageLinkWhereInput)), true
 
 	case "Room.messageVoices":
 		if e.complexity.Room.MessageVoices == nil {
@@ -1141,7 +1200,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Room.MessageVoices(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.MessageVoiceOrder), args["where"].(*ent.MessageVoiceWhereInput)), true
+		return e.complexity.Room.MessageVoices(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.MessageVoiceOrder), args["where"].(*ent.MessageVoiceWhereInput)), true
 
 	case "Room.messages":
 		if e.complexity.Room.Messages == nil {
@@ -1205,7 +1264,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Room.Users(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.UserOrder), args["where"].(*ent.UserWhereInput)), true
+		return e.complexity.Room.Users(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.UserOrder), args["where"].(*ent.UserWhereInput)), true
 
 	case "Room.version":
 		if e.complexity.Room.Version == nil {
@@ -1290,6 +1349,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RoomMember.UnreadMessagesCount(childComplexity), true
+
+	case "RoomMember.updatedAt":
+		if e.complexity.RoomMember.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.RoomMember.UpdatedAt(childComplexity), true
 
 	case "RoomMember.user":
 		if e.complexity.RoomMember.User == nil {
@@ -1463,7 +1529,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.User.Contacts(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].(*ent.UserOrder), args["where"].(*ent.UserWhereInput)), true
+		return e.complexity.User.Contacts(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.UserOrder), args["where"].(*ent.UserWhereInput)), true
 
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
@@ -1696,6 +1762,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputCreateMessageLinkInput,
 		ec.unmarshalInputCreateRoomInput,
 		ec.unmarshalInputFileOrder,
 		ec.unmarshalInputFileWhereInput,
@@ -1714,7 +1781,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSendMessageInput,
 		ec.unmarshalInputUpdateMessageInput,
 		ec.unmarshalInputUpdateRoomInput,
-		ec.unmarshalInputUploadMessageFile,
+		ec.unmarshalInputUploadMessageFileInput,
 		ec.unmarshalInputUserContactOrder,
 		ec.unmarshalInputUserContactWhereInput,
 		ec.unmarshalInputUserLoginInput,
@@ -2207,7 +2274,10 @@ type MessageEdge {
 }
 type MessageLink implements Node {
   id: ID!
-  url: String!
+  link: String!
+  title: String
+  description: String
+  imageURL: String
   createdAt: Time!
   updatedAt: Time!
   room: Room!
@@ -2260,7 +2330,10 @@ input MessageLinkOrder {
 Properties by which MessageLink connections can be ordered.
 """
 enum MessageLinkOrderField {
-  URL
+  LINK
+  TITLE
+  DESCRIPTION
+  IMAGE_URL
   CREATED_AT
   UPDATED_AT
 }
@@ -2284,21 +2357,75 @@ input MessageLinkWhereInput {
   idLT: ID
   idLTE: ID
   """
-  url field predicates
+  link field predicates
   """
-  url: String
-  urlNEQ: String
-  urlIn: [String!]
-  urlNotIn: [String!]
-  urlGT: String
-  urlGTE: String
-  urlLT: String
-  urlLTE: String
-  urlContains: String
-  urlHasPrefix: String
-  urlHasSuffix: String
-  urlEqualFold: String
-  urlContainsFold: String
+  link: String
+  linkNEQ: String
+  linkIn: [String!]
+  linkNotIn: [String!]
+  linkGT: String
+  linkGTE: String
+  linkLT: String
+  linkLTE: String
+  linkContains: String
+  linkHasPrefix: String
+  linkHasSuffix: String
+  linkEqualFold: String
+  linkContainsFold: String
+  """
+  title field predicates
+  """
+  title: String
+  titleNEQ: String
+  titleIn: [String!]
+  titleNotIn: [String!]
+  titleGT: String
+  titleGTE: String
+  titleLT: String
+  titleLTE: String
+  titleContains: String
+  titleHasPrefix: String
+  titleHasSuffix: String
+  titleIsNil: Boolean
+  titleNotNil: Boolean
+  titleEqualFold: String
+  titleContainsFold: String
+  """
+  description field predicates
+  """
+  description: String
+  descriptionNEQ: String
+  descriptionIn: [String!]
+  descriptionNotIn: [String!]
+  descriptionGT: String
+  descriptionGTE: String
+  descriptionLT: String
+  descriptionLTE: String
+  descriptionContains: String
+  descriptionHasPrefix: String
+  descriptionHasSuffix: String
+  descriptionIsNil: Boolean
+  descriptionNotNil: Boolean
+  descriptionEqualFold: String
+  descriptionContainsFold: String
+  """
+  image_url field predicates
+  """
+  imageURL: String
+  imageURLNEQ: String
+  imageURLIn: [String!]
+  imageURLNotIn: [String!]
+  imageURLGT: String
+  imageURLGTE: String
+  imageURLLT: String
+  imageURLLTE: String
+  imageURLContains: String
+  imageURLHasPrefix: String
+  imageURLHasSuffix: String
+  imageURLIsNil: Boolean
+  imageURLNotNil: Boolean
+  imageURLEqualFold: String
+  imageURLContainsFold: String
   """
   created_at field predicates
   """
@@ -2679,6 +2806,7 @@ type Query {
 type Room implements Node {
   id: ID!
   name: String
+  description: String
   version: Uint64!
   type: RoomType!
   createdAt: Time!
@@ -2708,7 +2836,7 @@ type Room implements Node {
     """
     Ordering options for Users returned from the connection.
     """
-    orderBy: UserOrder
+    orderBy: [UserOrder!]
 
     """
     Filtering options for Users returned from the connection.
@@ -2771,7 +2899,7 @@ type Room implements Node {
     """
     Ordering options for MessageVoices returned from the connection.
     """
-    orderBy: MessageVoiceOrder
+    orderBy: [MessageVoiceOrder!]
 
     """
     Filtering options for MessageVoices returned from the connection.
@@ -2802,7 +2930,7 @@ type Room implements Node {
     """
     Ordering options for MessageAttachments returned from the connection.
     """
-    orderBy: MessageAttachmentOrder
+    orderBy: [MessageAttachmentOrder!]
 
     """
     Filtering options for MessageAttachments returned from the connection.
@@ -2833,7 +2961,7 @@ type Room implements Node {
     """
     Ordering options for MessageLinks returned from the connection.
     """
-    orderBy: MessageLinkOrder
+    orderBy: [MessageLinkOrder!]
 
     """
     Filtering options for MessageLinks returned from the connection.
@@ -2909,6 +3037,7 @@ type RoomMember implements Node {
   userID: ID!
   roomID: ID!
   joinedAt: Time!
+  updatedAt: Time!
   user: User!
   room: Room!
 }
@@ -2962,6 +3091,7 @@ enum RoomMemberOrderField {
   NAME
   UNREAD_MESSAGES_COUNT
   JOINED_AT
+  UPDATED_AT
 }
 """
 RoomMemberWhereInput is used for filtering RoomMember objects.
@@ -3022,6 +3152,17 @@ input RoomMemberWhereInput {
   joinedAtGTE: Time
   joinedAtLT: Time
   joinedAtLTE: Time
+  """
+  updated_at field predicates
+  """
+  updatedAt: Time
+  updatedAtNEQ: Time
+  updatedAtIn: [Time!]
+  updatedAtNotIn: [Time!]
+  updatedAtGT: Time
+  updatedAtGTE: Time
+  updatedAtLT: Time
+  updatedAtLTE: Time
 }
 """
 Ordering options for Room connections
@@ -3041,6 +3182,7 @@ Properties by which Room connections can be ordered.
 """
 enum RoomOrderField {
   NAME
+  DESCRIPTION
   VERSION
   TYPE
   CREATED_AT
@@ -3090,6 +3232,24 @@ input RoomWhereInput {
   nameNotNil: Boolean
   nameEqualFold: String
   nameContainsFold: String
+  """
+  description field predicates
+  """
+  description: String
+  descriptionNEQ: String
+  descriptionIn: [String!]
+  descriptionNotIn: [String!]
+  descriptionGT: String
+  descriptionGTE: String
+  descriptionLT: String
+  descriptionLTE: String
+  descriptionContains: String
+  descriptionHasPrefix: String
+  descriptionHasSuffix: String
+  descriptionIsNil: Boolean
+  descriptionNotNil: Boolean
+  descriptionEqualFold: String
+  descriptionContainsFold: String
   """
   version field predicates
   """
@@ -3216,7 +3376,7 @@ type User implements Node {
     """
     Ordering options for Users returned from the connection.
     """
-    orderBy: UserOrder
+    orderBy: [UserOrder!]
 
     """
     Filtering options for Users returned from the connection.
@@ -3647,7 +3807,7 @@ input UserWhereInput {
 	{Name: "../schema/message.graphql", Input: `"""
 UploadMessageFile is used for upload message files.
 """
-input UploadMessageFile {
+input UploadMessageFileInput {
   type: MessageAttachmentType!
   file: Upload!
 }
@@ -3660,8 +3820,9 @@ input SendMessageInput {
   notifyUserID: ID
   replyTo: ID
   content: String @goTag(key: "validate", value: "omitempty,max=4096")
-  files: [UploadMessageFile!] @goTag(key: "validate", value: "max=20")
+  files: [UploadMessageFileInput!] @goTag(key: "validate", value: "max=20")
   voice: Upload @goTag(key: "validate", value: "gql_upload_is_voice")
+  links: [CreateMessageLinkInput!]
 }
 
 """
@@ -3669,6 +3830,7 @@ UpdateMessageInput is used for update Message object.
 """
 input UpdateMessageInput {
   content: String! @goTag(key: "validate", value: "omitempty,max=4096")
+  replaceLinks: [CreateMessageLinkInput!]
 }
 
 extend type Query {
@@ -3752,7 +3914,7 @@ extend type Subscription {
     """
     Ordering options for MessageAttachments returned from the connection.
     """
-    orderBy: MessageAttachmentOrder
+    orderBy: [MessageAttachmentOrder!]
 
     """
     Filtering options for MessageAttachments returned from the connection.
@@ -3761,7 +3923,17 @@ extend type Subscription {
   ): MessageAttachmentConnection!
 }
 `, BuiltIn: false},
-	{Name: "../schema/message_link.graphql", Input: `extend type Query {
+	{Name: "../schema/message_link.graphql", Input: `"""
+CreateMessageLinkInput is used for create message link object.
+"""
+input CreateMessageLinkInput {
+  link: String!
+  title: String
+  description: String
+  imageURL: String
+}
+
+extend type Query {
   messageLinksByRoom(
     """
     Returns the elements in the list that come with the specified roomID.
@@ -3791,7 +3963,7 @@ extend type Subscription {
     """
     Ordering options for MessageLinks returned from the connection.
     """
-    orderBy: MessageLinkOrder
+    orderBy: [MessageLinkOrder!]
 
     """
     Filtering options for MessageLinks returned from the connection.
@@ -3830,7 +4002,7 @@ extend type Subscription {
     """
     Ordering options for MessageVoices returned from the connection.
     """
-    orderBy: MessageVoiceOrder
+    orderBy: [MessageVoiceOrder!]
 
     """
     Filtering options for MessageVoices returned from the connection.
@@ -3861,6 +4033,15 @@ extend type Mutation {
   createRoom(input: CreateRoomInput!): RoomEdge
   updateRoom(roomID: ID!, input: UpdateRoomInput!): RoomEdge
   deleteRoom(roomID: ID!): RoomEdge
+}
+
+extend type Query {
+  room(
+    """
+    Returns element by the specified roomID.
+    """
+    roomID: ID!
+  ): RoomEdge!
 }
 `, BuiltIn: false},
 	{Name: "../schema/room_member.graphql", Input: `extend input RoomMemberWhereInput {
@@ -4003,6 +4184,15 @@ extend type Mutation {
   generatePinCode: String
   addUserContact(pincode: String!): UserContactEdge
   deleteUserContact(userContactID: ID!): UserContactEdge
+}
+
+extend type Query {
+  userContact(
+    """
+    Returns element by the specified userContactID.
+    """
+    userContactID: ID!
+  ): UserContactEdge!
 }
 `, BuiltIn: false},
 }

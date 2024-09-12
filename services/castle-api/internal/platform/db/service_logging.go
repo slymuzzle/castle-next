@@ -10,16 +10,16 @@ import (
 	"github.com/go-kit/log/level"
 )
 
-type loggingService struct {
+type serviceLogging struct {
 	logger log.Logger
 	Service
 }
 
-func NewLoggingService(logger log.Logger, s Service) Service {
-	return &loggingService{logger, s}
+func NewServiceLogging(logger log.Logger, s Service) Service {
+	return &serviceLogging{logger, s}
 }
 
-func (s *loggingService) Connect() (err error) {
+func (s *serviceLogging) Connect() (err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "Connect",
@@ -32,7 +32,7 @@ func (s *loggingService) Connect() (err error) {
 	return s.Service.Connect()
 }
 
-func (s *loggingService) Config() (config config.DatabaseConfig) {
+func (s *serviceLogging) Config() (config config.DatabaseConfig) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "Config",
@@ -44,7 +44,7 @@ func (s *loggingService) Config() (config config.DatabaseConfig) {
 	return s.Service.Config()
 }
 
-func (s *loggingService) Client() (client *ent.Client) {
+func (s *serviceLogging) Client() (client *ent.Client) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "Client",
@@ -56,7 +56,7 @@ func (s *loggingService) Client() (client *ent.Client) {
 	return s.Service.Client()
 }
 
-func (s *loggingService) Close() (err error) {
+func (s *serviceLogging) Close() (err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "Close",

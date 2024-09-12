@@ -1268,20 +1268,71 @@ type MessageLinkWhereInput struct {
 	IDLT    *pulid.ID  `json:"idLT,omitempty"`
 	IDLTE   *pulid.ID  `json:"idLTE,omitempty"`
 
-	// "url" field predicates.
-	URL             *string  `json:"url,omitempty"`
-	URLNEQ          *string  `json:"urlNEQ,omitempty"`
-	URLIn           []string `json:"urlIn,omitempty"`
-	URLNotIn        []string `json:"urlNotIn,omitempty"`
-	URLGT           *string  `json:"urlGT,omitempty"`
-	URLGTE          *string  `json:"urlGTE,omitempty"`
-	URLLT           *string  `json:"urlLT,omitempty"`
-	URLLTE          *string  `json:"urlLTE,omitempty"`
-	URLContains     *string  `json:"urlContains,omitempty"`
-	URLHasPrefix    *string  `json:"urlHasPrefix,omitempty"`
-	URLHasSuffix    *string  `json:"urlHasSuffix,omitempty"`
-	URLEqualFold    *string  `json:"urlEqualFold,omitempty"`
-	URLContainsFold *string  `json:"urlContainsFold,omitempty"`
+	// "link" field predicates.
+	Link             *string  `json:"link,omitempty"`
+	LinkNEQ          *string  `json:"linkNEQ,omitempty"`
+	LinkIn           []string `json:"linkIn,omitempty"`
+	LinkNotIn        []string `json:"linkNotIn,omitempty"`
+	LinkGT           *string  `json:"linkGT,omitempty"`
+	LinkGTE          *string  `json:"linkGTE,omitempty"`
+	LinkLT           *string  `json:"linkLT,omitempty"`
+	LinkLTE          *string  `json:"linkLTE,omitempty"`
+	LinkContains     *string  `json:"linkContains,omitempty"`
+	LinkHasPrefix    *string  `json:"linkHasPrefix,omitempty"`
+	LinkHasSuffix    *string  `json:"linkHasSuffix,omitempty"`
+	LinkEqualFold    *string  `json:"linkEqualFold,omitempty"`
+	LinkContainsFold *string  `json:"linkContainsFold,omitempty"`
+
+	// "title" field predicates.
+	Title             *string  `json:"title,omitempty"`
+	TitleNEQ          *string  `json:"titleNEQ,omitempty"`
+	TitleIn           []string `json:"titleIn,omitempty"`
+	TitleNotIn        []string `json:"titleNotIn,omitempty"`
+	TitleGT           *string  `json:"titleGT,omitempty"`
+	TitleGTE          *string  `json:"titleGTE,omitempty"`
+	TitleLT           *string  `json:"titleLT,omitempty"`
+	TitleLTE          *string  `json:"titleLTE,omitempty"`
+	TitleContains     *string  `json:"titleContains,omitempty"`
+	TitleHasPrefix    *string  `json:"titleHasPrefix,omitempty"`
+	TitleHasSuffix    *string  `json:"titleHasSuffix,omitempty"`
+	TitleIsNil        bool     `json:"titleIsNil,omitempty"`
+	TitleNotNil       bool     `json:"titleNotNil,omitempty"`
+	TitleEqualFold    *string  `json:"titleEqualFold,omitempty"`
+	TitleContainsFold *string  `json:"titleContainsFold,omitempty"`
+
+	// "description" field predicates.
+	Description             *string  `json:"description,omitempty"`
+	DescriptionNEQ          *string  `json:"descriptionNEQ,omitempty"`
+	DescriptionIn           []string `json:"descriptionIn,omitempty"`
+	DescriptionNotIn        []string `json:"descriptionNotIn,omitempty"`
+	DescriptionGT           *string  `json:"descriptionGT,omitempty"`
+	DescriptionGTE          *string  `json:"descriptionGTE,omitempty"`
+	DescriptionLT           *string  `json:"descriptionLT,omitempty"`
+	DescriptionLTE          *string  `json:"descriptionLTE,omitempty"`
+	DescriptionContains     *string  `json:"descriptionContains,omitempty"`
+	DescriptionHasPrefix    *string  `json:"descriptionHasPrefix,omitempty"`
+	DescriptionHasSuffix    *string  `json:"descriptionHasSuffix,omitempty"`
+	DescriptionIsNil        bool     `json:"descriptionIsNil,omitempty"`
+	DescriptionNotNil       bool     `json:"descriptionNotNil,omitempty"`
+	DescriptionEqualFold    *string  `json:"descriptionEqualFold,omitempty"`
+	DescriptionContainsFold *string  `json:"descriptionContainsFold,omitempty"`
+
+	// "image_url" field predicates.
+	ImageURL             *string  `json:"imageURL,omitempty"`
+	ImageURLNEQ          *string  `json:"imageURLNEQ,omitempty"`
+	ImageURLIn           []string `json:"imageURLIn,omitempty"`
+	ImageURLNotIn        []string `json:"imageURLNotIn,omitempty"`
+	ImageURLGT           *string  `json:"imageURLGT,omitempty"`
+	ImageURLGTE          *string  `json:"imageURLGTE,omitempty"`
+	ImageURLLT           *string  `json:"imageURLLT,omitempty"`
+	ImageURLLTE          *string  `json:"imageURLLTE,omitempty"`
+	ImageURLContains     *string  `json:"imageURLContains,omitempty"`
+	ImageURLHasPrefix    *string  `json:"imageURLHasPrefix,omitempty"`
+	ImageURLHasSuffix    *string  `json:"imageURLHasSuffix,omitempty"`
+	ImageURLIsNil        bool     `json:"imageURLIsNil,omitempty"`
+	ImageURLNotNil       bool     `json:"imageURLNotNil,omitempty"`
+	ImageURLEqualFold    *string  `json:"imageURLEqualFold,omitempty"`
+	ImageURLContainsFold *string  `json:"imageURLContainsFold,omitempty"`
 
 	// "created_at" field predicates.
 	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
@@ -1407,44 +1458,179 @@ func (i *MessageLinkWhereInput) P() (predicate.MessageLink, error) {
 	if i.IDLTE != nil {
 		predicates = append(predicates, messagelink.IDLTE(*i.IDLTE))
 	}
-	if i.URL != nil {
-		predicates = append(predicates, messagelink.URLEQ(*i.URL))
+	if i.Link != nil {
+		predicates = append(predicates, messagelink.LinkEQ(*i.Link))
 	}
-	if i.URLNEQ != nil {
-		predicates = append(predicates, messagelink.URLNEQ(*i.URLNEQ))
+	if i.LinkNEQ != nil {
+		predicates = append(predicates, messagelink.LinkNEQ(*i.LinkNEQ))
 	}
-	if len(i.URLIn) > 0 {
-		predicates = append(predicates, messagelink.URLIn(i.URLIn...))
+	if len(i.LinkIn) > 0 {
+		predicates = append(predicates, messagelink.LinkIn(i.LinkIn...))
 	}
-	if len(i.URLNotIn) > 0 {
-		predicates = append(predicates, messagelink.URLNotIn(i.URLNotIn...))
+	if len(i.LinkNotIn) > 0 {
+		predicates = append(predicates, messagelink.LinkNotIn(i.LinkNotIn...))
 	}
-	if i.URLGT != nil {
-		predicates = append(predicates, messagelink.URLGT(*i.URLGT))
+	if i.LinkGT != nil {
+		predicates = append(predicates, messagelink.LinkGT(*i.LinkGT))
 	}
-	if i.URLGTE != nil {
-		predicates = append(predicates, messagelink.URLGTE(*i.URLGTE))
+	if i.LinkGTE != nil {
+		predicates = append(predicates, messagelink.LinkGTE(*i.LinkGTE))
 	}
-	if i.URLLT != nil {
-		predicates = append(predicates, messagelink.URLLT(*i.URLLT))
+	if i.LinkLT != nil {
+		predicates = append(predicates, messagelink.LinkLT(*i.LinkLT))
 	}
-	if i.URLLTE != nil {
-		predicates = append(predicates, messagelink.URLLTE(*i.URLLTE))
+	if i.LinkLTE != nil {
+		predicates = append(predicates, messagelink.LinkLTE(*i.LinkLTE))
 	}
-	if i.URLContains != nil {
-		predicates = append(predicates, messagelink.URLContains(*i.URLContains))
+	if i.LinkContains != nil {
+		predicates = append(predicates, messagelink.LinkContains(*i.LinkContains))
 	}
-	if i.URLHasPrefix != nil {
-		predicates = append(predicates, messagelink.URLHasPrefix(*i.URLHasPrefix))
+	if i.LinkHasPrefix != nil {
+		predicates = append(predicates, messagelink.LinkHasPrefix(*i.LinkHasPrefix))
 	}
-	if i.URLHasSuffix != nil {
-		predicates = append(predicates, messagelink.URLHasSuffix(*i.URLHasSuffix))
+	if i.LinkHasSuffix != nil {
+		predicates = append(predicates, messagelink.LinkHasSuffix(*i.LinkHasSuffix))
 	}
-	if i.URLEqualFold != nil {
-		predicates = append(predicates, messagelink.URLEqualFold(*i.URLEqualFold))
+	if i.LinkEqualFold != nil {
+		predicates = append(predicates, messagelink.LinkEqualFold(*i.LinkEqualFold))
 	}
-	if i.URLContainsFold != nil {
-		predicates = append(predicates, messagelink.URLContainsFold(*i.URLContainsFold))
+	if i.LinkContainsFold != nil {
+		predicates = append(predicates, messagelink.LinkContainsFold(*i.LinkContainsFold))
+	}
+	if i.Title != nil {
+		predicates = append(predicates, messagelink.TitleEQ(*i.Title))
+	}
+	if i.TitleNEQ != nil {
+		predicates = append(predicates, messagelink.TitleNEQ(*i.TitleNEQ))
+	}
+	if len(i.TitleIn) > 0 {
+		predicates = append(predicates, messagelink.TitleIn(i.TitleIn...))
+	}
+	if len(i.TitleNotIn) > 0 {
+		predicates = append(predicates, messagelink.TitleNotIn(i.TitleNotIn...))
+	}
+	if i.TitleGT != nil {
+		predicates = append(predicates, messagelink.TitleGT(*i.TitleGT))
+	}
+	if i.TitleGTE != nil {
+		predicates = append(predicates, messagelink.TitleGTE(*i.TitleGTE))
+	}
+	if i.TitleLT != nil {
+		predicates = append(predicates, messagelink.TitleLT(*i.TitleLT))
+	}
+	if i.TitleLTE != nil {
+		predicates = append(predicates, messagelink.TitleLTE(*i.TitleLTE))
+	}
+	if i.TitleContains != nil {
+		predicates = append(predicates, messagelink.TitleContains(*i.TitleContains))
+	}
+	if i.TitleHasPrefix != nil {
+		predicates = append(predicates, messagelink.TitleHasPrefix(*i.TitleHasPrefix))
+	}
+	if i.TitleHasSuffix != nil {
+		predicates = append(predicates, messagelink.TitleHasSuffix(*i.TitleHasSuffix))
+	}
+	if i.TitleIsNil {
+		predicates = append(predicates, messagelink.TitleIsNil())
+	}
+	if i.TitleNotNil {
+		predicates = append(predicates, messagelink.TitleNotNil())
+	}
+	if i.TitleEqualFold != nil {
+		predicates = append(predicates, messagelink.TitleEqualFold(*i.TitleEqualFold))
+	}
+	if i.TitleContainsFold != nil {
+		predicates = append(predicates, messagelink.TitleContainsFold(*i.TitleContainsFold))
+	}
+	if i.Description != nil {
+		predicates = append(predicates, messagelink.DescriptionEQ(*i.Description))
+	}
+	if i.DescriptionNEQ != nil {
+		predicates = append(predicates, messagelink.DescriptionNEQ(*i.DescriptionNEQ))
+	}
+	if len(i.DescriptionIn) > 0 {
+		predicates = append(predicates, messagelink.DescriptionIn(i.DescriptionIn...))
+	}
+	if len(i.DescriptionNotIn) > 0 {
+		predicates = append(predicates, messagelink.DescriptionNotIn(i.DescriptionNotIn...))
+	}
+	if i.DescriptionGT != nil {
+		predicates = append(predicates, messagelink.DescriptionGT(*i.DescriptionGT))
+	}
+	if i.DescriptionGTE != nil {
+		predicates = append(predicates, messagelink.DescriptionGTE(*i.DescriptionGTE))
+	}
+	if i.DescriptionLT != nil {
+		predicates = append(predicates, messagelink.DescriptionLT(*i.DescriptionLT))
+	}
+	if i.DescriptionLTE != nil {
+		predicates = append(predicates, messagelink.DescriptionLTE(*i.DescriptionLTE))
+	}
+	if i.DescriptionContains != nil {
+		predicates = append(predicates, messagelink.DescriptionContains(*i.DescriptionContains))
+	}
+	if i.DescriptionHasPrefix != nil {
+		predicates = append(predicates, messagelink.DescriptionHasPrefix(*i.DescriptionHasPrefix))
+	}
+	if i.DescriptionHasSuffix != nil {
+		predicates = append(predicates, messagelink.DescriptionHasSuffix(*i.DescriptionHasSuffix))
+	}
+	if i.DescriptionIsNil {
+		predicates = append(predicates, messagelink.DescriptionIsNil())
+	}
+	if i.DescriptionNotNil {
+		predicates = append(predicates, messagelink.DescriptionNotNil())
+	}
+	if i.DescriptionEqualFold != nil {
+		predicates = append(predicates, messagelink.DescriptionEqualFold(*i.DescriptionEqualFold))
+	}
+	if i.DescriptionContainsFold != nil {
+		predicates = append(predicates, messagelink.DescriptionContainsFold(*i.DescriptionContainsFold))
+	}
+	if i.ImageURL != nil {
+		predicates = append(predicates, messagelink.ImageURLEQ(*i.ImageURL))
+	}
+	if i.ImageURLNEQ != nil {
+		predicates = append(predicates, messagelink.ImageURLNEQ(*i.ImageURLNEQ))
+	}
+	if len(i.ImageURLIn) > 0 {
+		predicates = append(predicates, messagelink.ImageURLIn(i.ImageURLIn...))
+	}
+	if len(i.ImageURLNotIn) > 0 {
+		predicates = append(predicates, messagelink.ImageURLNotIn(i.ImageURLNotIn...))
+	}
+	if i.ImageURLGT != nil {
+		predicates = append(predicates, messagelink.ImageURLGT(*i.ImageURLGT))
+	}
+	if i.ImageURLGTE != nil {
+		predicates = append(predicates, messagelink.ImageURLGTE(*i.ImageURLGTE))
+	}
+	if i.ImageURLLT != nil {
+		predicates = append(predicates, messagelink.ImageURLLT(*i.ImageURLLT))
+	}
+	if i.ImageURLLTE != nil {
+		predicates = append(predicates, messagelink.ImageURLLTE(*i.ImageURLLTE))
+	}
+	if i.ImageURLContains != nil {
+		predicates = append(predicates, messagelink.ImageURLContains(*i.ImageURLContains))
+	}
+	if i.ImageURLHasPrefix != nil {
+		predicates = append(predicates, messagelink.ImageURLHasPrefix(*i.ImageURLHasPrefix))
+	}
+	if i.ImageURLHasSuffix != nil {
+		predicates = append(predicates, messagelink.ImageURLHasSuffix(*i.ImageURLHasSuffix))
+	}
+	if i.ImageURLIsNil {
+		predicates = append(predicates, messagelink.ImageURLIsNil())
+	}
+	if i.ImageURLNotNil {
+		predicates = append(predicates, messagelink.ImageURLNotNil())
+	}
+	if i.ImageURLEqualFold != nil {
+		predicates = append(predicates, messagelink.ImageURLEqualFold(*i.ImageURLEqualFold))
+	}
+	if i.ImageURLContainsFold != nil {
+		predicates = append(predicates, messagelink.ImageURLContainsFold(*i.ImageURLContainsFold))
 	}
 	if i.CreatedAt != nil {
 		predicates = append(predicates, messagelink.CreatedAtEQ(*i.CreatedAt))
@@ -1799,6 +1985,23 @@ type RoomWhereInput struct {
 	NameEqualFold    *string  `json:"nameEqualFold,omitempty"`
 	NameContainsFold *string  `json:"nameContainsFold,omitempty"`
 
+	// "description" field predicates.
+	Description             *string  `json:"description,omitempty"`
+	DescriptionNEQ          *string  `json:"descriptionNEQ,omitempty"`
+	DescriptionIn           []string `json:"descriptionIn,omitempty"`
+	DescriptionNotIn        []string `json:"descriptionNotIn,omitempty"`
+	DescriptionGT           *string  `json:"descriptionGT,omitempty"`
+	DescriptionGTE          *string  `json:"descriptionGTE,omitempty"`
+	DescriptionLT           *string  `json:"descriptionLT,omitempty"`
+	DescriptionLTE          *string  `json:"descriptionLTE,omitempty"`
+	DescriptionContains     *string  `json:"descriptionContains,omitempty"`
+	DescriptionHasPrefix    *string  `json:"descriptionHasPrefix,omitempty"`
+	DescriptionHasSuffix    *string  `json:"descriptionHasSuffix,omitempty"`
+	DescriptionIsNil        bool     `json:"descriptionIsNil,omitempty"`
+	DescriptionNotNil       bool     `json:"descriptionNotNil,omitempty"`
+	DescriptionEqualFold    *string  `json:"descriptionEqualFold,omitempty"`
+	DescriptionContainsFold *string  `json:"descriptionContainsFold,omitempty"`
+
 	// "version" field predicates.
 	Version      *uint64  `json:"version,omitempty"`
 	VersionNEQ   *uint64  `json:"versionNEQ,omitempty"`
@@ -2007,6 +2210,51 @@ func (i *RoomWhereInput) P() (predicate.Room, error) {
 	}
 	if i.NameContainsFold != nil {
 		predicates = append(predicates, room.NameContainsFold(*i.NameContainsFold))
+	}
+	if i.Description != nil {
+		predicates = append(predicates, room.DescriptionEQ(*i.Description))
+	}
+	if i.DescriptionNEQ != nil {
+		predicates = append(predicates, room.DescriptionNEQ(*i.DescriptionNEQ))
+	}
+	if len(i.DescriptionIn) > 0 {
+		predicates = append(predicates, room.DescriptionIn(i.DescriptionIn...))
+	}
+	if len(i.DescriptionNotIn) > 0 {
+		predicates = append(predicates, room.DescriptionNotIn(i.DescriptionNotIn...))
+	}
+	if i.DescriptionGT != nil {
+		predicates = append(predicates, room.DescriptionGT(*i.DescriptionGT))
+	}
+	if i.DescriptionGTE != nil {
+		predicates = append(predicates, room.DescriptionGTE(*i.DescriptionGTE))
+	}
+	if i.DescriptionLT != nil {
+		predicates = append(predicates, room.DescriptionLT(*i.DescriptionLT))
+	}
+	if i.DescriptionLTE != nil {
+		predicates = append(predicates, room.DescriptionLTE(*i.DescriptionLTE))
+	}
+	if i.DescriptionContains != nil {
+		predicates = append(predicates, room.DescriptionContains(*i.DescriptionContains))
+	}
+	if i.DescriptionHasPrefix != nil {
+		predicates = append(predicates, room.DescriptionHasPrefix(*i.DescriptionHasPrefix))
+	}
+	if i.DescriptionHasSuffix != nil {
+		predicates = append(predicates, room.DescriptionHasSuffix(*i.DescriptionHasSuffix))
+	}
+	if i.DescriptionIsNil {
+		predicates = append(predicates, room.DescriptionIsNil())
+	}
+	if i.DescriptionNotNil {
+		predicates = append(predicates, room.DescriptionNotNil())
+	}
+	if i.DescriptionEqualFold != nil {
+		predicates = append(predicates, room.DescriptionEqualFold(*i.DescriptionEqualFold))
+	}
+	if i.DescriptionContainsFold != nil {
+		predicates = append(predicates, room.DescriptionContainsFold(*i.DescriptionContainsFold))
 	}
 	if i.Version != nil {
 		predicates = append(predicates, room.VersionEQ(*i.Version))
@@ -2331,6 +2579,16 @@ type RoomMemberWhereInput struct {
 	JoinedAtLT    *time.Time  `json:"joinedAtLT,omitempty"`
 	JoinedAtLTE   *time.Time  `json:"joinedAtLTE,omitempty"`
 
+	// "updated_at" field predicates.
+	UpdatedAt      *time.Time  `json:"updatedAt,omitempty"`
+	UpdatedAtNEQ   *time.Time  `json:"updatedAtNEQ,omitempty"`
+	UpdatedAtIn    []time.Time `json:"updatedAtIn,omitempty"`
+	UpdatedAtNotIn []time.Time `json:"updatedAtNotIn,omitempty"`
+	UpdatedAtGT    *time.Time  `json:"updatedAtGT,omitempty"`
+	UpdatedAtGTE   *time.Time  `json:"updatedAtGTE,omitempty"`
+	UpdatedAtLT    *time.Time  `json:"updatedAtLT,omitempty"`
+	UpdatedAtLTE   *time.Time  `json:"updatedAtLTE,omitempty"`
+
 	// "user" edge predicates.
 	HasUser     *bool             `json:"hasUser,omitempty"`
 	HasUserWith []*UserWhereInput `json:"hasUserWith,omitempty"`
@@ -2605,6 +2863,30 @@ func (i *RoomMemberWhereInput) P() (predicate.RoomMember, error) {
 	}
 	if i.JoinedAtLTE != nil {
 		predicates = append(predicates, roommember.JoinedAtLTE(*i.JoinedAtLTE))
+	}
+	if i.UpdatedAt != nil {
+		predicates = append(predicates, roommember.UpdatedAtEQ(*i.UpdatedAt))
+	}
+	if i.UpdatedAtNEQ != nil {
+		predicates = append(predicates, roommember.UpdatedAtNEQ(*i.UpdatedAtNEQ))
+	}
+	if len(i.UpdatedAtIn) > 0 {
+		predicates = append(predicates, roommember.UpdatedAtIn(i.UpdatedAtIn...))
+	}
+	if len(i.UpdatedAtNotIn) > 0 {
+		predicates = append(predicates, roommember.UpdatedAtNotIn(i.UpdatedAtNotIn...))
+	}
+	if i.UpdatedAtGT != nil {
+		predicates = append(predicates, roommember.UpdatedAtGT(*i.UpdatedAtGT))
+	}
+	if i.UpdatedAtGTE != nil {
+		predicates = append(predicates, roommember.UpdatedAtGTE(*i.UpdatedAtGTE))
+	}
+	if i.UpdatedAtLT != nil {
+		predicates = append(predicates, roommember.UpdatedAtLT(*i.UpdatedAtLT))
+	}
+	if i.UpdatedAtLTE != nil {
+		predicates = append(predicates, roommember.UpdatedAtLTE(*i.UpdatedAtLTE))
 	}
 
 	if i.HasUser != nil {

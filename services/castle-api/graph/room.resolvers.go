@@ -30,3 +30,18 @@ func (r *mutationResolver) DeleteRoom(ctx context.Context, roomID pulid.ID) (*en
 	}
 	return room.ToEdge(ent.DefaultRoomOrder), nil
 }
+
+// Room is the resolver for the room field.
+func (r *queryResolver) Room(ctx context.Context, roomID pulid.ID) (*ent.RoomEdge, error) {
+	_, err := r.authService.Auth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	room, err := r.dbService.Client().Room.Get(ctx, roomID)
+	if err != nil {
+		return nil, err
+	}
+
+	return room.ToEdge(ent.DefaultRoomOrder), nil
+}

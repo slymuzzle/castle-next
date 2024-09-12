@@ -11,16 +11,16 @@ import (
 	"github.com/go-kit/log/level"
 )
 
-type loggingService struct {
+type ServiceLogging struct {
 	logger log.Logger
 	Service
 }
 
-func NewLoggingService(logger log.Logger, s Service) Service {
-	return &loggingService{logger, s}
+func NewServiceLogging(logger log.Logger, s Service) Service {
+	return &ServiceLogging{logger, s}
 }
 
-func (s *loggingService) GenerateUserPinCode(
+func (s *ServiceLogging) GenerateUserPinCode(
 	ctx context.Context,
 ) (pincode *string, err error) {
 	defer func(begin time.Time) {
@@ -34,7 +34,7 @@ func (s *loggingService) GenerateUserPinCode(
 	return s.Service.GenerateUserPinCode(ctx)
 }
 
-func (s *loggingService) AddUserContact(
+func (s *ServiceLogging) AddUserContact(
 	ctx context.Context,
 	pincode string,
 ) (usr *ent.UserContact, err error) {
@@ -49,7 +49,7 @@ func (s *loggingService) AddUserContact(
 	return s.Service.AddUserContact(ctx, pincode)
 }
 
-func (s *loggingService) DeleteUserContact(
+func (s *ServiceLogging) DeleteUserContact(
 	ctx context.Context,
 	ID pulid.ID,
 ) (usr *ent.UserContact, err error) {

@@ -1,8 +1,9 @@
 package schema
 
 import (
-	"journeyhub/ent/schema/pulid"
 	"time"
+
+	"journeyhub/ent/schema/pulid"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
@@ -26,9 +27,24 @@ func (MessageLink) Mixin() []ent.Mixin {
 // Fields of the MessageLink.
 func (MessageLink) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("url").
+		field.String("link").
 			Annotations(
-				entgql.OrderField("URL"),
+				entgql.OrderField("LINK"),
+			),
+		field.String("title").
+			Optional().
+			Annotations(
+				entgql.OrderField("TITLE"),
+			),
+		field.String("description").
+			Optional().
+			Annotations(
+				entgql.OrderField("DESCRIPTION"),
+			),
+		field.String("image_url").
+			Optional().
+			Annotations(
+				entgql.OrderField("IMAGE_URL"),
 			),
 		field.Time("created_at").
 			Immutable().
@@ -62,6 +78,7 @@ func (MessageLink) Edges() []ent.Edge {
 // Annotations of the MessageLink.
 func (MessageLink) Annotations() []schema.Annotation {
 	return []schema.Annotation{
+		entgql.MultiOrder(),
 		entgql.RelayConnection(),
 	}
 }

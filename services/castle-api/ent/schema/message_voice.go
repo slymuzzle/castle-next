@@ -1,8 +1,9 @@
 package schema
 
 import (
-	"journeyhub/ent/schema/pulid"
 	"time"
+
+	"journeyhub/ent/schema/pulid"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
@@ -56,6 +57,7 @@ func (MessageVoice) Edges() []ent.Edge {
 // Annotations of the MessageVoice.
 func (MessageVoice) Annotations() []schema.Annotation {
 	return []schema.Annotation{
+		entgql.MultiOrder(),
 		entgql.RelayConnection(),
 	}
 }

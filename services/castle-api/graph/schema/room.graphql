@@ -21,3 +21,12 @@ extend type Mutation {
   updateRoom(roomID: ID!, input: UpdateRoomInput!): RoomEdge
   deleteRoom(roomID: ID!): RoomEdge
 }
+
+extend type Query {
+  room(
+    """
+    Returns element by the specified roomID.
+    """
+    roomID: ID!
+  ): RoomEdge!
+}

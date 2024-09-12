@@ -15,8 +15,14 @@ const (
 	Label = "message_link"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldURL holds the string denoting the url field in the database.
-	FieldURL = "url"
+	// FieldLink holds the string denoting the link field in the database.
+	FieldLink = "link"
+	// FieldTitle holds the string denoting the title field in the database.
+	FieldTitle = "title"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldImageURL holds the string denoting the image_url field in the database.
+	FieldImageURL = "image_url"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -46,7 +52,10 @@ const (
 // Columns holds all SQL columns for messagelink fields.
 var Columns = []string{
 	FieldID,
-	FieldURL,
+	FieldLink,
+	FieldTitle,
+	FieldDescription,
+	FieldImageURL,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -92,9 +101,24 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByURL orders the results by the url field.
-func ByURL(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldURL, opts...).ToFunc()
+// ByLink orders the results by the link field.
+func ByLink(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLink, opts...).ToFunc()
+}
+
+// ByTitle orders the results by the title field.
+func ByTitle(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTitle, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByImageURL orders the results by the image_url field.
+func ByImageURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldImageURL, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

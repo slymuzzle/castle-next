@@ -76,17 +76,17 @@ func (r *queryResolver) MessagesByRoom(ctx context.Context, roomID pulid.ID, aft
 
 // MessageCreated is the resolver for the messageCreated field.
 func (r *subscriptionResolver) MessageCreated(ctx context.Context, roomID pulid.ID) (<-chan *ent.MessageEdge, error) {
-	return r.chatService.SubscribeToMessageCreatedEvent(ctx, roomID)
+	return r.chatService.Subscriptions().SubscribeToMessageCreatedEvent(ctx, roomID)
 }
 
 // MessageUpdated is the resolver for the messageUpdated field.
 func (r *subscriptionResolver) MessageUpdated(ctx context.Context, roomID pulid.ID) (<-chan *ent.MessageEdge, error) {
-	return r.chatService.SubscribeToMessageUpdatedEvent(ctx, roomID)
+	return r.chatService.Subscriptions().SubscribeToMessageUpdatedEvent(ctx, roomID)
 }
 
 // MessageDeleted is the resolver for the messageDeleted field.
 func (r *subscriptionResolver) MessageDeleted(ctx context.Context, roomID pulid.ID) (<-chan pulid.ID, error) {
-	return r.chatService.SubscribeToMessageDeletedEvent(ctx, roomID)
+	return r.chatService.Subscriptions().SubscribeToMessageDeletedEvent(ctx, roomID)
 }
 
 // Mutation returns generated.MutationResolver implementation.

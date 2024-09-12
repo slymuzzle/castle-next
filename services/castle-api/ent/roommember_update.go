@@ -120,6 +120,12 @@ func (rmu *RoomMemberUpdate) SetNillableRoomID(pu *pulid.ID) *RoomMemberUpdate {
 	return rmu
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (rmu *RoomMemberUpdate) SetUpdatedAt(t time.Time) *RoomMemberUpdate {
+	rmu.mutation.SetUpdatedAt(t)
+	return rmu
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (rmu *RoomMemberUpdate) SetUser(u *User) *RoomMemberUpdate {
 	return rmu.SetUserID(u.ID)
@@ -149,6 +155,9 @@ func (rmu *RoomMemberUpdate) ClearRoom() *RoomMemberUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (rmu *RoomMemberUpdate) Save(ctx context.Context) (int, error) {
+	if err := rmu.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, rmu.sqlSave, rmu.mutation, rmu.hooks)
 }
 
@@ -172,6 +181,18 @@ func (rmu *RoomMemberUpdate) ExecX(ctx context.Context) {
 	if err := rmu.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// defaults sets the default values of the builder before save.
+func (rmu *RoomMemberUpdate) defaults() error {
+	if _, ok := rmu.mutation.UpdatedAt(); !ok {
+		if roommember.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized roommember.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := roommember.UpdateDefaultUpdatedAt()
+		rmu.mutation.SetUpdatedAt(v)
+	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -214,6 +235,9 @@ func (rmu *RoomMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := rmu.mutation.AddedUnreadMessagesCount(); ok {
 		_spec.AddField(roommember.FieldUnreadMessagesCount, field.TypeInt, value)
+	}
+	if value, ok := rmu.mutation.UpdatedAt(); ok {
+		_spec.SetField(roommember.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if rmu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -382,6 +406,12 @@ func (rmuo *RoomMemberUpdateOne) SetNillableRoomID(pu *pulid.ID) *RoomMemberUpda
 	return rmuo
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (rmuo *RoomMemberUpdateOne) SetUpdatedAt(t time.Time) *RoomMemberUpdateOne {
+	rmuo.mutation.SetUpdatedAt(t)
+	return rmuo
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (rmuo *RoomMemberUpdateOne) SetUser(u *User) *RoomMemberUpdateOne {
 	return rmuo.SetUserID(u.ID)
@@ -424,6 +454,9 @@ func (rmuo *RoomMemberUpdateOne) Select(field string, fields ...string) *RoomMem
 
 // Save executes the query and returns the updated RoomMember entity.
 func (rmuo *RoomMemberUpdateOne) Save(ctx context.Context) (*RoomMember, error) {
+	if err := rmuo.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, rmuo.sqlSave, rmuo.mutation, rmuo.hooks)
 }
 
@@ -447,6 +480,18 @@ func (rmuo *RoomMemberUpdateOne) ExecX(ctx context.Context) {
 	if err := rmuo.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// defaults sets the default values of the builder before save.
+func (rmuo *RoomMemberUpdateOne) defaults() error {
+	if _, ok := rmuo.mutation.UpdatedAt(); !ok {
+		if roommember.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized roommember.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := roommember.UpdateDefaultUpdatedAt()
+		rmuo.mutation.SetUpdatedAt(v)
+	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -506,6 +551,9 @@ func (rmuo *RoomMemberUpdateOne) sqlSave(ctx context.Context) (_node *RoomMember
 	}
 	if value, ok := rmuo.mutation.AddedUnreadMessagesCount(); ok {
 		_spec.AddField(roommember.FieldUnreadMessagesCount, field.TypeInt, value)
+	}
+	if value, ok := rmuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(roommember.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if rmuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -12,19 +12,19 @@ import (
 	"github.com/go-kit/log/level"
 )
 
-type loggingService struct {
+type serviceLogging struct {
 	logger log.Logger
 	Service
 }
 
-func NewLoggingService(logger log.Logger, s Service) Service {
-	return &loggingService{logger, s}
+func NewServiceLogging(logger log.Logger, s Service) Service {
+	return &serviceLogging{logger, s}
 }
 
-func (s *loggingService) UploadMessageFiles(
+func (s *serviceLogging) UploadMessageFiles(
 	ctx context.Context,
 	prefix string,
-	files []*model.UploadMessageFile,
+	files []*model.UploadMessageFileInput,
 ) ([]*UploadInfo, error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
@@ -38,7 +38,7 @@ func (s *loggingService) UploadMessageFiles(
 	return s.Service.UploadMessageFiles(ctx, prefix, files)
 }
 
-func (s *loggingService) UploadFile(
+func (s *serviceLogging) UploadFile(
 	ctx context.Context,
 	prefix string,
 	file *graphql.Upload,
@@ -54,7 +54,7 @@ func (s *loggingService) UploadFile(
 	return s.Service.UploadFile(ctx, prefix, file)
 }
 
-func (s *loggingService) Config() (
+func (s *serviceLogging) Config() (
 	config config.S3Config,
 ) {
 	defer func(begin time.Time) {

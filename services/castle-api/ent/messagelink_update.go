@@ -31,17 +31,77 @@ func (mlu *MessageLinkUpdate) Where(ps ...predicate.MessageLink) *MessageLinkUpd
 	return mlu
 }
 
-// SetURL sets the "url" field.
-func (mlu *MessageLinkUpdate) SetURL(s string) *MessageLinkUpdate {
-	mlu.mutation.SetURL(s)
+// SetLink sets the "link" field.
+func (mlu *MessageLinkUpdate) SetLink(s string) *MessageLinkUpdate {
+	mlu.mutation.SetLink(s)
 	return mlu
 }
 
-// SetNillableURL sets the "url" field if the given value is not nil.
-func (mlu *MessageLinkUpdate) SetNillableURL(s *string) *MessageLinkUpdate {
+// SetNillableLink sets the "link" field if the given value is not nil.
+func (mlu *MessageLinkUpdate) SetNillableLink(s *string) *MessageLinkUpdate {
 	if s != nil {
-		mlu.SetURL(*s)
+		mlu.SetLink(*s)
 	}
+	return mlu
+}
+
+// SetTitle sets the "title" field.
+func (mlu *MessageLinkUpdate) SetTitle(s string) *MessageLinkUpdate {
+	mlu.mutation.SetTitle(s)
+	return mlu
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (mlu *MessageLinkUpdate) SetNillableTitle(s *string) *MessageLinkUpdate {
+	if s != nil {
+		mlu.SetTitle(*s)
+	}
+	return mlu
+}
+
+// ClearTitle clears the value of the "title" field.
+func (mlu *MessageLinkUpdate) ClearTitle() *MessageLinkUpdate {
+	mlu.mutation.ClearTitle()
+	return mlu
+}
+
+// SetDescription sets the "description" field.
+func (mlu *MessageLinkUpdate) SetDescription(s string) *MessageLinkUpdate {
+	mlu.mutation.SetDescription(s)
+	return mlu
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (mlu *MessageLinkUpdate) SetNillableDescription(s *string) *MessageLinkUpdate {
+	if s != nil {
+		mlu.SetDescription(*s)
+	}
+	return mlu
+}
+
+// ClearDescription clears the value of the "description" field.
+func (mlu *MessageLinkUpdate) ClearDescription() *MessageLinkUpdate {
+	mlu.mutation.ClearDescription()
+	return mlu
+}
+
+// SetImageURL sets the "image_url" field.
+func (mlu *MessageLinkUpdate) SetImageURL(s string) *MessageLinkUpdate {
+	mlu.mutation.SetImageURL(s)
+	return mlu
+}
+
+// SetNillableImageURL sets the "image_url" field if the given value is not nil.
+func (mlu *MessageLinkUpdate) SetNillableImageURL(s *string) *MessageLinkUpdate {
+	if s != nil {
+		mlu.SetImageURL(*s)
+	}
+	return mlu
+}
+
+// ClearImageURL clears the value of the "image_url" field.
+func (mlu *MessageLinkUpdate) ClearImageURL() *MessageLinkUpdate {
+	mlu.mutation.ClearImageURL()
 	return mlu
 }
 
@@ -149,8 +209,26 @@ func (mlu *MessageLinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := mlu.mutation.URL(); ok {
-		_spec.SetField(messagelink.FieldURL, field.TypeString, value)
+	if value, ok := mlu.mutation.Link(); ok {
+		_spec.SetField(messagelink.FieldLink, field.TypeString, value)
+	}
+	if value, ok := mlu.mutation.Title(); ok {
+		_spec.SetField(messagelink.FieldTitle, field.TypeString, value)
+	}
+	if mlu.mutation.TitleCleared() {
+		_spec.ClearField(messagelink.FieldTitle, field.TypeString)
+	}
+	if value, ok := mlu.mutation.Description(); ok {
+		_spec.SetField(messagelink.FieldDescription, field.TypeString, value)
+	}
+	if mlu.mutation.DescriptionCleared() {
+		_spec.ClearField(messagelink.FieldDescription, field.TypeString)
+	}
+	if value, ok := mlu.mutation.ImageURL(); ok {
+		_spec.SetField(messagelink.FieldImageURL, field.TypeString, value)
+	}
+	if mlu.mutation.ImageURLCleared() {
+		_spec.ClearField(messagelink.FieldImageURL, field.TypeString)
 	}
 	if value, ok := mlu.mutation.UpdatedAt(); ok {
 		_spec.SetField(messagelink.FieldUpdatedAt, field.TypeTime, value)
@@ -233,17 +311,77 @@ type MessageLinkUpdateOne struct {
 	mutation *MessageLinkMutation
 }
 
-// SetURL sets the "url" field.
-func (mluo *MessageLinkUpdateOne) SetURL(s string) *MessageLinkUpdateOne {
-	mluo.mutation.SetURL(s)
+// SetLink sets the "link" field.
+func (mluo *MessageLinkUpdateOne) SetLink(s string) *MessageLinkUpdateOne {
+	mluo.mutation.SetLink(s)
 	return mluo
 }
 
-// SetNillableURL sets the "url" field if the given value is not nil.
-func (mluo *MessageLinkUpdateOne) SetNillableURL(s *string) *MessageLinkUpdateOne {
+// SetNillableLink sets the "link" field if the given value is not nil.
+func (mluo *MessageLinkUpdateOne) SetNillableLink(s *string) *MessageLinkUpdateOne {
 	if s != nil {
-		mluo.SetURL(*s)
+		mluo.SetLink(*s)
 	}
+	return mluo
+}
+
+// SetTitle sets the "title" field.
+func (mluo *MessageLinkUpdateOne) SetTitle(s string) *MessageLinkUpdateOne {
+	mluo.mutation.SetTitle(s)
+	return mluo
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (mluo *MessageLinkUpdateOne) SetNillableTitle(s *string) *MessageLinkUpdateOne {
+	if s != nil {
+		mluo.SetTitle(*s)
+	}
+	return mluo
+}
+
+// ClearTitle clears the value of the "title" field.
+func (mluo *MessageLinkUpdateOne) ClearTitle() *MessageLinkUpdateOne {
+	mluo.mutation.ClearTitle()
+	return mluo
+}
+
+// SetDescription sets the "description" field.
+func (mluo *MessageLinkUpdateOne) SetDescription(s string) *MessageLinkUpdateOne {
+	mluo.mutation.SetDescription(s)
+	return mluo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (mluo *MessageLinkUpdateOne) SetNillableDescription(s *string) *MessageLinkUpdateOne {
+	if s != nil {
+		mluo.SetDescription(*s)
+	}
+	return mluo
+}
+
+// ClearDescription clears the value of the "description" field.
+func (mluo *MessageLinkUpdateOne) ClearDescription() *MessageLinkUpdateOne {
+	mluo.mutation.ClearDescription()
+	return mluo
+}
+
+// SetImageURL sets the "image_url" field.
+func (mluo *MessageLinkUpdateOne) SetImageURL(s string) *MessageLinkUpdateOne {
+	mluo.mutation.SetImageURL(s)
+	return mluo
+}
+
+// SetNillableImageURL sets the "image_url" field if the given value is not nil.
+func (mluo *MessageLinkUpdateOne) SetNillableImageURL(s *string) *MessageLinkUpdateOne {
+	if s != nil {
+		mluo.SetImageURL(*s)
+	}
+	return mluo
+}
+
+// ClearImageURL clears the value of the "image_url" field.
+func (mluo *MessageLinkUpdateOne) ClearImageURL() *MessageLinkUpdateOne {
+	mluo.mutation.ClearImageURL()
 	return mluo
 }
 
@@ -381,8 +519,26 @@ func (mluo *MessageLinkUpdateOne) sqlSave(ctx context.Context) (_node *MessageLi
 			}
 		}
 	}
-	if value, ok := mluo.mutation.URL(); ok {
-		_spec.SetField(messagelink.FieldURL, field.TypeString, value)
+	if value, ok := mluo.mutation.Link(); ok {
+		_spec.SetField(messagelink.FieldLink, field.TypeString, value)
+	}
+	if value, ok := mluo.mutation.Title(); ok {
+		_spec.SetField(messagelink.FieldTitle, field.TypeString, value)
+	}
+	if mluo.mutation.TitleCleared() {
+		_spec.ClearField(messagelink.FieldTitle, field.TypeString)
+	}
+	if value, ok := mluo.mutation.Description(); ok {
+		_spec.SetField(messagelink.FieldDescription, field.TypeString, value)
+	}
+	if mluo.mutation.DescriptionCleared() {
+		_spec.ClearField(messagelink.FieldDescription, field.TypeString)
+	}
+	if value, ok := mluo.mutation.ImageURL(); ok {
+		_spec.SetField(messagelink.FieldImageURL, field.TypeString, value)
+	}
+	if mluo.mutation.ImageURLCleared() {
+		_spec.ClearField(messagelink.FieldImageURL, field.TypeString)
 	}
 	if value, ok := mluo.mutation.UpdatedAt(); ok {
 		_spec.SetField(messagelink.FieldUpdatedAt, field.TypeTime, value)

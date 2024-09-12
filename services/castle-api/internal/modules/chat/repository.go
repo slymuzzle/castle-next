@@ -21,10 +21,8 @@ type Repository interface {
 
 	CreateMessage(
 		ctx context.Context,
-		roomID pulid.ID,
 		currentUserID pulid.ID,
-		replyTo *pulid.ID,
-		content *string,
+		input SendMessageInput,
 		uploadAttachmentsFn UploadAttachmentsFn,
 		uploadVoiceFn UploadVoiceFn,
 	) (*ent.Message, error)
@@ -60,33 +58,46 @@ func (r *repository) FindByID(
 
 func (r *repository) CreateMessage(
 	ctx context.Context,
-	roomID pulid.ID,
 	currentUserID pulid.ID,
-	replyTo *pulid.ID,
-	content *string,
+	input SendMessageInput,
 	uploadAttachmentsFn UploadAttachmentsFn,
 	uploadVoiceFn UploadVoiceFn,
 ) (*ent.Message, error) {
 	client := r.getClient(ctx)
 
-	msg, msgErr := client.Message.
+	msg, err := client.Message.
 		Create().
-		SetRoomID(roomID).
+		SetRoomID(input.RoomID).
 		SetUserID(currentUserID).
-		SetNillableReplyToID(replyTo).
-		SetNillableContent(content).
+		SetNillableReplyToID(input.ReplyTo).
+		SetNillableContent(input.Content).
 		Save(ctx)
-	if msgErr != nil {
-		return nil, msgErr
+	if err != nil {
+		return nil, err
+	}
+
+	err = client.MessageLink.MapCreateBulk(
+		input.Links,
+		func(a *ent.MessageLinkCreate, i int) {
+			a.SetLink(input.Links[i].Link).
+				SetNillableTitle(input.Links[i].Title).
+				SetNillableDescription(input.Links[i].Description).
+				SetNillableImageURL(input.Links[i].ImageURL).
+				SetMessage(msg).
+				SetRoomID(input.RoomID)
+		},
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	if uploadAttachmentsFn != nil {
-		uAtchInfo, uAtchErr := uploadAttachmentsFn(msg)
-		if uAtchErr != nil {
-			return nil, uAtchErr
+		uAtchInfo, err := uploadAttachmentsFn(msg)
+		if err != nil {
+			return nil, err
 		}
 
-		msgFiles, msgFilesErr := client.File.MapCreateBulk(
+		msgFiles, err := client.File.MapCreateBulk(
 			uAtchInfo,
 			func(a *ent.FileCreate, i int) {
 				a.SetID(uAtchInfo[i].ID).
@@ -98,32 +109,32 @@ func (r *repository) CreateMessage(
 					SetPath(uAtchInfo[i].Path)
 			},
 		).Save(ctx)
-		if msgFilesErr != nil {
-			return nil, msgFilesErr
+		if err != nil {
+			return nil, err
 		}
 
-		msgAtchErr := client.MessageAttachment.MapCreateBulk(
+		err = client.MessageAttachment.MapCreateBulk(
 			msgFiles,
 			func(a *ent.MessageAttachmentCreate, i int) {
 				a.SetMessage(msg).
 					SetType(uAtchInfo[i].Type).
-					SetRoomID(roomID).
+					SetRoomID(input.RoomID).
 					SetFile(msgFiles[i]).
 					SetOrder(uint(i))
 			},
 		).Exec(ctx)
-		if msgAtchErr != nil {
-			return nil, msgAtchErr
+		if err != nil {
+			return nil, err
 		}
 	}
 
 	if uploadVoiceFn != nil {
-		uVoiceInfo, uVoiceErr := uploadVoiceFn(msg)
-		if uVoiceErr != nil {
-			return nil, uVoiceErr
+		uVoiceInfo, err := uploadVoiceFn(msg)
+		if err != nil {
+			return nil, err
 		}
 
-		voiceFile, voiceFileErr := client.File.
+		voiceFile, err := client.File.
 			Create().
 			SetID(uVoiceInfo.ID).
 			SetName(uVoiceInfo.Filename).
@@ -133,18 +144,18 @@ func (r *repository) CreateMessage(
 			SetBucket(uVoiceInfo.Bucket).
 			SetPath(uVoiceInfo.Path).
 			Save(ctx)
-		if voiceFileErr != nil {
-			return nil, voiceFileErr
+		if err != nil {
+			return nil, err
 		}
 
-		msgVoiceErr := client.MessageVoice.
+		err = client.MessageVoice.
 			Create().
 			SetMessage(msg).
-			SetRoomID(roomID).
+			SetRoomID(input.RoomID).
 			SetFile(voiceFile).
 			Exec(ctx)
-		if msgVoiceErr != nil {
-			return nil, msgVoiceErr
+		if err != nil {
+			return nil, err
 		}
 	}
 

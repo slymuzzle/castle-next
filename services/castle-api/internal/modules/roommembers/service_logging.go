@@ -11,16 +11,16 @@ import (
 	"github.com/go-kit/log/level"
 )
 
-type loggingService struct {
+type serviceLogging struct {
 	logger log.Logger
 	Service
 }
 
-func NewLoggingService(logger log.Logger, s Service) Service {
-	return &loggingService{logger, s}
+func NewServiceLogging(logger log.Logger, s Service) Service {
+	return &serviceLogging{logger, s}
 }
 
-func (s *loggingService) CreateRoomMembers(
+func (s *serviceLogging) CreateRoomMembers(
 	ctx context.Context,
 	inputs []CreateRoomMemberInput,
 ) (roomMembers []*ent.RoomMember, err error) {
@@ -35,20 +35,7 @@ func (s *loggingService) CreateRoomMembers(
 	return s.Service.CreateRoomMembers(ctx, inputs)
 }
 
-func (s *loggingService) SubscribeToRoomMemberCreatedEvent(
-	ctx context.Context,
-) (ch <-chan *ent.RoomMemberEdge, err error) {
-	defer func(begin time.Time) {
-		level.Debug(s.logger).Log(
-			"method", "SubscribeToRoomMemberCreatedEvent",
-			"took", time.Since(begin),
-			"err", err,
-		)
-	}(time.Now())
-	return s.Service.SubscribeToRoomMemberCreatedEvent(ctx)
-}
-
-func (s *loggingService) IncrementUnreadMessagesCount(
+func (s *serviceLogging) IncrementUnreadMessagesCount(
 	ctx context.Context,
 	ID pulid.ID,
 ) (roomMembersToNotify []*ent.RoomMember, err error) {
@@ -64,20 +51,7 @@ func (s *loggingService) IncrementUnreadMessagesCount(
 	return s.Service.IncrementUnreadMessagesCount(ctx, ID)
 }
 
-func (s *loggingService) SubscribeToRoomMemberUpdatedEvent(
-	ctx context.Context,
-) (ch <-chan *ent.RoomMemberEdge, err error) {
-	defer func(begin time.Time) {
-		level.Debug(s.logger).Log(
-			"method", "SubscribeToRoomMemberUpdatedEvent",
-			"took", time.Since(begin),
-			"err", err,
-		)
-	}(time.Now())
-	return s.Service.SubscribeToRoomMemberUpdatedEvent(ctx)
-}
-
-func (s *loggingService) DeleteRoomMember(
+func (s *serviceLogging) DeleteRoomMember(
 	ctx context.Context,
 	ID pulid.ID,
 ) (roomMember *ent.RoomMember, err error) {
@@ -92,20 +66,7 @@ func (s *loggingService) DeleteRoomMember(
 	return s.Service.DeleteRoomMember(ctx, ID)
 }
 
-func (s *loggingService) SubscribeToRoomMemberDeletedEvent(
-	ctx context.Context,
-) (ch <-chan pulid.ID, err error) {
-	defer func(begin time.Time) {
-		level.Debug(s.logger).Log(
-			"method", "SubscribeToRoomMemberDeletedEvent",
-			"took", time.Since(begin),
-			"err", err,
-		)
-	}(time.Now())
-	return s.Service.SubscribeToRoomMemberDeletedEvent(ctx)
-}
-
-func (s *loggingService) MarkRoomMemberAsSeen(
+func (s *serviceLogging) MarkRoomMemberAsSeen(
 	ctx context.Context,
 	ID pulid.ID,
 ) (roomMember *ent.RoomMember, err error) {
@@ -120,7 +81,7 @@ func (s *loggingService) MarkRoomMemberAsSeen(
 	return s.Service.MarkRoomMemberAsSeen(ctx, ID)
 }
 
-func (s *loggingService) RestoreRoomMembersByRoom(
+func (s *serviceLogging) RestoreRoomMembersByRoom(
 	ctx context.Context,
 	roomID pulid.ID,
 ) (roomMember []*ent.RoomMember, err error) {

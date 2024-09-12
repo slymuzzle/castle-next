@@ -10,16 +10,16 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-type loggingService struct {
+type serviceLogging struct {
 	logger log.Logger
 	Service
 }
 
-func NewLoggingService(logger log.Logger, s Service) Service {
-	return &loggingService{logger, s}
+func NewServiceLogging(logger log.Logger, s Service) Service {
+	return &serviceLogging{logger, s}
 }
 
-func (s *loggingService) Connect() (err error) {
+func (s *serviceLogging) Connect() (err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "Connect",
@@ -31,7 +31,7 @@ func (s *loggingService) Connect() (err error) {
 	return s.Service.Connect()
 }
 
-func (s *loggingService) Config() (config config.NatsConfig) {
+func (s *serviceLogging) Config() (config config.NatsConfig) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "Config",
@@ -42,7 +42,7 @@ func (s *loggingService) Config() (config config.NatsConfig) {
 	return s.Service.Config()
 }
 
-func (s *loggingService) Client() (client *nats.EncodedConn) {
+func (s *serviceLogging) Client() (client *nats.EncodedConn) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "Client",
@@ -53,7 +53,7 @@ func (s *loggingService) Client() (client *nats.EncodedConn) {
 	return s.Service.Client()
 }
 
-func (s *loggingService) Close() (err error) {
+func (s *serviceLogging) Close() (err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "Close",

@@ -20,8 +20,14 @@ type MessageLink struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID pulid.ID `json:"id,omitempty"`
-	// URL holds the value of the "url" field.
-	URL string `json:"url,omitempty"`
+	// Link holds the value of the "link" field.
+	Link string `json:"link,omitempty"`
+	// Title holds the value of the "title" field.
+	Title string `json:"title,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
+	// ImageURL holds the value of the "image_url" field.
+	ImageURL string `json:"image_url,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -76,7 +82,7 @@ func (*MessageLink) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case messagelink.FieldID:
 			values[i] = new(pulid.ID)
-		case messagelink.FieldURL:
+		case messagelink.FieldLink, messagelink.FieldTitle, messagelink.FieldDescription, messagelink.FieldImageURL:
 			values[i] = new(sql.NullString)
 		case messagelink.FieldCreatedAt, messagelink.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -105,11 +111,29 @@ func (ml *MessageLink) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				ml.ID = *value
 			}
-		case messagelink.FieldURL:
+		case messagelink.FieldLink:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field url", values[i])
+				return fmt.Errorf("unexpected type %T for field link", values[i])
 			} else if value.Valid {
-				ml.URL = value.String
+				ml.Link = value.String
+			}
+		case messagelink.FieldTitle:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field title", values[i])
+			} else if value.Valid {
+				ml.Title = value.String
+			}
+		case messagelink.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				ml.Description = value.String
+			}
+		case messagelink.FieldImageURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field image_url", values[i])
+			} else if value.Valid {
+				ml.ImageURL = value.String
 			}
 		case messagelink.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -183,8 +207,17 @@ func (ml *MessageLink) String() string {
 	var builder strings.Builder
 	builder.WriteString("MessageLink(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ml.ID))
-	builder.WriteString("url=")
-	builder.WriteString(ml.URL)
+	builder.WriteString("link=")
+	builder.WriteString(ml.Link)
+	builder.WriteString(", ")
+	builder.WriteString("title=")
+	builder.WriteString(ml.Title)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(ml.Description)
+	builder.WriteString(", ")
+	builder.WriteString("image_url=")
+	builder.WriteString(ml.ImageURL)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(ml.CreatedAt.Format(time.ANSIC))

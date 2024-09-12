@@ -35,6 +35,11 @@ func (Room) Fields() []ent.Field {
 			Annotations(
 				entgql.OrderField("NAME"),
 			),
+		field.String("description").
+			Optional().
+			Annotations(
+				entgql.OrderField("DESCRIPTION"),
+			),
 		field.Uint64("version").
 			Positive().
 			Default(1).

@@ -462,24 +462,30 @@ func newMessageAttachmentPaginateArgs(rv map[string]any) *messageattachmentPagin
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]any:
-			var (
-				err1, err2 error
-				order      = &MessageAttachmentOrder{Field: &MessageAttachmentOrderField{}, Direction: entgql.OrderDirectionAsc}
-			)
-			if d, ok := v[directionField]; ok {
-				err1 = order.Direction.UnmarshalGQL(d)
+		case []*MessageAttachmentOrder:
+			args.opts = append(args.opts, WithMessageAttachmentOrder(v))
+		case []any:
+			var orders []*MessageAttachmentOrder
+			for i := range v {
+				mv, ok := v[i].(map[string]any)
+				if !ok {
+					continue
+				}
+				var (
+					err1, err2 error
+					order      = &MessageAttachmentOrder{Field: &MessageAttachmentOrderField{}, Direction: entgql.OrderDirectionAsc}
+				)
+				if d, ok := mv[directionField]; ok {
+					err1 = order.Direction.UnmarshalGQL(d)
+				}
+				if f, ok := mv[fieldField]; ok {
+					err2 = order.Field.UnmarshalGQL(f)
+				}
+				if err1 == nil && err2 == nil {
+					orders = append(orders, order)
+				}
 			}
-			if f, ok := v[fieldField]; ok {
-				err2 = order.Field.UnmarshalGQL(f)
-			}
-			if err1 == nil && err2 == nil {
-				args.opts = append(args.opts, WithMessageAttachmentOrder(order))
-			}
-		case *MessageAttachmentOrder:
-			if v != nil {
-				args.opts = append(args.opts, WithMessageAttachmentOrder(v))
-			}
+			args.opts = append(args.opts, WithMessageAttachmentOrder(orders))
 		}
 	}
 	if v, ok := rv[whereField].(*MessageAttachmentWhereInput); ok {
@@ -531,10 +537,25 @@ func (ml *MessageLinkQuery) collectField(ctx context.Context, oneNode bool, opCt
 				return err
 			}
 			ml.withMessage = query
-		case "url":
-			if _, ok := fieldSeen[messagelink.FieldURL]; !ok {
-				selectedFields = append(selectedFields, messagelink.FieldURL)
-				fieldSeen[messagelink.FieldURL] = struct{}{}
+		case "link":
+			if _, ok := fieldSeen[messagelink.FieldLink]; !ok {
+				selectedFields = append(selectedFields, messagelink.FieldLink)
+				fieldSeen[messagelink.FieldLink] = struct{}{}
+			}
+		case "title":
+			if _, ok := fieldSeen[messagelink.FieldTitle]; !ok {
+				selectedFields = append(selectedFields, messagelink.FieldTitle)
+				fieldSeen[messagelink.FieldTitle] = struct{}{}
+			}
+		case "description":
+			if _, ok := fieldSeen[messagelink.FieldDescription]; !ok {
+				selectedFields = append(selectedFields, messagelink.FieldDescription)
+				fieldSeen[messagelink.FieldDescription] = struct{}{}
+			}
+		case "imageURL":
+			if _, ok := fieldSeen[messagelink.FieldImageURL]; !ok {
+				selectedFields = append(selectedFields, messagelink.FieldImageURL)
+				fieldSeen[messagelink.FieldImageURL] = struct{}{}
 			}
 		case "createdAt":
 			if _, ok := fieldSeen[messagelink.FieldCreatedAt]; !ok {
@@ -583,24 +604,30 @@ func newMessageLinkPaginateArgs(rv map[string]any) *messagelinkPaginateArgs {
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]any:
-			var (
-				err1, err2 error
-				order      = &MessageLinkOrder{Field: &MessageLinkOrderField{}, Direction: entgql.OrderDirectionAsc}
-			)
-			if d, ok := v[directionField]; ok {
-				err1 = order.Direction.UnmarshalGQL(d)
+		case []*MessageLinkOrder:
+			args.opts = append(args.opts, WithMessageLinkOrder(v))
+		case []any:
+			var orders []*MessageLinkOrder
+			for i := range v {
+				mv, ok := v[i].(map[string]any)
+				if !ok {
+					continue
+				}
+				var (
+					err1, err2 error
+					order      = &MessageLinkOrder{Field: &MessageLinkOrderField{}, Direction: entgql.OrderDirectionAsc}
+				)
+				if d, ok := mv[directionField]; ok {
+					err1 = order.Direction.UnmarshalGQL(d)
+				}
+				if f, ok := mv[fieldField]; ok {
+					err2 = order.Field.UnmarshalGQL(f)
+				}
+				if err1 == nil && err2 == nil {
+					orders = append(orders, order)
+				}
 			}
-			if f, ok := v[fieldField]; ok {
-				err2 = order.Field.UnmarshalGQL(f)
-			}
-			if err1 == nil && err2 == nil {
-				args.opts = append(args.opts, WithMessageLinkOrder(order))
-			}
-		case *MessageLinkOrder:
-			if v != nil {
-				args.opts = append(args.opts, WithMessageLinkOrder(v))
-			}
+			args.opts = append(args.opts, WithMessageLinkOrder(orders))
 		}
 	}
 	if v, ok := rv[whereField].(*MessageLinkWhereInput); ok {
@@ -705,24 +732,30 @@ func newMessageVoicePaginateArgs(rv map[string]any) *messagevoicePaginateArgs {
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]any:
-			var (
-				err1, err2 error
-				order      = &MessageVoiceOrder{Field: &MessageVoiceOrderField{}, Direction: entgql.OrderDirectionAsc}
-			)
-			if d, ok := v[directionField]; ok {
-				err1 = order.Direction.UnmarshalGQL(d)
+		case []*MessageVoiceOrder:
+			args.opts = append(args.opts, WithMessageVoiceOrder(v))
+		case []any:
+			var orders []*MessageVoiceOrder
+			for i := range v {
+				mv, ok := v[i].(map[string]any)
+				if !ok {
+					continue
+				}
+				var (
+					err1, err2 error
+					order      = &MessageVoiceOrder{Field: &MessageVoiceOrderField{}, Direction: entgql.OrderDirectionAsc}
+				)
+				if d, ok := mv[directionField]; ok {
+					err1 = order.Direction.UnmarshalGQL(d)
+				}
+				if f, ok := mv[fieldField]; ok {
+					err2 = order.Field.UnmarshalGQL(f)
+				}
+				if err1 == nil && err2 == nil {
+					orders = append(orders, order)
+				}
 			}
-			if f, ok := v[fieldField]; ok {
-				err2 = order.Field.UnmarshalGQL(f)
-			}
-			if err1 == nil && err2 == nil {
-				args.opts = append(args.opts, WithMessageVoiceOrder(order))
-			}
-		case *MessageVoiceOrder:
-			if v != nil {
-				args.opts = append(args.opts, WithMessageVoiceOrder(v))
-			}
+			args.opts = append(args.opts, WithMessageVoiceOrder(orders))
 		}
 	}
 	if v, ok := rv[whereField].(*MessageVoiceWhereInput); ok {
@@ -1319,6 +1352,11 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 				selectedFields = append(selectedFields, room.FieldName)
 				fieldSeen[room.FieldName] = struct{}{}
 			}
+		case "description":
+			if _, ok := fieldSeen[room.FieldDescription]; !ok {
+				selectedFields = append(selectedFields, room.FieldDescription)
+				fieldSeen[room.FieldDescription] = struct{}{}
+			}
 		case "version":
 			if _, ok := fieldSeen[room.FieldVersion]; !ok {
 				selectedFields = append(selectedFields, room.FieldVersion)
@@ -1483,6 +1521,11 @@ func (rm *RoomMemberQuery) collectField(ctx context.Context, oneNode bool, opCtx
 			if _, ok := fieldSeen[roommember.FieldJoinedAt]; !ok {
 				selectedFields = append(selectedFields, roommember.FieldJoinedAt)
 				fieldSeen[roommember.FieldJoinedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[roommember.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, roommember.FieldUpdatedAt)
+				fieldSeen[roommember.FieldUpdatedAt] = struct{}{}
 			}
 		case "id":
 		case "__typename":
@@ -2099,24 +2142,30 @@ func newUserPaginateArgs(rv map[string]any) *userPaginateArgs {
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]any:
-			var (
-				err1, err2 error
-				order      = &UserOrder{Field: &UserOrderField{}, Direction: entgql.OrderDirectionAsc}
-			)
-			if d, ok := v[directionField]; ok {
-				err1 = order.Direction.UnmarshalGQL(d)
+		case []*UserOrder:
+			args.opts = append(args.opts, WithUserOrder(v))
+		case []any:
+			var orders []*UserOrder
+			for i := range v {
+				mv, ok := v[i].(map[string]any)
+				if !ok {
+					continue
+				}
+				var (
+					err1, err2 error
+					order      = &UserOrder{Field: &UserOrderField{}, Direction: entgql.OrderDirectionAsc}
+				)
+				if d, ok := mv[directionField]; ok {
+					err1 = order.Direction.UnmarshalGQL(d)
+				}
+				if f, ok := mv[fieldField]; ok {
+					err2 = order.Field.UnmarshalGQL(f)
+				}
+				if err1 == nil && err2 == nil {
+					orders = append(orders, order)
+				}
 			}
-			if f, ok := v[fieldField]; ok {
-				err2 = order.Field.UnmarshalGQL(f)
-			}
-			if err1 == nil && err2 == nil {
-				args.opts = append(args.opts, WithUserOrder(order))
-			}
-		case *UserOrder:
-			if v != nil {
-				args.opts = append(args.opts, WithUserOrder(v))
-			}
+			args.opts = append(args.opts, WithUserOrder(orders))
 		}
 	}
 	if v, ok := rv[whereField].(*UserWhereInput); ok {

@@ -26,9 +26,51 @@ type MessageLinkCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetURL sets the "url" field.
-func (mlc *MessageLinkCreate) SetURL(s string) *MessageLinkCreate {
-	mlc.mutation.SetURL(s)
+// SetLink sets the "link" field.
+func (mlc *MessageLinkCreate) SetLink(s string) *MessageLinkCreate {
+	mlc.mutation.SetLink(s)
+	return mlc
+}
+
+// SetTitle sets the "title" field.
+func (mlc *MessageLinkCreate) SetTitle(s string) *MessageLinkCreate {
+	mlc.mutation.SetTitle(s)
+	return mlc
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (mlc *MessageLinkCreate) SetNillableTitle(s *string) *MessageLinkCreate {
+	if s != nil {
+		mlc.SetTitle(*s)
+	}
+	return mlc
+}
+
+// SetDescription sets the "description" field.
+func (mlc *MessageLinkCreate) SetDescription(s string) *MessageLinkCreate {
+	mlc.mutation.SetDescription(s)
+	return mlc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (mlc *MessageLinkCreate) SetNillableDescription(s *string) *MessageLinkCreate {
+	if s != nil {
+		mlc.SetDescription(*s)
+	}
+	return mlc
+}
+
+// SetImageURL sets the "image_url" field.
+func (mlc *MessageLinkCreate) SetImageURL(s string) *MessageLinkCreate {
+	mlc.mutation.SetImageURL(s)
+	return mlc
+}
+
+// SetNillableImageURL sets the "image_url" field if the given value is not nil.
+func (mlc *MessageLinkCreate) SetNillableImageURL(s *string) *MessageLinkCreate {
+	if s != nil {
+		mlc.SetImageURL(*s)
+	}
 	return mlc
 }
 
@@ -147,8 +189,8 @@ func (mlc *MessageLinkCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (mlc *MessageLinkCreate) check() error {
-	if _, ok := mlc.mutation.URL(); !ok {
-		return &ValidationError{Name: "url", err: errors.New(`ent: missing required field "MessageLink.url"`)}
+	if _, ok := mlc.mutation.Link(); !ok {
+		return &ValidationError{Name: "link", err: errors.New(`ent: missing required field "MessageLink.link"`)}
 	}
 	if _, ok := mlc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "MessageLink.created_at"`)}
@@ -198,9 +240,21 @@ func (mlc *MessageLinkCreate) createSpec() (*MessageLink, *sqlgraph.CreateSpec) 
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := mlc.mutation.URL(); ok {
-		_spec.SetField(messagelink.FieldURL, field.TypeString, value)
-		_node.URL = value
+	if value, ok := mlc.mutation.Link(); ok {
+		_spec.SetField(messagelink.FieldLink, field.TypeString, value)
+		_node.Link = value
+	}
+	if value, ok := mlc.mutation.Title(); ok {
+		_spec.SetField(messagelink.FieldTitle, field.TypeString, value)
+		_node.Title = value
+	}
+	if value, ok := mlc.mutation.Description(); ok {
+		_spec.SetField(messagelink.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := mlc.mutation.ImageURL(); ok {
+		_spec.SetField(messagelink.FieldImageURL, field.TypeString, value)
+		_node.ImageURL = value
 	}
 	if value, ok := mlc.mutation.CreatedAt(); ok {
 		_spec.SetField(messagelink.FieldCreatedAt, field.TypeTime, value)
@@ -251,7 +305,7 @@ func (mlc *MessageLinkCreate) createSpec() (*MessageLink, *sqlgraph.CreateSpec) 
 // of the `INSERT` statement. For example:
 //
 //	client.MessageLink.Create().
-//		SetURL(v).
+//		SetLink(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -260,7 +314,7 @@ func (mlc *MessageLinkCreate) createSpec() (*MessageLink, *sqlgraph.CreateSpec) 
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.MessageLinkUpsert) {
-//			SetURL(v+v).
+//			SetLink(v+v).
 //		}).
 //		Exec(ctx)
 func (mlc *MessageLinkCreate) OnConflict(opts ...sql.ConflictOption) *MessageLinkUpsertOne {
@@ -296,15 +350,69 @@ type (
 	}
 )
 
-// SetURL sets the "url" field.
-func (u *MessageLinkUpsert) SetURL(v string) *MessageLinkUpsert {
-	u.Set(messagelink.FieldURL, v)
+// SetLink sets the "link" field.
+func (u *MessageLinkUpsert) SetLink(v string) *MessageLinkUpsert {
+	u.Set(messagelink.FieldLink, v)
 	return u
 }
 
-// UpdateURL sets the "url" field to the value that was provided on create.
-func (u *MessageLinkUpsert) UpdateURL() *MessageLinkUpsert {
-	u.SetExcluded(messagelink.FieldURL)
+// UpdateLink sets the "link" field to the value that was provided on create.
+func (u *MessageLinkUpsert) UpdateLink() *MessageLinkUpsert {
+	u.SetExcluded(messagelink.FieldLink)
+	return u
+}
+
+// SetTitle sets the "title" field.
+func (u *MessageLinkUpsert) SetTitle(v string) *MessageLinkUpsert {
+	u.Set(messagelink.FieldTitle, v)
+	return u
+}
+
+// UpdateTitle sets the "title" field to the value that was provided on create.
+func (u *MessageLinkUpsert) UpdateTitle() *MessageLinkUpsert {
+	u.SetExcluded(messagelink.FieldTitle)
+	return u
+}
+
+// ClearTitle clears the value of the "title" field.
+func (u *MessageLinkUpsert) ClearTitle() *MessageLinkUpsert {
+	u.SetNull(messagelink.FieldTitle)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *MessageLinkUpsert) SetDescription(v string) *MessageLinkUpsert {
+	u.Set(messagelink.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *MessageLinkUpsert) UpdateDescription() *MessageLinkUpsert {
+	u.SetExcluded(messagelink.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *MessageLinkUpsert) ClearDescription() *MessageLinkUpsert {
+	u.SetNull(messagelink.FieldDescription)
+	return u
+}
+
+// SetImageURL sets the "image_url" field.
+func (u *MessageLinkUpsert) SetImageURL(v string) *MessageLinkUpsert {
+	u.Set(messagelink.FieldImageURL, v)
+	return u
+}
+
+// UpdateImageURL sets the "image_url" field to the value that was provided on create.
+func (u *MessageLinkUpsert) UpdateImageURL() *MessageLinkUpsert {
+	u.SetExcluded(messagelink.FieldImageURL)
+	return u
+}
+
+// ClearImageURL clears the value of the "image_url" field.
+func (u *MessageLinkUpsert) ClearImageURL() *MessageLinkUpsert {
+	u.SetNull(messagelink.FieldImageURL)
 	return u
 }
 
@@ -371,17 +479,80 @@ func (u *MessageLinkUpsertOne) Update(set func(*MessageLinkUpsert)) *MessageLink
 	return u
 }
 
-// SetURL sets the "url" field.
-func (u *MessageLinkUpsertOne) SetURL(v string) *MessageLinkUpsertOne {
+// SetLink sets the "link" field.
+func (u *MessageLinkUpsertOne) SetLink(v string) *MessageLinkUpsertOne {
 	return u.Update(func(s *MessageLinkUpsert) {
-		s.SetURL(v)
+		s.SetLink(v)
 	})
 }
 
-// UpdateURL sets the "url" field to the value that was provided on create.
-func (u *MessageLinkUpsertOne) UpdateURL() *MessageLinkUpsertOne {
+// UpdateLink sets the "link" field to the value that was provided on create.
+func (u *MessageLinkUpsertOne) UpdateLink() *MessageLinkUpsertOne {
 	return u.Update(func(s *MessageLinkUpsert) {
-		s.UpdateURL()
+		s.UpdateLink()
+	})
+}
+
+// SetTitle sets the "title" field.
+func (u *MessageLinkUpsertOne) SetTitle(v string) *MessageLinkUpsertOne {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.SetTitle(v)
+	})
+}
+
+// UpdateTitle sets the "title" field to the value that was provided on create.
+func (u *MessageLinkUpsertOne) UpdateTitle() *MessageLinkUpsertOne {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.UpdateTitle()
+	})
+}
+
+// ClearTitle clears the value of the "title" field.
+func (u *MessageLinkUpsertOne) ClearTitle() *MessageLinkUpsertOne {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.ClearTitle()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *MessageLinkUpsertOne) SetDescription(v string) *MessageLinkUpsertOne {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *MessageLinkUpsertOne) UpdateDescription() *MessageLinkUpsertOne {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *MessageLinkUpsertOne) ClearDescription() *MessageLinkUpsertOne {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetImageURL sets the "image_url" field.
+func (u *MessageLinkUpsertOne) SetImageURL(v string) *MessageLinkUpsertOne {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.SetImageURL(v)
+	})
+}
+
+// UpdateImageURL sets the "image_url" field to the value that was provided on create.
+func (u *MessageLinkUpsertOne) UpdateImageURL() *MessageLinkUpsertOne {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.UpdateImageURL()
+	})
+}
+
+// ClearImageURL clears the value of the "image_url" field.
+func (u *MessageLinkUpsertOne) ClearImageURL() *MessageLinkUpsertOne {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.ClearImageURL()
 	})
 }
 
@@ -535,7 +706,7 @@ func (mlcb *MessageLinkCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.MessageLinkUpsert) {
-//			SetURL(v+v).
+//			SetLink(v+v).
 //		}).
 //		Exec(ctx)
 func (mlcb *MessageLinkCreateBulk) OnConflict(opts ...sql.ConflictOption) *MessageLinkUpsertBulk {
@@ -617,17 +788,80 @@ func (u *MessageLinkUpsertBulk) Update(set func(*MessageLinkUpsert)) *MessageLin
 	return u
 }
 
-// SetURL sets the "url" field.
-func (u *MessageLinkUpsertBulk) SetURL(v string) *MessageLinkUpsertBulk {
+// SetLink sets the "link" field.
+func (u *MessageLinkUpsertBulk) SetLink(v string) *MessageLinkUpsertBulk {
 	return u.Update(func(s *MessageLinkUpsert) {
-		s.SetURL(v)
+		s.SetLink(v)
 	})
 }
 
-// UpdateURL sets the "url" field to the value that was provided on create.
-func (u *MessageLinkUpsertBulk) UpdateURL() *MessageLinkUpsertBulk {
+// UpdateLink sets the "link" field to the value that was provided on create.
+func (u *MessageLinkUpsertBulk) UpdateLink() *MessageLinkUpsertBulk {
 	return u.Update(func(s *MessageLinkUpsert) {
-		s.UpdateURL()
+		s.UpdateLink()
+	})
+}
+
+// SetTitle sets the "title" field.
+func (u *MessageLinkUpsertBulk) SetTitle(v string) *MessageLinkUpsertBulk {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.SetTitle(v)
+	})
+}
+
+// UpdateTitle sets the "title" field to the value that was provided on create.
+func (u *MessageLinkUpsertBulk) UpdateTitle() *MessageLinkUpsertBulk {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.UpdateTitle()
+	})
+}
+
+// ClearTitle clears the value of the "title" field.
+func (u *MessageLinkUpsertBulk) ClearTitle() *MessageLinkUpsertBulk {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.ClearTitle()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *MessageLinkUpsertBulk) SetDescription(v string) *MessageLinkUpsertBulk {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *MessageLinkUpsertBulk) UpdateDescription() *MessageLinkUpsertBulk {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *MessageLinkUpsertBulk) ClearDescription() *MessageLinkUpsertBulk {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetImageURL sets the "image_url" field.
+func (u *MessageLinkUpsertBulk) SetImageURL(v string) *MessageLinkUpsertBulk {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.SetImageURL(v)
+	})
+}
+
+// UpdateImageURL sets the "image_url" field to the value that was provided on create.
+func (u *MessageLinkUpsertBulk) UpdateImageURL() *MessageLinkUpsertBulk {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.UpdateImageURL()
+	})
+}
+
+// ClearImageURL clears the value of the "image_url" field.
+func (u *MessageLinkUpsertBulk) ClearImageURL() *MessageLinkUpsertBulk {
+	return u.Update(func(s *MessageLinkUpsert) {
+		s.ClearImageURL()
 	})
 }
 

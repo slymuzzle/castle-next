@@ -11,68 +11,63 @@ import (
 	"github.com/go-kit/log/level"
 )
 
-type loggingService struct {
+type subscriptionsLogging struct {
 	logger log.Logger
-	Service
+	Subscriptions
 }
 
-func NewLoggingService(logger log.Logger, s Service) Service {
-	return &loggingService{logger, s}
+func NewSubscriptionsLogging(logger log.Logger, s Subscriptions) Subscriptions {
+	return &subscriptionsLogging{logger, s}
 }
 
-func (s *loggingService) SendMessage(
+func (s *subscriptionsLogging) PublishMessageCreatedEvent(
 	ctx context.Context,
-	input SendMessageInput,
-) (msg *ent.Message, err error) {
+	roomID pulid.ID,
+	messageID pulid.ID,
+) (subject string, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
-			"method", "SendMessage",
-			// "targetUserID", input.TargetUserID,
-			// "replyTo", input.ReplyTo,
-			// "content", input.Content,
-			// "filesCount", len(input.Files),
-			// "message", msg.Node,
+			"method", "PublishMessageCreatedEvent",
+			"subject", subject,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.SendMessage(ctx, input)
+	return s.Subscriptions.PublishMessageCreatedEvent(ctx, roomID, messageID)
 }
 
-func (s *loggingService) SubscribeToMessageCreatedEvent(
+func (s *subscriptionsLogging) SubscribeToMessageCreatedEvent(
 	ctx context.Context,
 	roomID pulid.ID,
 ) (ch <-chan *ent.MessageEdge, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
-			"method", "SubscribeToMessageAddedEvent",
+			"method", "SubscribeToMessageCreatedEvent",
 			"roomID", roomID,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.SubscribeToMessageCreatedEvent(ctx, roomID)
+	return s.Subscriptions.SubscribeToMessageCreatedEvent(ctx, roomID)
 }
 
-func (s *loggingService) UpdateMessage(
+func (s *subscriptionsLogging) PublishMessageUpdatedEvent(
 	ctx context.Context,
+	roomID pulid.ID,
 	messageID pulid.ID,
-	input UpdateMessageInput,
-) (msg *ent.Message, err error) {
+) (subject string, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
-			"method", "UpdateMessage",
-			"messageID", messageID,
-			"content", input.Content,
-			"message", msg,
+			"method", "PublishMessageUpdatedEvent",
+			"subject", subject,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.UpdateMessage(ctx, messageID, input)
+	return s.Subscriptions.PublishMessageUpdatedEvent(ctx, roomID, messageID)
 }
 
-func (s *loggingService) SubscribeToMessageUpdatedEvent(
+func (s *subscriptionsLogging) SubscribeToMessageUpdatedEvent(
 	ctx context.Context,
 	roomID pulid.ID,
 ) (ch <-chan *ent.MessageEdge, err error) {
@@ -84,26 +79,26 @@ func (s *loggingService) SubscribeToMessageUpdatedEvent(
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.SubscribeToMessageUpdatedEvent(ctx, roomID)
+	return s.Subscriptions.SubscribeToMessageUpdatedEvent(ctx, roomID)
 }
 
-func (s *loggingService) DeleteMessage(
+func (s *subscriptionsLogging) PublishMessageDeletedEvent(
 	ctx context.Context,
+	roomID pulid.ID,
 	messageID pulid.ID,
-) (msg *ent.Message, err error) {
+) (subject string, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
-			"method", "DeleteMessage",
-			"messageID", messageID,
-			"message", msg,
+			"method", "PublishMessageDeletedEvent",
+			"subject", subject,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.DeleteMessage(ctx, messageID)
+	return s.Subscriptions.PublishMessageDeletedEvent(ctx, roomID, messageID)
 }
 
-func (s *loggingService) SubscribeToMessageDeletedEvent(
+func (s *subscriptionsLogging) SubscribeToMessageDeletedEvent(
 	ctx context.Context,
 	roomID pulid.ID,
 ) (ch <-chan pulid.ID, err error) {
@@ -115,5 +110,5 @@ func (s *loggingService) SubscribeToMessageDeletedEvent(
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.SubscribeToMessageDeletedEvent(ctx, roomID)
+	return s.Subscriptions.SubscribeToMessageDeletedEvent(ctx, roomID)
 }

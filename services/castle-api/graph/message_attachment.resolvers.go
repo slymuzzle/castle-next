@@ -15,7 +15,7 @@ import (
 )
 
 // MessageAttachmentsByRoom is the resolver for the messageAttachmentsByRoom field.
-func (r *queryResolver) MessageAttachmentsByRoom(ctx context.Context, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.MessageAttachmentOrder, where *ent.MessageAttachmentWhereInput) (*ent.MessageAttachmentConnection, error) {
+func (r *queryResolver) MessageAttachmentsByRoom(ctx context.Context, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageAttachmentOrder, where *ent.MessageAttachmentWhereInput) (*ent.MessageAttachmentConnection, error) {
 	_, err := r.authService.Auth(ctx)
 	if err != nil {
 		return nil, err

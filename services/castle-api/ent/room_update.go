@@ -76,6 +76,26 @@ func (ru *RoomUpdate) ClearName() *RoomUpdate {
 	return ru
 }
 
+// SetDescription sets the "description" field.
+func (ru *RoomUpdate) SetDescription(s string) *RoomUpdate {
+	ru.mutation.SetDescription(s)
+	return ru
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (ru *RoomUpdate) SetNillableDescription(s *string) *RoomUpdate {
+	if s != nil {
+		ru.SetDescription(*s)
+	}
+	return ru
+}
+
+// ClearDescription clears the value of the "description" field.
+func (ru *RoomUpdate) ClearDescription() *RoomUpdate {
+	ru.mutation.ClearDescription()
+	return ru
+}
+
 // SetVersion sets the "version" field.
 func (ru *RoomUpdate) SetVersion(u uint64) *RoomUpdate {
 	ru.mutation.ResetVersion()
@@ -479,6 +499,12 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if ru.mutation.NameCleared() {
 		_spec.ClearField(room.FieldName, field.TypeString)
+	}
+	if value, ok := ru.mutation.Description(); ok {
+		_spec.SetField(room.FieldDescription, field.TypeString, value)
+	}
+	if ru.mutation.DescriptionCleared() {
+		_spec.ClearField(room.FieldDescription, field.TypeString)
 	}
 	if value, ok := ru.mutation.Version(); ok {
 		_spec.SetField(room.FieldVersion, field.TypeUint64, value)
@@ -917,6 +943,26 @@ func (ruo *RoomUpdateOne) ClearName() *RoomUpdateOne {
 	return ruo
 }
 
+// SetDescription sets the "description" field.
+func (ruo *RoomUpdateOne) SetDescription(s string) *RoomUpdateOne {
+	ruo.mutation.SetDescription(s)
+	return ruo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (ruo *RoomUpdateOne) SetNillableDescription(s *string) *RoomUpdateOne {
+	if s != nil {
+		ruo.SetDescription(*s)
+	}
+	return ruo
+}
+
+// ClearDescription clears the value of the "description" field.
+func (ruo *RoomUpdateOne) ClearDescription() *RoomUpdateOne {
+	ruo.mutation.ClearDescription()
+	return ruo
+}
+
 // SetVersion sets the "version" field.
 func (ruo *RoomUpdateOne) SetVersion(u uint64) *RoomUpdateOne {
 	ruo.mutation.ResetVersion()
@@ -1350,6 +1396,12 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 	}
 	if ruo.mutation.NameCleared() {
 		_spec.ClearField(room.FieldName, field.TypeString)
+	}
+	if value, ok := ruo.mutation.Description(); ok {
+		_spec.SetField(room.FieldDescription, field.TypeString, value)
+	}
+	if ruo.mutation.DescriptionCleared() {
+		_spec.ClearField(room.FieldDescription, field.TypeString)
 	}
 	if value, ok := ruo.mutation.Version(); ok {
 		_spec.SetField(room.FieldVersion, field.TypeUint64, value)

@@ -365,7 +365,10 @@ type MessageEdge {
 }
 type MessageLink implements Node {
   id: ID!
-  url: String!
+  link: String!
+  title: String
+  description: String
+  imageURL: String
   createdAt: Time!
   updatedAt: Time!
   room: Room!
@@ -418,7 +421,10 @@ input MessageLinkOrder {
 Properties by which MessageLink connections can be ordered.
 """
 enum MessageLinkOrderField {
-  URL
+  LINK
+  TITLE
+  DESCRIPTION
+  IMAGE_URL
   CREATED_AT
   UPDATED_AT
 }
@@ -442,21 +448,75 @@ input MessageLinkWhereInput {
   idLT: ID
   idLTE: ID
   """
-  url field predicates
+  link field predicates
   """
-  url: String
-  urlNEQ: String
-  urlIn: [String!]
-  urlNotIn: [String!]
-  urlGT: String
-  urlGTE: String
-  urlLT: String
-  urlLTE: String
-  urlContains: String
-  urlHasPrefix: String
-  urlHasSuffix: String
-  urlEqualFold: String
-  urlContainsFold: String
+  link: String
+  linkNEQ: String
+  linkIn: [String!]
+  linkNotIn: [String!]
+  linkGT: String
+  linkGTE: String
+  linkLT: String
+  linkLTE: String
+  linkContains: String
+  linkHasPrefix: String
+  linkHasSuffix: String
+  linkEqualFold: String
+  linkContainsFold: String
+  """
+  title field predicates
+  """
+  title: String
+  titleNEQ: String
+  titleIn: [String!]
+  titleNotIn: [String!]
+  titleGT: String
+  titleGTE: String
+  titleLT: String
+  titleLTE: String
+  titleContains: String
+  titleHasPrefix: String
+  titleHasSuffix: String
+  titleIsNil: Boolean
+  titleNotNil: Boolean
+  titleEqualFold: String
+  titleContainsFold: String
+  """
+  description field predicates
+  """
+  description: String
+  descriptionNEQ: String
+  descriptionIn: [String!]
+  descriptionNotIn: [String!]
+  descriptionGT: String
+  descriptionGTE: String
+  descriptionLT: String
+  descriptionLTE: String
+  descriptionContains: String
+  descriptionHasPrefix: String
+  descriptionHasSuffix: String
+  descriptionIsNil: Boolean
+  descriptionNotNil: Boolean
+  descriptionEqualFold: String
+  descriptionContainsFold: String
+  """
+  image_url field predicates
+  """
+  imageURL: String
+  imageURLNEQ: String
+  imageURLIn: [String!]
+  imageURLNotIn: [String!]
+  imageURLGT: String
+  imageURLGTE: String
+  imageURLLT: String
+  imageURLLTE: String
+  imageURLContains: String
+  imageURLHasPrefix: String
+  imageURLHasSuffix: String
+  imageURLIsNil: Boolean
+  imageURLNotNil: Boolean
+  imageURLEqualFold: String
+  imageURLContainsFold: String
   """
   created_at field predicates
   """
@@ -837,6 +897,7 @@ type Query {
 type Room implements Node {
   id: ID!
   name: String
+  description: String
   version: Uint64!
   type: RoomType!
   createdAt: Time!
@@ -866,7 +927,7 @@ type Room implements Node {
     """
     Ordering options for Users returned from the connection.
     """
-    orderBy: UserOrder
+    orderBy: [UserOrder!]
 
     """
     Filtering options for Users returned from the connection.
@@ -929,7 +990,7 @@ type Room implements Node {
     """
     Ordering options for MessageVoices returned from the connection.
     """
-    orderBy: MessageVoiceOrder
+    orderBy: [MessageVoiceOrder!]
 
     """
     Filtering options for MessageVoices returned from the connection.
@@ -960,7 +1021,7 @@ type Room implements Node {
     """
     Ordering options for MessageAttachments returned from the connection.
     """
-    orderBy: MessageAttachmentOrder
+    orderBy: [MessageAttachmentOrder!]
 
     """
     Filtering options for MessageAttachments returned from the connection.
@@ -991,7 +1052,7 @@ type Room implements Node {
     """
     Ordering options for MessageLinks returned from the connection.
     """
-    orderBy: MessageLinkOrder
+    orderBy: [MessageLinkOrder!]
 
     """
     Filtering options for MessageLinks returned from the connection.
@@ -1067,6 +1128,7 @@ type RoomMember implements Node {
   userID: ID!
   roomID: ID!
   joinedAt: Time!
+  updatedAt: Time!
   user: User!
   room: Room!
 }
@@ -1120,6 +1182,7 @@ enum RoomMemberOrderField {
   NAME
   UNREAD_MESSAGES_COUNT
   JOINED_AT
+  UPDATED_AT
 }
 """
 RoomMemberWhereInput is used for filtering RoomMember objects.
@@ -1180,6 +1243,17 @@ input RoomMemberWhereInput {
   joinedAtGTE: Time
   joinedAtLT: Time
   joinedAtLTE: Time
+  """
+  updated_at field predicates
+  """
+  updatedAt: Time
+  updatedAtNEQ: Time
+  updatedAtIn: [Time!]
+  updatedAtNotIn: [Time!]
+  updatedAtGT: Time
+  updatedAtGTE: Time
+  updatedAtLT: Time
+  updatedAtLTE: Time
 }
 """
 Ordering options for Room connections
@@ -1199,6 +1273,7 @@ Properties by which Room connections can be ordered.
 """
 enum RoomOrderField {
   NAME
+  DESCRIPTION
   VERSION
   TYPE
   CREATED_AT
@@ -1248,6 +1323,24 @@ input RoomWhereInput {
   nameNotNil: Boolean
   nameEqualFold: String
   nameContainsFold: String
+  """
+  description field predicates
+  """
+  description: String
+  descriptionNEQ: String
+  descriptionIn: [String!]
+  descriptionNotIn: [String!]
+  descriptionGT: String
+  descriptionGTE: String
+  descriptionLT: String
+  descriptionLTE: String
+  descriptionContains: String
+  descriptionHasPrefix: String
+  descriptionHasSuffix: String
+  descriptionIsNil: Boolean
+  descriptionNotNil: Boolean
+  descriptionEqualFold: String
+  descriptionContainsFold: String
   """
   version field predicates
   """
@@ -1374,7 +1467,7 @@ type User implements Node {
     """
     Ordering options for Users returned from the connection.
     """
-    orderBy: UserOrder
+    orderBy: [UserOrder!]
 
     """
     Filtering options for Users returned from the connection.

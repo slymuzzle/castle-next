@@ -40,7 +40,7 @@ func main() {
 
 	var configService config.Service
 	configService = config.NewService()
-	configService = config.NewLoggingService(
+	configService = config.NewServiceLogging(
 		log.With(logger, "component", "config"),
 		configService,
 	)
@@ -53,7 +53,7 @@ func main() {
 
 	var natsService nats.Service
 	natsService = nats.NewService(config.Nats)
-	natsService = nats.NewLoggingService(
+	natsService = nats.NewServiceLogging(
 		log.With(logger, "component", "nats"),
 		natsService,
 	)
@@ -66,7 +66,7 @@ func main() {
 
 	var dbService db.Service
 	dbService = db.NewService(config.Database)
-	dbService = db.NewLoggingService(
+	dbService = db.NewServiceLogging(
 		log.With(logger, "component", "db"),
 		dbService,
 	)
@@ -90,14 +90,14 @@ func main() {
 		level.Error(logger).Log("exit", mErr)
 		os.Exit(1)
 	}
-	mediaService = media.NewLoggingService(
+	mediaService = media.NewServiceLogging(
 		log.With(logger, "component", "media"),
 		mediaService,
 	)
 
 	var validationService validation.Service
 	validationService = validation.NewService()
-	validationService = validation.NewLoggingService(
+	validationService = validation.NewServiceLogging(
 		log.With(logger, "component", "validation"),
 		validationService,
 	)
@@ -105,31 +105,46 @@ func main() {
 	var authService auth.Service
 	authRepository := auth.NewRepository(entClient)
 	authService = auth.NewService(config.Auth, authRepository)
-	authService = auth.NewLoggingService(
+	authService = auth.NewServiceLogging(
 		log.With(logger, "component", "auth"),
 		authService,
 	)
 
-	var roomMembersService roommembers.Service
+	// Initialize room members service
 	roomMembersRepository := roommembers.NewRepository(entClient)
-	roomMembersService = roommembers.NewService(roomMembersRepository, authService, natsService)
-	roomMembersService = roommembers.NewLoggingService(
+	var roomMembersSubscriptions roommembers.Subscriptions
+	roomMembersSubscriptions = roommembers.NewSubscriptions(roomMembersRepository, authService, natsService)
+	roomMembersSubscriptions = roommembers.NewSubscriptionsLogging(
+		log.With(logger, "component", "roommembers-subscriptions"),
+		roomMembersSubscriptions,
+	)
+	var roomMembersService roommembers.Service
+	roomMembersService = roommembers.NewService(roomMembersSubscriptions, roomMembersRepository, authService)
+	roomMembersService = roommembers.NewServiceLogging(
 		log.With(logger, "component", "roommembers"),
 		roomMembersService,
 	)
 
+	// Initialize rooms service
 	var roomsService rooms.Service
 	roomsRepository := rooms.NewRepository(entClient)
 	roomsService = rooms.NewService(roomsRepository, roomMembersService, authService, natsService)
-	roomsService = rooms.NewLoggingService(
+	roomsService = rooms.NewServiceLogging(
 		log.With(logger, "component", "rooms"),
 		roomsService,
 	)
 
-	var chatService chat.Service
+	// Initialize chat service
 	chatRepository := chat.NewRepository(entClient)
-	chatService = chat.NewService(chatRepository, authService, roomsService, roomMembersService, natsService, mediaService)
-	chatService = chat.NewLoggingService(
+	var chatSubscriptions chat.Subscriptions
+	chatSubscriptions = chat.NewSubscriptions(chatRepository, natsService)
+	chatSubscriptions = chat.NewSubscriptionsLogging(
+		log.With(logger, "component", "chat-subscriptions"),
+		chatSubscriptions,
+	)
+	var chatService chat.Service
+	chatService = chat.NewService(chatSubscriptions, chatRepository, authService, roomsService, roomMembersService, mediaService)
+	chatService = chat.NewServiceLogging(
 		log.With(logger, "component", "chat"),
 		chatService,
 	)

@@ -1473,7 +1473,7 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"roomID", "notifyUserID", "replyTo", "content", "files", "voice"}
+	fieldsInOrder := [...]string{"roomID", "notifyUserID", "replyTo", "content", "files", "voice", "links"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -1510,7 +1510,7 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 			it.Content = data
 		case "files":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("files"))
-			data, err := ec.unmarshalOUploadMessageFile2ᚕᚖjourneyhubᚋgraphᚋmodelᚐUploadMessageFileᚄ(ctx, v)
+			data, err := ec.unmarshalOUploadMessageFileInput2ᚕᚖjourneyhubᚋgraphᚋmodelᚐUploadMessageFileInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -1522,6 +1522,13 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 				return it, err
 			}
 			it.Voice = data
+		case "links":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("links"))
+			data, err := ec.unmarshalOCreateMessageLinkInput2ᚕᚖjourneyhubᚋgraphᚋmodelᚐCreateMessageLinkInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Links = data
 		}
 	}
 
@@ -1535,7 +1542,7 @@ func (ec *executionContext) unmarshalInputUpdateMessageInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"content"}
+	fieldsInOrder := [...]string{"content", "replaceLinks"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -1549,14 +1556,21 @@ func (ec *executionContext) unmarshalInputUpdateMessageInput(ctx context.Context
 				return it, err
 			}
 			it.Content = data
+		case "replaceLinks":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("replaceLinks"))
+			data, err := ec.unmarshalOCreateMessageLinkInput2ᚕᚖjourneyhubᚋgraphᚋmodelᚐCreateMessageLinkInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ReplaceLinks = data
 		}
 	}
 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUploadMessageFile(ctx context.Context, obj interface{}) (model.UploadMessageFile, error) {
-	var it model.UploadMessageFile
+func (ec *executionContext) unmarshalInputUploadMessageFileInput(ctx context.Context, obj interface{}) (model.UploadMessageFileInput, error) {
+	var it model.UploadMessageFileInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -1735,12 +1749,12 @@ func (ec *executionContext) unmarshalNUpdateMessageInput2journeyhubᚋgraphᚋmo
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUploadMessageFile2ᚖjourneyhubᚋgraphᚋmodelᚐUploadMessageFile(ctx context.Context, v interface{}) (*model.UploadMessageFile, error) {
-	res, err := ec.unmarshalInputUploadMessageFile(ctx, v)
+func (ec *executionContext) unmarshalNUploadMessageFileInput2ᚖjourneyhubᚋgraphᚋmodelᚐUploadMessageFileInput(ctx context.Context, v interface{}) (*model.UploadMessageFileInput, error) {
+	res, err := ec.unmarshalInputUploadMessageFileInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOUploadMessageFile2ᚕᚖjourneyhubᚋgraphᚋmodelᚐUploadMessageFileᚄ(ctx context.Context, v interface{}) ([]*model.UploadMessageFile, error) {
+func (ec *executionContext) unmarshalOUploadMessageFileInput2ᚕᚖjourneyhubᚋgraphᚋmodelᚐUploadMessageFileInputᚄ(ctx context.Context, v interface{}) ([]*model.UploadMessageFileInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -1749,10 +1763,10 @@ func (ec *executionContext) unmarshalOUploadMessageFile2ᚕᚖjourneyhubᚋgraph
 		vSlice = graphql.CoerceList(v)
 	}
 	var err error
-	res := make([]*model.UploadMessageFile, len(vSlice))
+	res := make([]*model.UploadMessageFileInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNUploadMessageFile2ᚖjourneyhubᚋgraphᚋmodelᚐUploadMessageFile(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNUploadMessageFileInput2ᚖjourneyhubᚋgraphᚋmodelᚐUploadMessageFileInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}

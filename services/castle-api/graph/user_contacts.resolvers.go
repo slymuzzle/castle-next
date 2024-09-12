@@ -21,6 +21,7 @@ func (r *mutationResolver) AddUserContact(ctx context.Context, pincode string) (
 	if err != nil {
 		return nil, err
 	}
+
 	return userContact.ToEdge(ent.DefaultUserContactOrder), nil
 }
 
@@ -30,5 +31,21 @@ func (r *mutationResolver) DeleteUserContact(ctx context.Context, userContactID 
 	if err != nil {
 		return nil, err
 	}
+
 	return userContact.ToEdge(ent.DefaultUserContactOrder), nil
+}
+
+// UserContact is the resolver for the userContact field.
+func (r *queryResolver) UserContact(ctx context.Context, userContactID pulid.ID) (*ent.UserContactEdge, error) {
+	_, err := r.authService.Auth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	room, err := r.dbService.Client().UserContact.Get(ctx, userContactID)
+	if err != nil {
+		return nil, err
+	}
+
+	return room.ToEdge(ent.DefaultUserContactOrder), nil
 }
