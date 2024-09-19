@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"journeyhub/graph/server"
 	"journeyhub/internal/modules/auth"
 	"journeyhub/internal/modules/auth/jwtauth"
+	"journeyhub/internal/modules/call"
 	"journeyhub/internal/modules/chat"
 	"journeyhub/internal/modules/contacts"
 	"journeyhub/internal/modules/media"
@@ -38,6 +40,7 @@ func main() {
 	logger = level.NewFilter(logger, level.AllowDebug())
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
 
+	// Initialize config service
 	var configService config.Service
 	configService = config.NewService()
 	configService = config.NewServiceLogging(
@@ -51,6 +54,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Initialize nats service
 	var natsService nats.Service
 	natsService = nats.NewService(config.Nats)
 	natsService = nats.NewServiceLogging(
@@ -58,12 +62,13 @@ func main() {
 		natsService,
 	)
 
-	if nErr := natsService.Connect(); nErr != nil {
+	if nErr := natsService.Connect(context.TODO()); nErr != nil {
 		level.Error(logger).Log("exit", nErr)
 		os.Exit(1)
 	}
 	defer natsService.Close()
 
+	// Initialize db service
 	var dbService db.Service
 	dbService = db.NewService(config.Database)
 	dbService = db.NewServiceLogging(
@@ -84,6 +89,7 @@ func main() {
 	entLogger := log.With(logger, "component", "ent")
 	entClient.Use(db.LoggingHook(entLogger))
 
+	// Initialize media service
 	var mediaService media.Service
 	mediaService, mErr := media.NewService(config.S3)
 	if mErr != nil {
@@ -95,6 +101,7 @@ func main() {
 		mediaService,
 	)
 
+	// Initialize validation service
 	var validationService validation.Service
 	validationService = validation.NewService()
 	validationService = validation.NewServiceLogging(
@@ -102,6 +109,7 @@ func main() {
 		validationService,
 	)
 
+	// Initialize auth service
 	var authService auth.Service
 	authRepository := auth.NewRepository(entClient)
 	authService = auth.NewService(config.Auth, authRepository)
@@ -134,6 +142,19 @@ func main() {
 		roomsService,
 	)
 
+	// Initialize contacts service
+	var contactsService contacts.Service
+	contactsRepository := contacts.NewRepository(entClient)
+	contactsService = contacts.NewService(contactsRepository, authService)
+
+	// Initialize call service
+	var callService call.Service
+	callService = call.NewService(config.Livekit, authService)
+	callService = call.NewServiceLogging(
+		log.With(logger, "component", "call"),
+		callService,
+	)
+
 	// Initialize chat service
 	chatRepository := chat.NewRepository(entClient)
 	var chatSubscriptions chat.Subscriptions
@@ -148,10 +169,6 @@ func main() {
 		log.With(logger, "component", "chat"),
 		chatService,
 	)
-
-	var contactsService contacts.Service
-	contactsRepository := contacts.NewRepository(entClient)
-	contactsService = contacts.NewService(contactsRepository, authService)
 
 	httpLogger := log.With(logger, "component", "http")
 
@@ -183,8 +200,9 @@ func main() {
 			authService,
 			roomsService,
 			roomMembersService,
-			chatService,
 			contactsService,
+			callService,
+			chatService,
 		),
 		graphqlLogger,
 		jwtAuth,

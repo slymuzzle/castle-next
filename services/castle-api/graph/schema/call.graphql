@@ -1,0 +1,3 @@
+extend type Query {
+  getCallJoinToken(roomID: ID!): String!
+}

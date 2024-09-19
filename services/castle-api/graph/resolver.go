@@ -7,6 +7,7 @@ package graph
 import (
 	"journeyhub/graph/generated"
 	"journeyhub/internal/modules/auth"
+	"journeyhub/internal/modules/call"
 	"journeyhub/internal/modules/chat"
 	"journeyhub/internal/modules/contacts"
 	"journeyhub/internal/modules/roommembers"
@@ -24,8 +25,9 @@ type Resolver struct {
 	authService       auth.Service
 	roomsService      rooms.Service
 	roomMemberService roommembers.Service
-	chatService       chat.Service
 	contactsService   contacts.Service
+	callService       call.Service
+	chatService       chat.Service
 }
 
 // NewSchema creates a graphql executable schema.
@@ -35,8 +37,9 @@ func NewSchema(
 	authService auth.Service,
 	roomsService rooms.Service,
 	roomMemberService roommembers.Service,
-	chatService chat.Service,
 	contactsService contacts.Service,
+	callService call.Service,
+	chatService chat.Service,
 ) graphql.ExecutableSchema {
 	return generated.NewExecutableSchema(generated.Config{
 		Resolvers: &Resolver{
@@ -45,8 +48,9 @@ func NewSchema(
 			authService,
 			roomsService,
 			roomMemberService,
-			chatService,
 			contactsService,
+			callService,
+			chatService,
 		},
 	})
 }

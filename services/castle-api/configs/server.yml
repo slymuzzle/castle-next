@@ -7,6 +7,11 @@ server:
 auth:
   secret: secret
 
+# Livekit configuration
+livekit:
+  access_key: devkey
+  secret_key: secret
+
 # Nats configuration
 nats:
   host: nats

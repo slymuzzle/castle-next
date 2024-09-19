@@ -183,6 +183,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		GetCallJoinToken         func(childComplexity int, roomID pulid.ID) int
 		MessageAttachmentsByRoom func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageAttachmentOrder, where *ent.MessageAttachmentWhereInput) int
 		MessageLinksByRoom       func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageLinkOrder, where *ent.MessageLinkWhereInput) int
 		MessageVoicesByRoom      func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageVoiceOrder, where *ent.MessageVoiceWhereInput) int
@@ -998,6 +999,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
+
+	case "Query.getCallJoinToken":
+		if e.complexity.Query.GetCallJoinToken == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getCallJoinToken_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCallJoinToken(childComplexity, args["roomID"].(pulid.ID)), true
 
 	case "Query.messageAttachmentsByRoom":
 		if e.complexity.Query.MessageAttachmentsByRoom == nil {
@@ -1902,6 +1915,10 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "../schema/call.graphql", Input: `extend type Query {
+  getCallJoinToken(roomID: ID!): String!
+}
+`, BuiltIn: false},
 	{Name: "../schema/directives.graphql", Input: `directive @goTag(
   key: String!
   value: String
