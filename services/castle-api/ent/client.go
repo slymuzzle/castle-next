@@ -1318,15 +1318,15 @@ func (c *RoomClient) GetX(ctx context.Context, id pulid.ID) *Room {
 	return obj
 }
 
-// QueryUserContact queries the user_contact edge of a Room.
-func (c *RoomClient) QueryUserContact(r *Room) *UserContactQuery {
+// QueryUserContacts queries the user_contacts edge of a Room.
+func (c *RoomClient) QueryUserContacts(r *Room) *UserContactQuery {
 	query := (&UserContactClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := r.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(room.Table, room.FieldID, id),
 			sqlgraph.To(usercontact.Table, usercontact.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, room.UserContactTable, room.UserContactColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, room.UserContactsTable, room.UserContactsColumn),
 		)
 		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
 		return fromV, nil

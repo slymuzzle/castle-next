@@ -74,6 +74,7 @@ func (RoomMember) Edges() []ent.Edge {
 			Unique().
 			Field("room_id").
 			Annotations(
+				entgql.OrderField("ROOM_UPDATED_AT"),
 				entsql.OnDelete(entsql.Cascade),
 			),
 	}

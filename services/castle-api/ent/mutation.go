@@ -3876,9 +3876,9 @@ type RoomMutation struct {
 	created_at                 *time.Time
 	updated_at                 *time.Time
 	clearedFields              map[string]struct{}
-	user_contact               map[pulid.ID]struct{}
-	removeduser_contact        map[pulid.ID]struct{}
-	cleareduser_contact        bool
+	user_contacts              map[pulid.ID]struct{}
+	removeduser_contacts       map[pulid.ID]struct{}
+	cleareduser_contacts       bool
 	users                      map[pulid.ID]struct{}
 	removedusers               map[pulid.ID]struct{}
 	clearedusers               bool
@@ -4319,58 +4319,58 @@ func (m *RoomMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// AddUserContactIDs adds the "user_contact" edge to the UserContact entity by ids.
+// AddUserContactIDs adds the "user_contacts" edge to the UserContact entity by ids.
 func (m *RoomMutation) AddUserContactIDs(ids ...pulid.ID) {
-	if m.user_contact == nil {
-		m.user_contact = make(map[pulid.ID]struct{})
+	if m.user_contacts == nil {
+		m.user_contacts = make(map[pulid.ID]struct{})
 	}
 	for i := range ids {
-		m.user_contact[ids[i]] = struct{}{}
+		m.user_contacts[ids[i]] = struct{}{}
 	}
 }
 
-// ClearUserContact clears the "user_contact" edge to the UserContact entity.
-func (m *RoomMutation) ClearUserContact() {
-	m.cleareduser_contact = true
+// ClearUserContacts clears the "user_contacts" edge to the UserContact entity.
+func (m *RoomMutation) ClearUserContacts() {
+	m.cleareduser_contacts = true
 }
 
-// UserContactCleared reports if the "user_contact" edge to the UserContact entity was cleared.
-func (m *RoomMutation) UserContactCleared() bool {
-	return m.cleareduser_contact
+// UserContactsCleared reports if the "user_contacts" edge to the UserContact entity was cleared.
+func (m *RoomMutation) UserContactsCleared() bool {
+	return m.cleareduser_contacts
 }
 
-// RemoveUserContactIDs removes the "user_contact" edge to the UserContact entity by IDs.
+// RemoveUserContactIDs removes the "user_contacts" edge to the UserContact entity by IDs.
 func (m *RoomMutation) RemoveUserContactIDs(ids ...pulid.ID) {
-	if m.removeduser_contact == nil {
-		m.removeduser_contact = make(map[pulid.ID]struct{})
+	if m.removeduser_contacts == nil {
+		m.removeduser_contacts = make(map[pulid.ID]struct{})
 	}
 	for i := range ids {
-		delete(m.user_contact, ids[i])
-		m.removeduser_contact[ids[i]] = struct{}{}
+		delete(m.user_contacts, ids[i])
+		m.removeduser_contacts[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedUserContact returns the removed IDs of the "user_contact" edge to the UserContact entity.
-func (m *RoomMutation) RemovedUserContactIDs() (ids []pulid.ID) {
-	for id := range m.removeduser_contact {
+// RemovedUserContacts returns the removed IDs of the "user_contacts" edge to the UserContact entity.
+func (m *RoomMutation) RemovedUserContactsIDs() (ids []pulid.ID) {
+	for id := range m.removeduser_contacts {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// UserContactIDs returns the "user_contact" edge IDs in the mutation.
-func (m *RoomMutation) UserContactIDs() (ids []pulid.ID) {
-	for id := range m.user_contact {
+// UserContactsIDs returns the "user_contacts" edge IDs in the mutation.
+func (m *RoomMutation) UserContactsIDs() (ids []pulid.ID) {
+	for id := range m.user_contacts {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetUserContact resets all changes to the "user_contact" edge.
-func (m *RoomMutation) ResetUserContact() {
-	m.user_contact = nil
-	m.cleareduser_contact = false
-	m.removeduser_contact = nil
+// ResetUserContacts resets all changes to the "user_contacts" edge.
+func (m *RoomMutation) ResetUserContacts() {
+	m.user_contacts = nil
+	m.cleareduser_contacts = false
+	m.removeduser_contacts = nil
 }
 
 // AddUserIDs adds the "users" edge to the User entity by ids.
@@ -5008,8 +5008,8 @@ func (m *RoomMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RoomMutation) AddedEdges() []string {
 	edges := make([]string, 0, 8)
-	if m.user_contact != nil {
-		edges = append(edges, room.EdgeUserContact)
+	if m.user_contacts != nil {
+		edges = append(edges, room.EdgeUserContacts)
 	}
 	if m.users != nil {
 		edges = append(edges, room.EdgeUsers)
@@ -5039,9 +5039,9 @@ func (m *RoomMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *RoomMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case room.EdgeUserContact:
-		ids := make([]ent.Value, 0, len(m.user_contact))
-		for id := range m.user_contact {
+	case room.EdgeUserContacts:
+		ids := make([]ent.Value, 0, len(m.user_contacts))
+		for id := range m.user_contacts {
 			ids = append(ids, id)
 		}
 		return ids
@@ -5092,8 +5092,8 @@ func (m *RoomMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RoomMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 8)
-	if m.removeduser_contact != nil {
-		edges = append(edges, room.EdgeUserContact)
+	if m.removeduser_contacts != nil {
+		edges = append(edges, room.EdgeUserContacts)
 	}
 	if m.removedusers != nil {
 		edges = append(edges, room.EdgeUsers)
@@ -5120,9 +5120,9 @@ func (m *RoomMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *RoomMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case room.EdgeUserContact:
-		ids := make([]ent.Value, 0, len(m.removeduser_contact))
-		for id := range m.removeduser_contact {
+	case room.EdgeUserContacts:
+		ids := make([]ent.Value, 0, len(m.removeduser_contacts))
+		for id := range m.removeduser_contacts {
 			ids = append(ids, id)
 		}
 		return ids
@@ -5169,8 +5169,8 @@ func (m *RoomMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RoomMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 8)
-	if m.cleareduser_contact {
-		edges = append(edges, room.EdgeUserContact)
+	if m.cleareduser_contacts {
+		edges = append(edges, room.EdgeUserContacts)
 	}
 	if m.clearedusers {
 		edges = append(edges, room.EdgeUsers)
@@ -5200,8 +5200,8 @@ func (m *RoomMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *RoomMutation) EdgeCleared(name string) bool {
 	switch name {
-	case room.EdgeUserContact:
-		return m.cleareduser_contact
+	case room.EdgeUserContacts:
+		return m.cleareduser_contacts
 	case room.EdgeUsers:
 		return m.clearedusers
 	case room.EdgeLastMessage:
@@ -5235,8 +5235,8 @@ func (m *RoomMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *RoomMutation) ResetEdge(name string) error {
 	switch name {
-	case room.EdgeUserContact:
-		m.ResetUserContact()
+	case room.EdgeUserContacts:
+		m.ResetUserContacts()
 		return nil
 	case room.EdgeUsers:
 		m.ResetUsers()

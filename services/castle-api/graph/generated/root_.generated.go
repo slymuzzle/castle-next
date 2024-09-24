@@ -183,7 +183,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetCallJoinToken         func(childComplexity int, roomID pulid.ID) int
+		CallJoinToken            func(childComplexity int, roomID pulid.ID) int
 		MessageAttachmentsByRoom func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageAttachmentOrder, where *ent.MessageAttachmentWhereInput) int
 		MessageLinksByRoom       func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageLinkOrder, where *ent.MessageLinkWhereInput) int
 		MessageVoicesByRoom      func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageVoiceOrder, where *ent.MessageVoiceWhereInput) int
@@ -211,7 +211,7 @@ type ComplexityRoot struct {
 		RoomMembers        func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
 		Type               func(childComplexity int) int
 		UpdatedAt          func(childComplexity int) int
-		UserContact        func(childComplexity int) int
+		UserContacts       func(childComplexity int) int
 		Users              func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) int
 		Version            func(childComplexity int) int
 	}
@@ -1000,17 +1000,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
 
-	case "Query.getCallJoinToken":
-		if e.complexity.Query.GetCallJoinToken == nil {
+	case "Query.callJoinToken":
+		if e.complexity.Query.CallJoinToken == nil {
 			break
 		}
 
-		args, err := ec.field_Query_getCallJoinToken_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_callJoinToken_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.GetCallJoinToken(childComplexity, args["roomID"].(pulid.ID)), true
+		return e.complexity.Query.CallJoinToken(childComplexity, args["roomID"].(pulid.ID)), true
 
 	case "Query.messageAttachmentsByRoom":
 		if e.complexity.Query.MessageAttachmentsByRoom == nil {
@@ -1260,12 +1260,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Room.UpdatedAt(childComplexity), true
 
-	case "Room.userContact":
-		if e.complexity.Room.UserContact == nil {
+	case "Room.userContacts":
+		if e.complexity.Room.UserContacts == nil {
 			break
 		}
 
-		return e.complexity.Room.UserContact(childComplexity), true
+		return e.complexity.Room.UserContacts(childComplexity), true
 
 	case "Room.users":
 		if e.complexity.Room.Users == nil {
@@ -1916,7 +1916,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	{Name: "../schema/call.graphql", Input: `extend type Query {
-  getCallJoinToken(roomID: ID!): String!
+  callJoinToken(roomID: ID!): String!
 }
 `, BuiltIn: false},
 	{Name: "../schema/directives.graphql", Input: `directive @goTag(
@@ -2828,7 +2828,7 @@ type Room implements Node {
   type: RoomType!
   createdAt: Time!
   updatedAt: Time!
-  userContact: [UserContact!]
+  userContacts: [UserContact!]
   users(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -3109,6 +3109,7 @@ enum RoomMemberOrderField {
   UNREAD_MESSAGES_COUNT
   JOINED_AT
   UPDATED_AT
+  ROOM_UPDATED_AT
 }
 """
 RoomMemberWhereInput is used for filtering RoomMember objects.
@@ -3204,6 +3205,7 @@ enum RoomOrderField {
   TYPE
   CREATED_AT
   UPDATED_AT
+  LAST_MESSAGE_CREATED_AT
 }
 """
 RoomType is enum for the field type
@@ -3308,10 +3310,10 @@ input RoomWhereInput {
   updatedAtLT: Time
   updatedAtLTE: Time
   """
-  user_contact edge predicates
+  user_contacts edge predicates
   """
-  hasUserContact: Boolean
-  hasUserContactWith: [UserContactWhereInput!]
+  hasUserContacts: Boolean
+  hasUserContactsWith: [UserContactWhereInput!]
   """
   users edge predicates
   """

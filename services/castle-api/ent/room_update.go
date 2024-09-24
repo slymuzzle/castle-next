@@ -137,14 +137,14 @@ func (ru *RoomUpdate) SetUpdatedAt(t time.Time) *RoomUpdate {
 	return ru
 }
 
-// AddUserContactIDs adds the "user_contact" edge to the UserContact entity by IDs.
+// AddUserContactIDs adds the "user_contacts" edge to the UserContact entity by IDs.
 func (ru *RoomUpdate) AddUserContactIDs(ids ...pulid.ID) *RoomUpdate {
 	ru.mutation.AddUserContactIDs(ids...)
 	return ru
 }
 
-// AddUserContact adds the "user_contact" edges to the UserContact entity.
-func (ru *RoomUpdate) AddUserContact(u ...*UserContact) *RoomUpdate {
+// AddUserContacts adds the "user_contacts" edges to the UserContact entity.
+func (ru *RoomUpdate) AddUserContacts(u ...*UserContact) *RoomUpdate {
 	ids := make([]pulid.ID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
@@ -266,20 +266,20 @@ func (ru *RoomUpdate) Mutation() *RoomMutation {
 	return ru.mutation
 }
 
-// ClearUserContact clears all "user_contact" edges to the UserContact entity.
-func (ru *RoomUpdate) ClearUserContact() *RoomUpdate {
-	ru.mutation.ClearUserContact()
+// ClearUserContacts clears all "user_contacts" edges to the UserContact entity.
+func (ru *RoomUpdate) ClearUserContacts() *RoomUpdate {
+	ru.mutation.ClearUserContacts()
 	return ru
 }
 
-// RemoveUserContactIDs removes the "user_contact" edge to UserContact entities by IDs.
+// RemoveUserContactIDs removes the "user_contacts" edge to UserContact entities by IDs.
 func (ru *RoomUpdate) RemoveUserContactIDs(ids ...pulid.ID) *RoomUpdate {
 	ru.mutation.RemoveUserContactIDs(ids...)
 	return ru
 }
 
-// RemoveUserContact removes "user_contact" edges to UserContact entities.
-func (ru *RoomUpdate) RemoveUserContact(u ...*UserContact) *RoomUpdate {
+// RemoveUserContacts removes "user_contacts" edges to UserContact entities.
+func (ru *RoomUpdate) RemoveUserContacts(u ...*UserContact) *RoomUpdate {
 	ids := make([]pulid.ID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
@@ -518,12 +518,12 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ru.mutation.UpdatedAt(); ok {
 		_spec.SetField(room.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if ru.mutation.UserContactCleared() {
+	if ru.mutation.UserContactsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   room.UserContactTable,
-			Columns: []string{room.UserContactColumn},
+			Table:   room.UserContactsTable,
+			Columns: []string{room.UserContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),
@@ -531,12 +531,12 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ru.mutation.RemovedUserContactIDs(); len(nodes) > 0 && !ru.mutation.UserContactCleared() {
+	if nodes := ru.mutation.RemovedUserContactsIDs(); len(nodes) > 0 && !ru.mutation.UserContactsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   room.UserContactTable,
-			Columns: []string{room.UserContactColumn},
+			Table:   room.UserContactsTable,
+			Columns: []string{room.UserContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),
@@ -547,12 +547,12 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ru.mutation.UserContactIDs(); len(nodes) > 0 {
+	if nodes := ru.mutation.UserContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   room.UserContactTable,
-			Columns: []string{room.UserContactColumn},
+			Table:   room.UserContactsTable,
+			Columns: []string{room.UserContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),
@@ -1004,14 +1004,14 @@ func (ruo *RoomUpdateOne) SetUpdatedAt(t time.Time) *RoomUpdateOne {
 	return ruo
 }
 
-// AddUserContactIDs adds the "user_contact" edge to the UserContact entity by IDs.
+// AddUserContactIDs adds the "user_contacts" edge to the UserContact entity by IDs.
 func (ruo *RoomUpdateOne) AddUserContactIDs(ids ...pulid.ID) *RoomUpdateOne {
 	ruo.mutation.AddUserContactIDs(ids...)
 	return ruo
 }
 
-// AddUserContact adds the "user_contact" edges to the UserContact entity.
-func (ruo *RoomUpdateOne) AddUserContact(u ...*UserContact) *RoomUpdateOne {
+// AddUserContacts adds the "user_contacts" edges to the UserContact entity.
+func (ruo *RoomUpdateOne) AddUserContacts(u ...*UserContact) *RoomUpdateOne {
 	ids := make([]pulid.ID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
@@ -1133,20 +1133,20 @@ func (ruo *RoomUpdateOne) Mutation() *RoomMutation {
 	return ruo.mutation
 }
 
-// ClearUserContact clears all "user_contact" edges to the UserContact entity.
-func (ruo *RoomUpdateOne) ClearUserContact() *RoomUpdateOne {
-	ruo.mutation.ClearUserContact()
+// ClearUserContacts clears all "user_contacts" edges to the UserContact entity.
+func (ruo *RoomUpdateOne) ClearUserContacts() *RoomUpdateOne {
+	ruo.mutation.ClearUserContacts()
 	return ruo
 }
 
-// RemoveUserContactIDs removes the "user_contact" edge to UserContact entities by IDs.
+// RemoveUserContactIDs removes the "user_contacts" edge to UserContact entities by IDs.
 func (ruo *RoomUpdateOne) RemoveUserContactIDs(ids ...pulid.ID) *RoomUpdateOne {
 	ruo.mutation.RemoveUserContactIDs(ids...)
 	return ruo
 }
 
-// RemoveUserContact removes "user_contact" edges to UserContact entities.
-func (ruo *RoomUpdateOne) RemoveUserContact(u ...*UserContact) *RoomUpdateOne {
+// RemoveUserContacts removes "user_contacts" edges to UserContact entities.
+func (ruo *RoomUpdateOne) RemoveUserContacts(u ...*UserContact) *RoomUpdateOne {
 	ids := make([]pulid.ID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
@@ -1415,12 +1415,12 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 	if value, ok := ruo.mutation.UpdatedAt(); ok {
 		_spec.SetField(room.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if ruo.mutation.UserContactCleared() {
+	if ruo.mutation.UserContactsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   room.UserContactTable,
-			Columns: []string{room.UserContactColumn},
+			Table:   room.UserContactsTable,
+			Columns: []string{room.UserContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),
@@ -1428,12 +1428,12 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ruo.mutation.RemovedUserContactIDs(); len(nodes) > 0 && !ruo.mutation.UserContactCleared() {
+	if nodes := ruo.mutation.RemovedUserContactsIDs(); len(nodes) > 0 && !ruo.mutation.UserContactsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   room.UserContactTable,
-			Columns: []string{room.UserContactColumn},
+			Table:   room.UserContactsTable,
+			Columns: []string{room.UserContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),
@@ -1444,12 +1444,12 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ruo.mutation.UserContactIDs(); len(nodes) > 0 {
+	if nodes := ruo.mutation.UserContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   room.UserContactTable,
-			Columns: []string{room.UserContactColumn},
+			Table:   room.UserContactsTable,
+			Columns: []string{room.UserContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),

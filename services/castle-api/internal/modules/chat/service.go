@@ -144,7 +144,7 @@ func (s *service) UpdateMessage(
 		return nil, err
 	}
 
-	_, err = s.roomsService.IncrementRoomVersion(ctx, room.ID, message)
+	_, err = s.roomsService.IncrementRoomVersion(ctx, room.ID, nil)
 	if err != nil {
 		return nil, err
 	}

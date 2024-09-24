@@ -2155,8 +2155,12 @@ func (p *roomPager) applyOrder(query *RoomQuery) *RoomQuery {
 		if o.Field.column == DefaultRoomOrder.Field.column {
 			defaultOrdered = true
 		}
-		if len(query.ctx.Fields) > 0 {
-			query.ctx.AppendFieldOnce(o.Field.column)
+		switch o.Field.column {
+		case RoomOrderFieldLastMessageCreatedAt.column:
+		default:
+			if len(query.ctx.Fields) > 0 {
+				query.ctx.AppendFieldOnce(o.Field.column)
+			}
 		}
 	}
 	if !defaultOrdered {
@@ -2170,9 +2174,18 @@ func (p *roomPager) applyOrder(query *RoomQuery) *RoomQuery {
 }
 
 func (p *roomPager) orderExpr(query *RoomQuery) sql.Querier {
-	if len(query.ctx.Fields) > 0 {
-		for _, o := range p.order {
-			query.ctx.AppendFieldOnce(o.Field.column)
+	for _, o := range p.order {
+		switch o.Field.column {
+		case RoomOrderFieldLastMessageCreatedAt.column:
+			direction := o.Direction
+			if p.reverse {
+				direction = direction.Reverse()
+			}
+			query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
+		default:
+			if len(query.ctx.Fields) > 0 {
+				query.ctx.AppendFieldOnce(o.Field.column)
+			}
 		}
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
@@ -2330,6 +2343,26 @@ var (
 			}
 		},
 	}
+	// RoomOrderFieldLastMessageCreatedAt orders by LAST_MESSAGE_CREATED_AT.
+	RoomOrderFieldLastMessageCreatedAt = &RoomOrderField{
+		Value: func(r *Room) (ent.Value, error) {
+			return r.Value("last_message_created_at")
+		},
+		column: "last_message_created_at",
+		toTerm: func(opts ...sql.OrderTermOption) room.OrderOption {
+			return room.ByLastMessageField(
+				message.FieldCreatedAt,
+				append(opts, sql.OrderSelectAs("last_message_created_at"))...,
+			)
+		},
+		toCursor: func(r *Room) Cursor {
+			cv, _ := r.Value("last_message_created_at")
+			return Cursor{
+				ID:    r.ID,
+				Value: cv,
+			}
+		},
+	}
 )
 
 // String implement fmt.Stringer interface.
@@ -2348,6 +2381,8 @@ func (f RoomOrderField) String() string {
 		str = "CREATED_AT"
 	case RoomOrderFieldUpdatedAt.column:
 		str = "UPDATED_AT"
+	case RoomOrderFieldLastMessageCreatedAt.column:
+		str = "LAST_MESSAGE_CREATED_AT"
 	}
 	return str
 }
@@ -2376,6 +2411,8 @@ func (f *RoomOrderField) UnmarshalGQL(v interface{}) error {
 		*f = *RoomOrderFieldCreatedAt
 	case "UPDATED_AT":
 		*f = *RoomOrderFieldUpdatedAt
+	case "LAST_MESSAGE_CREATED_AT":
+		*f = *RoomOrderFieldLastMessageCreatedAt
 	default:
 		return fmt.Errorf("%s is not a valid RoomOrderField", str)
 	}
@@ -2577,8 +2614,12 @@ func (p *roommemberPager) applyOrder(query *RoomMemberQuery) *RoomMemberQuery {
 		if o.Field.column == DefaultRoomMemberOrder.Field.column {
 			defaultOrdered = true
 		}
-		if len(query.ctx.Fields) > 0 {
-			query.ctx.AppendFieldOnce(o.Field.column)
+		switch o.Field.column {
+		case RoomMemberOrderFieldRoomUpdatedAt.column:
+		default:
+			if len(query.ctx.Fields) > 0 {
+				query.ctx.AppendFieldOnce(o.Field.column)
+			}
 		}
 	}
 	if !defaultOrdered {
@@ -2592,9 +2633,18 @@ func (p *roommemberPager) applyOrder(query *RoomMemberQuery) *RoomMemberQuery {
 }
 
 func (p *roommemberPager) orderExpr(query *RoomMemberQuery) sql.Querier {
-	if len(query.ctx.Fields) > 0 {
-		for _, o := range p.order {
-			query.ctx.AppendFieldOnce(o.Field.column)
+	for _, o := range p.order {
+		switch o.Field.column {
+		case RoomMemberOrderFieldRoomUpdatedAt.column:
+			direction := o.Direction
+			if p.reverse {
+				direction = direction.Reverse()
+			}
+			query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
+		default:
+			if len(query.ctx.Fields) > 0 {
+				query.ctx.AppendFieldOnce(o.Field.column)
+			}
 		}
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
@@ -2724,6 +2774,26 @@ var (
 			}
 		},
 	}
+	// RoomMemberOrderFieldRoomUpdatedAt orders by ROOM_UPDATED_AT.
+	RoomMemberOrderFieldRoomUpdatedAt = &RoomMemberOrderField{
+		Value: func(rm *RoomMember) (ent.Value, error) {
+			return rm.Value("room_updated_at")
+		},
+		column: "room_updated_at",
+		toTerm: func(opts ...sql.OrderTermOption) roommember.OrderOption {
+			return roommember.ByRoomField(
+				room.FieldUpdatedAt,
+				append(opts, sql.OrderSelectAs("room_updated_at"))...,
+			)
+		},
+		toCursor: func(rm *RoomMember) Cursor {
+			cv, _ := rm.Value("room_updated_at")
+			return Cursor{
+				ID:    rm.ID,
+				Value: cv,
+			}
+		},
+	}
 )
 
 // String implement fmt.Stringer interface.
@@ -2738,6 +2808,8 @@ func (f RoomMemberOrderField) String() string {
 		str = "JOINED_AT"
 	case RoomMemberOrderFieldUpdatedAt.column:
 		str = "UPDATED_AT"
+	case RoomMemberOrderFieldRoomUpdatedAt.column:
+		str = "ROOM_UPDATED_AT"
 	}
 	return str
 }
@@ -2762,6 +2834,8 @@ func (f *RoomMemberOrderField) UnmarshalGQL(v interface{}) error {
 		*f = *RoomMemberOrderFieldJoinedAt
 	case "UPDATED_AT":
 		*f = *RoomMemberOrderFieldUpdatedAt
+	case "ROOM_UPDATED_AT":
+		*f = *RoomMemberOrderFieldRoomUpdatedAt
 	default:
 		return fmt.Errorf("%s is not a valid RoomMemberOrderField", str)
 	}

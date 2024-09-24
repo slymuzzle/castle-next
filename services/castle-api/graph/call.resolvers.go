@@ -6,11 +6,10 @@ package graph
 
 import (
 	"context"
-
 	"journeyhub/ent/schema/pulid"
 )
 
-// GetCallJoinToken is the resolver for the getCallJoinToken field.
-func (r *queryResolver) GetCallJoinToken(ctx context.Context, roomID pulid.ID) (string, error) {
+// CallJoinToken is the resolver for the callJoinToken field.
+func (r *queryResolver) CallJoinToken(ctx context.Context, roomID pulid.ID) (string, error) {
 	return r.callService.GetCallJoinToken(ctx, roomID)
 }

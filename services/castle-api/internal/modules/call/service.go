@@ -2,13 +2,13 @@ package call
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/internal/modules/auth"
 	"journeyhub/internal/platform/config"
 
-	"github.com/k0kubun/pp/v3"
 	livekitauth "github.com/livekit/protocol/auth"
 )
 
@@ -38,19 +38,19 @@ func (s *service) GetCallJoinToken(
 	ctx context.Context,
 	roomID pulid.ID,
 ) (string, error) {
-	userID, err := s.authService.Auth(ctx)
+	user, err := s.authService.AuthUser(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	pp.Print(s.config)
 	at := livekitauth.NewAccessToken(s.config.AccessKey, s.config.SecretKey)
 	grant := &livekitauth.VideoGrant{
 		RoomJoin: true,
 		Room:     string(roomID),
 	}
 	at.AddGrant(grant).
-		SetIdentity(string(userID)).
+		SetIdentity(string(user.ID)).
+		SetName(fmt.Sprintf("%s %s", user.FirstName, user.LastName)).
 		SetValidFor(time.Hour)
 
 	return at.ToJWT()

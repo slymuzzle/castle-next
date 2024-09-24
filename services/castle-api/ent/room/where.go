@@ -426,21 +426,21 @@ func UpdatedAtLTE(v time.Time) predicate.Room {
 	return predicate.Room(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
-// HasUserContact applies the HasEdge predicate on the "user_contact" edge.
-func HasUserContact() predicate.Room {
+// HasUserContacts applies the HasEdge predicate on the "user_contacts" edge.
+func HasUserContacts() predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, UserContactTable, UserContactColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, UserContactsTable, UserContactsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasUserContactWith applies the HasEdge predicate on the "user_contact" edge with a given conditions (other predicates).
-func HasUserContactWith(preds ...predicate.UserContact) predicate.Room {
+// HasUserContactsWith applies the HasEdge predicate on the "user_contacts" edge with a given conditions (other predicates).
+func HasUserContactsWith(preds ...predicate.UserContact) predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {
-		step := newUserContactStep()
+		step := newUserContactsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

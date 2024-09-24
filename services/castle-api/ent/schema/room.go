@@ -70,7 +70,7 @@ func (Room) Fields() []ent.Field {
 // Edges of the Room.
 func (Room) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("user_contact", UserContact.Type).
+		edge.From("user_contacts", UserContact.Type).
 			Ref("room"),
 		edge.To("users", User.Type).
 			Through("room_members", RoomMember.Type).
@@ -78,7 +78,10 @@ func (Room) Edges() []ent.Edge {
 				entgql.RelayConnection(),
 			),
 		edge.To("last_message", Message.Type).
-			Unique(),
+			Unique().
+			Annotations(
+				entgql.OrderField("LAST_MESSAGE_CREATED_AT"),
+			),
 		edge.To("messages", Message.Type).
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),

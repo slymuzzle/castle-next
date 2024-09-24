@@ -902,7 +902,7 @@ type Room implements Node {
   type: RoomType!
   createdAt: Time!
   updatedAt: Time!
-  userContact: [UserContact!]
+  userContacts: [UserContact!]
   users(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -1183,6 +1183,7 @@ enum RoomMemberOrderField {
   UNREAD_MESSAGES_COUNT
   JOINED_AT
   UPDATED_AT
+  ROOM_UPDATED_AT
 }
 """
 RoomMemberWhereInput is used for filtering RoomMember objects.
@@ -1278,6 +1279,7 @@ enum RoomOrderField {
   TYPE
   CREATED_AT
   UPDATED_AT
+  LAST_MESSAGE_CREATED_AT
 }
 """
 RoomType is enum for the field type
@@ -1382,10 +1384,10 @@ input RoomWhereInput {
   updatedAtLT: Time
   updatedAtLTE: Time
   """
-  user_contact edge predicates
+  user_contacts edge predicates
   """
-  hasUserContact: Boolean
-  hasUserContactWith: [UserContactWhereInput!]
+  hasUserContacts: Boolean
+  hasUserContactsWith: [UserContactWhereInput!]
   """
   users edge predicates
   """

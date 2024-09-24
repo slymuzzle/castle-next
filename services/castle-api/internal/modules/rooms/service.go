@@ -2,16 +2,12 @@ package rooms
 
 import (
 	"context"
-	"os"
-	"time"
 
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/internal/modules/auth"
 	"journeyhub/internal/modules/roommembers"
 	"journeyhub/internal/platform/nats"
-
-	livekitauth "github.com/livekit/protocol/auth"
 )
 
 type Service interface {
@@ -35,11 +31,6 @@ type Service interface {
 		ctx context.Context,
 		ID pulid.ID,
 	) (*ent.Room, error)
-
-	GetJoinToken(
-		ctx context.Context,
-		ID pulid.ID,
-	) (string, error)
 }
 
 type service struct {
@@ -146,25 +137,4 @@ func (s *service) DeleteRoom(
 	}
 
 	return s.roomsRepository.Delete(ctx, ID)
-}
-
-func (s *service) GetJoinToken(
-	ctx context.Context,
-	ID pulid.ID,
-) (string, error) {
-	userID, err := s.authService.Auth(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	at := livekitauth.NewAccessToken(os.Getenv("LIVEKIT_API_KEY"), os.Getenv("LIVEKIT_API_SECRET"))
-	grant := &livekitauth.VideoGrant{
-		RoomJoin: true,
-		Room:     string(ID),
-	}
-	at.AddGrant(grant).
-		SetIdentity(string(userID)).
-		SetValidFor(time.Hour)
-
-	return at.ToJWT()
 }

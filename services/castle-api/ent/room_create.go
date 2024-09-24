@@ -135,14 +135,14 @@ func (rc *RoomCreate) SetNillableID(pu *pulid.ID) *RoomCreate {
 	return rc
 }
 
-// AddUserContactIDs adds the "user_contact" edge to the UserContact entity by IDs.
+// AddUserContactIDs adds the "user_contacts" edge to the UserContact entity by IDs.
 func (rc *RoomCreate) AddUserContactIDs(ids ...pulid.ID) *RoomCreate {
 	rc.mutation.AddUserContactIDs(ids...)
 	return rc
 }
 
-// AddUserContact adds the "user_contact" edges to the UserContact entity.
-func (rc *RoomCreate) AddUserContact(u ...*UserContact) *RoomCreate {
+// AddUserContacts adds the "user_contacts" edges to the UserContact entity.
+func (rc *RoomCreate) AddUserContacts(u ...*UserContact) *RoomCreate {
 	ids := make([]pulid.ID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
@@ -412,12 +412,12 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 		_spec.SetField(room.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := rc.mutation.UserContactIDs(); len(nodes) > 0 {
+	if nodes := rc.mutation.UserContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   room.UserContactTable,
-			Columns: []string{room.UserContactColumn},
+			Table:   room.UserContactsTable,
+			Columns: []string{room.UserContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usercontact.FieldID, field.TypeString),

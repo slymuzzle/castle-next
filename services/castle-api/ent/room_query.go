@@ -31,7 +31,7 @@ type RoomQuery struct {
 	order                       []room.OrderOption
 	inters                      []Interceptor
 	predicates                  []predicate.Room
-	withUserContact             *UserContactQuery
+	withUserContacts            *UserContactQuery
 	withUsers                   *UserQuery
 	withLastMessage             *MessageQuery
 	withMessages                *MessageQuery
@@ -42,7 +42,7 @@ type RoomQuery struct {
 	withFKs                     bool
 	modifiers                   []func(*sql.Selector)
 	loadTotal                   []func(context.Context, []*Room) error
-	withNamedUserContact        map[string]*UserContactQuery
+	withNamedUserContacts       map[string]*UserContactQuery
 	withNamedUsers              map[string]*UserQuery
 	withNamedMessages           map[string]*MessageQuery
 	withNamedMessageVoices      map[string]*MessageVoiceQuery
@@ -85,8 +85,8 @@ func (rq *RoomQuery) Order(o ...room.OrderOption) *RoomQuery {
 	return rq
 }
 
-// QueryUserContact chains the current query on the "user_contact" edge.
-func (rq *RoomQuery) QueryUserContact() *UserContactQuery {
+// QueryUserContacts chains the current query on the "user_contacts" edge.
+func (rq *RoomQuery) QueryUserContacts() *UserContactQuery {
 	query := (&UserContactClient{config: rq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := rq.prepareQuery(ctx); err != nil {
@@ -99,7 +99,7 @@ func (rq *RoomQuery) QueryUserContact() *UserContactQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(room.Table, room.FieldID, selector),
 			sqlgraph.To(usercontact.Table, usercontact.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, room.UserContactTable, room.UserContactColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, room.UserContactsTable, room.UserContactsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
 		return fromU, nil
@@ -453,7 +453,7 @@ func (rq *RoomQuery) Clone() *RoomQuery {
 		order:                  append([]room.OrderOption{}, rq.order...),
 		inters:                 append([]Interceptor{}, rq.inters...),
 		predicates:             append([]predicate.Room{}, rq.predicates...),
-		withUserContact:        rq.withUserContact.Clone(),
+		withUserContacts:       rq.withUserContacts.Clone(),
 		withUsers:              rq.withUsers.Clone(),
 		withLastMessage:        rq.withLastMessage.Clone(),
 		withMessages:           rq.withMessages.Clone(),
@@ -467,14 +467,14 @@ func (rq *RoomQuery) Clone() *RoomQuery {
 	}
 }
 
-// WithUserContact tells the query-builder to eager-load the nodes that are connected to
-// the "user_contact" edge. The optional arguments are used to configure the query builder of the edge.
-func (rq *RoomQuery) WithUserContact(opts ...func(*UserContactQuery)) *RoomQuery {
+// WithUserContacts tells the query-builder to eager-load the nodes that are connected to
+// the "user_contacts" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithUserContacts(opts ...func(*UserContactQuery)) *RoomQuery {
 	query := (&UserContactClient{config: rq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rq.withUserContact = query
+	rq.withUserContacts = query
 	return rq
 }
 
@@ -635,7 +635,7 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 		withFKs     = rq.withFKs
 		_spec       = rq.querySpec()
 		loadedTypes = [8]bool{
-			rq.withUserContact != nil,
+			rq.withUserContacts != nil,
 			rq.withUsers != nil,
 			rq.withLastMessage != nil,
 			rq.withMessages != nil,
@@ -672,10 +672,10 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := rq.withUserContact; query != nil {
-		if err := rq.loadUserContact(ctx, query, nodes,
-			func(n *Room) { n.Edges.UserContact = []*UserContact{} },
-			func(n *Room, e *UserContact) { n.Edges.UserContact = append(n.Edges.UserContact, e) }); err != nil {
+	if query := rq.withUserContacts; query != nil {
+		if err := rq.loadUserContacts(ctx, query, nodes,
+			func(n *Room) { n.Edges.UserContacts = []*UserContact{} },
+			func(n *Room, e *UserContact) { n.Edges.UserContacts = append(n.Edges.UserContacts, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -729,10 +729,10 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 			return nil, err
 		}
 	}
-	for name, query := range rq.withNamedUserContact {
-		if err := rq.loadUserContact(ctx, query, nodes,
-			func(n *Room) { n.appendNamedUserContact(name) },
-			func(n *Room, e *UserContact) { n.appendNamedUserContact(name, e) }); err != nil {
+	for name, query := range rq.withNamedUserContacts {
+		if err := rq.loadUserContacts(ctx, query, nodes,
+			func(n *Room) { n.appendNamedUserContacts(name) },
+			func(n *Room, e *UserContact) { n.appendNamedUserContacts(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -786,7 +786,7 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 	return nodes, nil
 }
 
-func (rq *RoomQuery) loadUserContact(ctx context.Context, query *UserContactQuery, nodes []*Room, init func(*Room), assign func(*Room, *UserContact)) error {
+func (rq *RoomQuery) loadUserContacts(ctx context.Context, query *UserContactQuery, nodes []*Room, init func(*Room), assign func(*Room, *UserContact)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[pulid.ID]*Room)
 	for i := range nodes {
@@ -800,7 +800,7 @@ func (rq *RoomQuery) loadUserContact(ctx context.Context, query *UserContactQuer
 		query.ctx.AppendFieldOnce(usercontact.FieldRoomID)
 	}
 	query.Where(predicate.UserContact(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(room.UserContactColumn), fks...))
+		s.Where(sql.InValues(s.C(room.UserContactsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -1148,17 +1148,17 @@ func (rq *RoomQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// WithNamedUserContact tells the query-builder to eager-load the nodes that are connected to the "user_contact"
+// WithNamedUserContacts tells the query-builder to eager-load the nodes that are connected to the "user_contacts"
 // edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (rq *RoomQuery) WithNamedUserContact(name string, opts ...func(*UserContactQuery)) *RoomQuery {
+func (rq *RoomQuery) WithNamedUserContacts(name string, opts ...func(*UserContactQuery)) *RoomQuery {
 	query := (&UserContactClient{config: rq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	if rq.withNamedUserContact == nil {
-		rq.withNamedUserContact = make(map[string]*UserContactQuery)
+	if rq.withNamedUserContacts == nil {
+		rq.withNamedUserContacts = make(map[string]*UserContactQuery)
 	}
-	rq.withNamedUserContact[name] = query
+	rq.withNamedUserContacts[name] = query
 	return rq
 }
 

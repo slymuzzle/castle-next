@@ -2038,9 +2038,9 @@ type RoomWhereInput struct {
 	UpdatedAtLT    *time.Time  `json:"updatedAtLT,omitempty"`
 	UpdatedAtLTE   *time.Time  `json:"updatedAtLTE,omitempty"`
 
-	// "user_contact" edge predicates.
-	HasUserContact     *bool                    `json:"hasUserContact,omitempty"`
-	HasUserContactWith []*UserContactWhereInput `json:"hasUserContactWith,omitempty"`
+	// "user_contacts" edge predicates.
+	HasUserContacts     *bool                    `json:"hasUserContacts,omitempty"`
+	HasUserContactsWith []*UserContactWhereInput `json:"hasUserContactsWith,omitempty"`
 
 	// "users" edge predicates.
 	HasUsers     *bool             `json:"hasUsers,omitempty"`
@@ -2341,23 +2341,23 @@ func (i *RoomWhereInput) P() (predicate.Room, error) {
 		predicates = append(predicates, room.UpdatedAtLTE(*i.UpdatedAtLTE))
 	}
 
-	if i.HasUserContact != nil {
-		p := room.HasUserContact()
-		if !*i.HasUserContact {
+	if i.HasUserContacts != nil {
+		p := room.HasUserContacts()
+		if !*i.HasUserContacts {
 			p = room.Not(p)
 		}
 		predicates = append(predicates, p)
 	}
-	if len(i.HasUserContactWith) > 0 {
-		with := make([]predicate.UserContact, 0, len(i.HasUserContactWith))
-		for _, w := range i.HasUserContactWith {
+	if len(i.HasUserContactsWith) > 0 {
+		with := make([]predicate.UserContact, 0, len(i.HasUserContactsWith))
+		for _, w := range i.HasUserContactsWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, fmt.Errorf("%w: field 'HasUserContactWith'", err)
+				return nil, fmt.Errorf("%w: field 'HasUserContactsWith'", err)
 			}
 			with = append(with, p)
 		}
-		predicates = append(predicates, room.HasUserContactWith(with...))
+		predicates = append(predicates, room.HasUserContactsWith(with...))
 	}
 	if i.HasUsers != nil {
 		p := room.HasUsers()

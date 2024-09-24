@@ -786,7 +786,7 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
 
-		case "userContact":
+		case "userContacts":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -795,7 +795,7 @@ func (r *RoomQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 			if err := query.collectField(ctx, false, opCtx, field, path, mayAddCondition(satisfies, usercontactImplementors)...); err != nil {
 				return err
 			}
-			r.WithNamedUserContact(alias, func(wq *UserContactQuery) {
+			r.WithNamedUserContacts(alias, func(wq *UserContactQuery) {
 				*wq = *query
 			})
 

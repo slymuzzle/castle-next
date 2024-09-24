@@ -42,8 +42,8 @@ type Room struct {
 
 // RoomEdges holds the relations/edges for other nodes in the graph.
 type RoomEdges struct {
-	// UserContact holds the value of the user_contact edge.
-	UserContact []*UserContact `json:"user_contact,omitempty"`
+	// UserContacts holds the value of the user_contacts edge.
+	UserContacts []*UserContact `json:"user_contacts,omitempty"`
 	// Users holds the value of the users edge.
 	Users []*User `json:"users,omitempty"`
 	// LastMessage holds the value of the last_message edge.
@@ -64,7 +64,7 @@ type RoomEdges struct {
 	// totalCount holds the count of the edges above.
 	totalCount [8]map[string]int
 
-	namedUserContact        map[string][]*UserContact
+	namedUserContacts       map[string][]*UserContact
 	namedUsers              map[string][]*User
 	namedMessages           map[string][]*Message
 	namedMessageVoices      map[string][]*MessageVoice
@@ -73,13 +73,13 @@ type RoomEdges struct {
 	namedRoomMembers        map[string][]*RoomMember
 }
 
-// UserContactOrErr returns the UserContact value or an error if the edge
+// UserContactsOrErr returns the UserContacts value or an error if the edge
 // was not loaded in eager-loading.
-func (e RoomEdges) UserContactOrErr() ([]*UserContact, error) {
+func (e RoomEdges) UserContactsOrErr() ([]*UserContact, error) {
 	if e.loadedTypes[0] {
-		return e.UserContact, nil
+		return e.UserContacts, nil
 	}
-	return nil, &NotLoadedError{edge: "user_contact"}
+	return nil, &NotLoadedError{edge: "user_contacts"}
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -245,9 +245,9 @@ func (r *Room) Value(name string) (ent.Value, error) {
 	return r.selectValues.Get(name)
 }
 
-// QueryUserContact queries the "user_contact" edge of the Room entity.
-func (r *Room) QueryUserContact() *UserContactQuery {
-	return NewRoomClient(r.config).QueryUserContact(r)
+// QueryUserContacts queries the "user_contacts" edge of the Room entity.
+func (r *Room) QueryUserContacts() *UserContactQuery {
+	return NewRoomClient(r.config).QueryUserContacts(r)
 }
 
 // QueryUsers queries the "users" edge of the Room entity.
@@ -332,27 +332,27 @@ func (r *Room) String() string {
 	return builder.String()
 }
 
-// NamedUserContact returns the UserContact named value or an error if the edge was not
+// NamedUserContacts returns the UserContacts named value or an error if the edge was not
 // loaded in eager-loading with this name.
-func (r *Room) NamedUserContact(name string) ([]*UserContact, error) {
-	if r.Edges.namedUserContact == nil {
+func (r *Room) NamedUserContacts(name string) ([]*UserContact, error) {
+	if r.Edges.namedUserContacts == nil {
 		return nil, &NotLoadedError{edge: name}
 	}
-	nodes, ok := r.Edges.namedUserContact[name]
+	nodes, ok := r.Edges.namedUserContacts[name]
 	if !ok {
 		return nil, &NotLoadedError{edge: name}
 	}
 	return nodes, nil
 }
 
-func (r *Room) appendNamedUserContact(name string, edges ...*UserContact) {
-	if r.Edges.namedUserContact == nil {
-		r.Edges.namedUserContact = make(map[string][]*UserContact)
+func (r *Room) appendNamedUserContacts(name string, edges ...*UserContact) {
+	if r.Edges.namedUserContacts == nil {
+		r.Edges.namedUserContacts = make(map[string][]*UserContact)
 	}
 	if len(edges) == 0 {
-		r.Edges.namedUserContact[name] = []*UserContact{}
+		r.Edges.namedUserContacts[name] = []*UserContact{}
 	} else {
-		r.Edges.namedUserContact[name] = append(r.Edges.namedUserContact[name], edges...)
+		r.Edges.namedUserContacts[name] = append(r.Edges.namedUserContacts[name], edges...)
 	}
 }
 

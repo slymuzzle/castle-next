@@ -156,14 +156,14 @@ func (mv *MessageVoice) File(ctx context.Context) (*File, error) {
 	return result, err
 }
 
-func (r *Room) UserContact(ctx context.Context) (result []*UserContact, err error) {
+func (r *Room) UserContacts(ctx context.Context) (result []*UserContact, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = r.NamedUserContact(graphql.GetFieldContext(ctx).Field.Alias)
+		result, err = r.NamedUserContacts(graphql.GetFieldContext(ctx).Field.Alias)
 	} else {
-		result, err = r.Edges.UserContactOrErr()
+		result, err = r.Edges.UserContactsOrErr()
 	}
 	if IsNotLoaded(err) {
-		result, err = r.QueryUserContact().All(ctx)
+		result, err = r.QueryUserContacts().All(ctx)
 	}
 	return result, err
 }

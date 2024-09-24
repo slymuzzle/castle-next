@@ -28,7 +28,7 @@ type QueryResolver interface {
 	Nodes(ctx context.Context, ids []pulid.ID) ([]ent.Noder, error)
 	RoomMembers(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) (*ent.RoomMemberConnection, error)
 	UserContacts(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserContactOrder, where *ent.UserContactWhereInput) (*ent.UserContactConnection, error)
-	GetCallJoinToken(ctx context.Context, roomID pulid.ID) (string, error)
+	CallJoinToken(ctx context.Context, roomID pulid.ID) (string, error)
 	MessagesByRoom(ctx context.Context, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) (*ent.MessageConnection, error)
 	MessageAttachmentsByRoom(ctx context.Context, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageAttachmentOrder, where *ent.MessageAttachmentWhereInput) (*ent.MessageAttachmentConnection, error)
 	MessageLinksByRoom(ctx context.Context, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageLinkOrder, where *ent.MessageLinkWhereInput) (*ent.MessageLinkConnection, error)
@@ -58,7 +58,7 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_getCallJoinToken_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_callJoinToken_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 pulid.ID
@@ -2362,8 +2362,8 @@ func (ec *executionContext) fieldContext_Message_room(_ context.Context, field g
 				return ec.fieldContext_Room_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Room_updatedAt(ctx, field)
-			case "userContact":
-				return ec.fieldContext_Room_userContact(ctx, field)
+			case "userContacts":
+				return ec.fieldContext_Room_userContacts(ctx, field)
 			case "users":
 				return ec.fieldContext_Room_users(ctx, field)
 			case "lastMessage":
@@ -2614,8 +2614,8 @@ func (ec *executionContext) fieldContext_MessageAttachment_room(_ context.Contex
 				return ec.fieldContext_Room_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Room_updatedAt(ctx, field)
-			case "userContact":
-				return ec.fieldContext_Room_userContact(ctx, field)
+			case "userContacts":
+				return ec.fieldContext_Room_userContacts(ctx, field)
 			case "users":
 				return ec.fieldContext_Room_users(ctx, field)
 			case "lastMessage":
@@ -3625,8 +3625,8 @@ func (ec *executionContext) fieldContext_MessageLink_room(_ context.Context, fie
 				return ec.fieldContext_Room_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Room_updatedAt(ctx, field)
-			case "userContact":
-				return ec.fieldContext_Room_userContact(ctx, field)
+			case "userContacts":
+				return ec.fieldContext_Room_userContacts(ctx, field)
 			case "users":
 				return ec.fieldContext_Room_users(ctx, field)
 			case "lastMessage":
@@ -4107,8 +4107,8 @@ func (ec *executionContext) fieldContext_MessageVoice_room(_ context.Context, fi
 				return ec.fieldContext_Room_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Room_updatedAt(ctx, field)
-			case "userContact":
-				return ec.fieldContext_Room_userContact(ctx, field)
+			case "userContacts":
+				return ec.fieldContext_Room_userContacts(ctx, field)
 			case "users":
 				return ec.fieldContext_Room_users(ctx, field)
 			case "lastMessage":
@@ -4911,8 +4911,8 @@ func (ec *executionContext) fieldContext_Query_userContacts(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_getCallJoinToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_getCallJoinToken(ctx, field)
+func (ec *executionContext) _Query_callJoinToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_callJoinToken(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4925,7 +4925,7 @@ func (ec *executionContext) _Query_getCallJoinToken(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetCallJoinToken(rctx, fc.Args["roomID"].(pulid.ID))
+		return ec.resolvers.Query().CallJoinToken(rctx, fc.Args["roomID"].(pulid.ID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4942,7 +4942,7 @@ func (ec *executionContext) _Query_getCallJoinToken(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_getCallJoinToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_callJoinToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -4959,7 +4959,7 @@ func (ec *executionContext) fieldContext_Query_getCallJoinToken(ctx context.Cont
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_getCallJoinToken_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_callJoinToken_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -5903,8 +5903,8 @@ func (ec *executionContext) fieldContext_Room_updatedAt(_ context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Room_userContact(ctx context.Context, field graphql.CollectedField, obj *ent.Room) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Room_userContact(ctx, field)
+func (ec *executionContext) _Room_userContacts(ctx context.Context, field graphql.CollectedField, obj *ent.Room) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Room_userContacts(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5917,7 +5917,7 @@ func (ec *executionContext) _Room_userContact(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UserContact(ctx)
+		return obj.UserContacts(ctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5931,7 +5931,7 @@ func (ec *executionContext) _Room_userContact(ctx context.Context, field graphql
 	return ec.marshalOUserContact2ᚕᚖjourneyhubᚋentᚐUserContactᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Room_userContact(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Room_userContacts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Room",
 		Field:      field,
@@ -6600,8 +6600,8 @@ func (ec *executionContext) fieldContext_RoomEdge_node(_ context.Context, field 
 				return ec.fieldContext_Room_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Room_updatedAt(ctx, field)
-			case "userContact":
-				return ec.fieldContext_Room_userContact(ctx, field)
+			case "userContacts":
+				return ec.fieldContext_Room_userContacts(ctx, field)
 			case "users":
 				return ec.fieldContext_Room_users(ctx, field)
 			case "lastMessage":
@@ -7097,8 +7097,8 @@ func (ec *executionContext) fieldContext_RoomMember_room(_ context.Context, fiel
 				return ec.fieldContext_Room_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Room_updatedAt(ctx, field)
-			case "userContact":
-				return ec.fieldContext_Room_userContact(ctx, field)
+			case "userContacts":
+				return ec.fieldContext_Room_userContacts(ctx, field)
 			case "users":
 				return ec.fieldContext_Room_users(ctx, field)
 			case "lastMessage":
@@ -8587,8 +8587,8 @@ func (ec *executionContext) fieldContext_UserContact_room(_ context.Context, fie
 				return ec.fieldContext_Room_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Room_updatedAt(ctx, field)
-			case "userContact":
-				return ec.fieldContext_Room_userContact(ctx, field)
+			case "userContacts":
+				return ec.fieldContext_Room_userContacts(ctx, field)
 			case "users":
 				return ec.fieldContext_Room_users(ctx, field)
 			case "lastMessage":
@@ -11937,7 +11937,7 @@ func (ec *executionContext) unmarshalInputRoomWhereInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameIsNil", "nameNotNil", "nameEqualFold", "nameContainsFold", "description", "descriptionNEQ", "descriptionIn", "descriptionNotIn", "descriptionGT", "descriptionGTE", "descriptionLT", "descriptionLTE", "descriptionContains", "descriptionHasPrefix", "descriptionHasSuffix", "descriptionIsNil", "descriptionNotNil", "descriptionEqualFold", "descriptionContainsFold", "version", "versionNEQ", "versionIn", "versionNotIn", "versionGT", "versionGTE", "versionLT", "versionLTE", "type", "typeNEQ", "typeIn", "typeNotIn", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "hasUserContact", "hasUserContactWith", "hasUsers", "hasUsersWith", "hasLastMessage", "hasLastMessageWith", "hasMessages", "hasMessagesWith", "hasMessageVoices", "hasMessageVoicesWith", "hasMessageAttachments", "hasMessageAttachmentsWith", "hasMessageLinks", "hasMessageLinksWith", "hasRoomMembers", "hasRoomMembersWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameIsNil", "nameNotNil", "nameEqualFold", "nameContainsFold", "description", "descriptionNEQ", "descriptionIn", "descriptionNotIn", "descriptionGT", "descriptionGTE", "descriptionLT", "descriptionLTE", "descriptionContains", "descriptionHasPrefix", "descriptionHasSuffix", "descriptionIsNil", "descriptionNotNil", "descriptionEqualFold", "descriptionContainsFold", "version", "versionNEQ", "versionIn", "versionNotIn", "versionGT", "versionGTE", "versionLT", "versionLTE", "type", "typeNEQ", "typeIn", "typeNotIn", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "hasUserContacts", "hasUserContactsWith", "hasUsers", "hasUsersWith", "hasLastMessage", "hasLastMessageWith", "hasMessages", "hasMessagesWith", "hasMessageVoices", "hasMessageVoicesWith", "hasMessageAttachments", "hasMessageAttachmentsWith", "hasMessageLinks", "hasMessageLinksWith", "hasRoomMembers", "hasRoomMembersWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -12427,20 +12427,20 @@ func (ec *executionContext) unmarshalInputRoomWhereInput(ctx context.Context, ob
 				return it, err
 			}
 			it.UpdatedAtLTE = data
-		case "hasUserContact":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasUserContact"))
+		case "hasUserContacts":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasUserContacts"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.HasUserContact = data
-		case "hasUserContactWith":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasUserContactWith"))
+			it.HasUserContacts = data
+		case "hasUserContactsWith":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasUserContactsWith"))
 			data, err := ec.unmarshalOUserContactWhereInput2ᚕᚖjourneyhubᚋentᚐUserContactWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.HasUserContactWith = data
+			it.HasUserContactsWith = data
 		case "hasUsers":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasUsers"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
@@ -15010,7 +15010,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "getCallJoinToken":
+		case "callJoinToken":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -15019,7 +15019,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_getCallJoinToken(ctx, field)
+				res = ec._Query_callJoinToken(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -15276,7 +15276,7 @@ func (ec *executionContext) _Room(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "userContact":
+		case "userContacts":
 			field := field
 
 			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
@@ -15285,7 +15285,7 @@ func (ec *executionContext) _Room(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Room_userContact(ctx, field, obj)
+				res = ec._Room_userContacts(ctx, field, obj)
 				return res
 			}
 
