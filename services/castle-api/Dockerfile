@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     apk add --no-cache \
     build-base=0.5-r3 \
-    curl=8.10.0-r0 \
+    curl=8.9.1-r2 \
     && go mod download \
     && go install github.com/go-task/task/v3/cmd/task@latest
 
