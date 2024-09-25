@@ -21,6 +21,8 @@ services:
       target: development
     environment:
       CASTLE_SERVER_PORT: 8080
+      CASTLE_LIVEKIT_ACCESS: APITozG2r72rMp2
+      CASTLE_LIVEKIT_SECRET: h8vllN9B9VqzXudrhK4mZHPF2C2EqfguiEnuy6j7slb
       CASTLE_NATS_HOST: nats
       CASTLE_NATS_PORT: 4222
       CASTLE_DATABASE_HOST: postgres
@@ -30,8 +32,8 @@ services:
       CASTLE_DATABASE_PASSWORD: "123456"
       CASTLE_DATABASE_DRIVER: postgres
       CASTLE_S3_HOST: minio:9000
-      CASTLE_S3_ACCESS_KEY: admin
-      CASTLE_S3_SECRET_KEY: "12345678"
+      CASTLE_S3_ACCESS: admin
+      CASTLE_S3_SECRET: "12345678"
       CASTLE_S3_BUCKET: media
     depends_on:
       nats:

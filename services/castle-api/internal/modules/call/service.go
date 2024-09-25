@@ -43,7 +43,7 @@ func (s *service) GetCallJoinToken(
 		return "", err
 	}
 
-	at := livekitauth.NewAccessToken(s.config.AccessKey, s.config.SecretKey)
+	at := livekitauth.NewAccessToken(s.config.Access, s.config.Secret)
 	grant := &livekitauth.VideoGrant{
 		RoomJoin: true,
 		Room:     string(roomID),

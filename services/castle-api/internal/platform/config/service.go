@@ -20,8 +20,8 @@ type AuthConfig struct {
 }
 
 type LivekitConfig struct {
-	AccessKey string `koanf:"access_key"`
-	SecretKey string `koanf:"secret_key"`
+	Access string `koanf:"access"`
+	Secret string `koanf:"secret"`
 }
 
 type NatsConfig struct {
@@ -39,11 +39,11 @@ type DatabaseConfig struct {
 }
 
 type S3Config struct {
-	Host      string `koanf:"host"`
-	AccessKey string `koanf:"access_key"`
-	SecretKey string `koanf:"secret_key"`
-	Bucket    string `koanf:"bucket"`
-	Ssl       bool   `koanf:"ssl"`
+	Host   string `koanf:"host"`
+	Access string `koanf:"access"`
+	Secret string `koanf:"secret"`
+	Bucket string `koanf:"bucket"`
+	Ssl    bool   `koanf:"ssl"`
 }
 
 type Config struct {

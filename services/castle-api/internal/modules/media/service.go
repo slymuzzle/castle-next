@@ -58,8 +58,8 @@ func NewService(config config.S3Config) (Service, error) {
 		config.Host,
 		&minio.Options{
 			Creds: credentials.NewStaticV4(
-				config.AccessKey,
-				config.SecretKey,
+				config.Access,
+				config.Secret,
 				"",
 			),
 			Secure: config.Ssl,
