@@ -51,8 +51,7 @@ func (s *serviceLogging) Register(
 
 func (s *serviceLogging) Login(
 	ctx context.Context,
-	nicknameOrEmail string,
-	password string,
+	input model.UserLoginInput,
 ) (loginUser *model.LoginUser, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
@@ -63,11 +62,7 @@ func (s *serviceLogging) Login(
 		)
 	}(time.Now())
 
-	return s.Service.Login(
-		ctx,
-		nicknameOrEmail,
-		password,
-	)
+	return s.Service.Login(ctx, input)
 }
 
 func (s *serviceLogging) Auth(ctx context.Context) (userID pulid.ID, err error) {

@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"journeyhub/ent"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
@@ -23,6 +24,16 @@ func (r *queryResolver) Node(ctx context.Context, id pulid.ID) (ent.Noder, error
 // Nodes is the resolver for the nodes field.
 func (r *queryResolver) Nodes(ctx context.Context, ids []pulid.ID) ([]ent.Noder, error) {
 	return r.dbService.Client().Noders(ctx, ids)
+}
+
+// Devices is the resolver for the devices field.
+func (r *queryResolver) Devices(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.DeviceOrder, where *ent.DeviceWhereInput) (*ent.DeviceConnection, error) {
+	panic(fmt.Errorf("not implemented: Devices - devices"))
+}
+
+// Notifications is the resolver for the notifications field.
+func (r *queryResolver) Notifications(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.NotificationOrder, where *ent.NotificationWhereInput) (*ent.NotificationConnection, error) {
+	panic(fmt.Errorf("not implemented: Notifications - notifications"))
 }
 
 // RoomMembers is the resolver for the roomMembers field.

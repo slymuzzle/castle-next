@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Device is the predicate function for device builders.
+type Device func(*sql.Selector)
+
 // File is the predicate function for file builders.
 type File func(*sql.Selector)
 
@@ -20,6 +23,9 @@ type MessageLink func(*sql.Selector)
 
 // MessageVoice is the predicate function for messagevoice builders.
 type MessageVoice func(*sql.Selector)
+
+// Notification is the predicate function for notification builders.
+type Notification func(*sql.Selector)
 
 // Room is the predicate function for room builders.
 type Room func(*sql.Selector)

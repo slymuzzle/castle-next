@@ -5,11 +5,13 @@ package ent
 import (
 	"errors"
 	"fmt"
+	"journeyhub/ent/device"
 	"journeyhub/ent/file"
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/messagelink"
 	"journeyhub/ent/messagevoice"
+	"journeyhub/ent/notification"
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
@@ -18,6 +20,328 @@ import (
 	"journeyhub/ent/usercontact"
 	"time"
 )
+
+// DeviceWhereInput represents a where input for filtering Device queries.
+type DeviceWhereInput struct {
+	Predicates []predicate.Device  `json:"-"`
+	Not        *DeviceWhereInput   `json:"not,omitempty"`
+	Or         []*DeviceWhereInput `json:"or,omitempty"`
+	And        []*DeviceWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *pulid.ID  `json:"id,omitempty"`
+	IDNEQ   *pulid.ID  `json:"idNEQ,omitempty"`
+	IDIn    []pulid.ID `json:"idIn,omitempty"`
+	IDNotIn []pulid.ID `json:"idNotIn,omitempty"`
+	IDGT    *pulid.ID  `json:"idGT,omitempty"`
+	IDGTE   *pulid.ID  `json:"idGTE,omitempty"`
+	IDLT    *pulid.ID  `json:"idLT,omitempty"`
+	IDLTE   *pulid.ID  `json:"idLTE,omitempty"`
+
+	// "device_id" field predicates.
+	DeviceID             *string  `json:"deviceID,omitempty"`
+	DeviceIDNEQ          *string  `json:"deviceIDNEQ,omitempty"`
+	DeviceIDIn           []string `json:"deviceIDIn,omitempty"`
+	DeviceIDNotIn        []string `json:"deviceIDNotIn,omitempty"`
+	DeviceIDGT           *string  `json:"deviceIDGT,omitempty"`
+	DeviceIDGTE          *string  `json:"deviceIDGTE,omitempty"`
+	DeviceIDLT           *string  `json:"deviceIDLT,omitempty"`
+	DeviceIDLTE          *string  `json:"deviceIDLTE,omitempty"`
+	DeviceIDContains     *string  `json:"deviceIDContains,omitempty"`
+	DeviceIDHasPrefix    *string  `json:"deviceIDHasPrefix,omitempty"`
+	DeviceIDHasSuffix    *string  `json:"deviceIDHasSuffix,omitempty"`
+	DeviceIDEqualFold    *string  `json:"deviceIDEqualFold,omitempty"`
+	DeviceIDContainsFold *string  `json:"deviceIDContainsFold,omitempty"`
+
+	// "fcm_token" field predicates.
+	FcmToken             *string  `json:"fcmToken,omitempty"`
+	FcmTokenNEQ          *string  `json:"fcmTokenNEQ,omitempty"`
+	FcmTokenIn           []string `json:"fcmTokenIn,omitempty"`
+	FcmTokenNotIn        []string `json:"fcmTokenNotIn,omitempty"`
+	FcmTokenGT           *string  `json:"fcmTokenGT,omitempty"`
+	FcmTokenGTE          *string  `json:"fcmTokenGTE,omitempty"`
+	FcmTokenLT           *string  `json:"fcmTokenLT,omitempty"`
+	FcmTokenLTE          *string  `json:"fcmTokenLTE,omitempty"`
+	FcmTokenContains     *string  `json:"fcmTokenContains,omitempty"`
+	FcmTokenHasPrefix    *string  `json:"fcmTokenHasPrefix,omitempty"`
+	FcmTokenHasSuffix    *string  `json:"fcmTokenHasSuffix,omitempty"`
+	FcmTokenEqualFold    *string  `json:"fcmTokenEqualFold,omitempty"`
+	FcmTokenContainsFold *string  `json:"fcmTokenContainsFold,omitempty"`
+
+	// "created_at" field predicates.
+	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
+	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
+	CreatedAtIn    []time.Time `json:"createdAtIn,omitempty"`
+	CreatedAtNotIn []time.Time `json:"createdAtNotIn,omitempty"`
+	CreatedAtGT    *time.Time  `json:"createdAtGT,omitempty"`
+	CreatedAtGTE   *time.Time  `json:"createdAtGTE,omitempty"`
+	CreatedAtLT    *time.Time  `json:"createdAtLT,omitempty"`
+	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
+
+	// "updated_at" field predicates.
+	UpdatedAt      *time.Time  `json:"updatedAt,omitempty"`
+	UpdatedAtNEQ   *time.Time  `json:"updatedAtNEQ,omitempty"`
+	UpdatedAtIn    []time.Time `json:"updatedAtIn,omitempty"`
+	UpdatedAtNotIn []time.Time `json:"updatedAtNotIn,omitempty"`
+	UpdatedAtGT    *time.Time  `json:"updatedAtGT,omitempty"`
+	UpdatedAtGTE   *time.Time  `json:"updatedAtGTE,omitempty"`
+	UpdatedAtLT    *time.Time  `json:"updatedAtLT,omitempty"`
+	UpdatedAtLTE   *time.Time  `json:"updatedAtLTE,omitempty"`
+
+	// "user" edge predicates.
+	HasUser     *bool             `json:"hasUser,omitempty"`
+	HasUserWith []*UserWhereInput `json:"hasUserWith,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *DeviceWhereInput) AddPredicates(predicates ...predicate.Device) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Filter applies the DeviceWhereInput filter on the DeviceQuery builder.
+func (i *DeviceWhereInput) Filter(q *DeviceQuery) (*DeviceQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		if err == ErrEmptyDeviceWhereInput {
+			return q, nil
+		}
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// ErrEmptyDeviceWhereInput is returned in case the DeviceWhereInput is empty.
+var ErrEmptyDeviceWhereInput = errors.New("ent: empty predicate DeviceWhereInput")
+
+// P returns a predicate for filtering devices.
+// An error is returned if the input is empty or invalid.
+func (i *DeviceWhereInput) P() (predicate.Device, error) {
+	var predicates []predicate.Device
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'not'", err)
+		}
+		predicates = append(predicates, device.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'or'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.Device, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'or'", err)
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, device.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'and'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.Device, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'and'", err)
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, device.And(and...))
+	}
+	predicates = append(predicates, i.Predicates...)
+	if i.ID != nil {
+		predicates = append(predicates, device.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, device.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, device.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, device.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, device.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, device.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, device.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, device.IDLTE(*i.IDLTE))
+	}
+	if i.DeviceID != nil {
+		predicates = append(predicates, device.DeviceIDEQ(*i.DeviceID))
+	}
+	if i.DeviceIDNEQ != nil {
+		predicates = append(predicates, device.DeviceIDNEQ(*i.DeviceIDNEQ))
+	}
+	if len(i.DeviceIDIn) > 0 {
+		predicates = append(predicates, device.DeviceIDIn(i.DeviceIDIn...))
+	}
+	if len(i.DeviceIDNotIn) > 0 {
+		predicates = append(predicates, device.DeviceIDNotIn(i.DeviceIDNotIn...))
+	}
+	if i.DeviceIDGT != nil {
+		predicates = append(predicates, device.DeviceIDGT(*i.DeviceIDGT))
+	}
+	if i.DeviceIDGTE != nil {
+		predicates = append(predicates, device.DeviceIDGTE(*i.DeviceIDGTE))
+	}
+	if i.DeviceIDLT != nil {
+		predicates = append(predicates, device.DeviceIDLT(*i.DeviceIDLT))
+	}
+	if i.DeviceIDLTE != nil {
+		predicates = append(predicates, device.DeviceIDLTE(*i.DeviceIDLTE))
+	}
+	if i.DeviceIDContains != nil {
+		predicates = append(predicates, device.DeviceIDContains(*i.DeviceIDContains))
+	}
+	if i.DeviceIDHasPrefix != nil {
+		predicates = append(predicates, device.DeviceIDHasPrefix(*i.DeviceIDHasPrefix))
+	}
+	if i.DeviceIDHasSuffix != nil {
+		predicates = append(predicates, device.DeviceIDHasSuffix(*i.DeviceIDHasSuffix))
+	}
+	if i.DeviceIDEqualFold != nil {
+		predicates = append(predicates, device.DeviceIDEqualFold(*i.DeviceIDEqualFold))
+	}
+	if i.DeviceIDContainsFold != nil {
+		predicates = append(predicates, device.DeviceIDContainsFold(*i.DeviceIDContainsFold))
+	}
+	if i.FcmToken != nil {
+		predicates = append(predicates, device.FcmTokenEQ(*i.FcmToken))
+	}
+	if i.FcmTokenNEQ != nil {
+		predicates = append(predicates, device.FcmTokenNEQ(*i.FcmTokenNEQ))
+	}
+	if len(i.FcmTokenIn) > 0 {
+		predicates = append(predicates, device.FcmTokenIn(i.FcmTokenIn...))
+	}
+	if len(i.FcmTokenNotIn) > 0 {
+		predicates = append(predicates, device.FcmTokenNotIn(i.FcmTokenNotIn...))
+	}
+	if i.FcmTokenGT != nil {
+		predicates = append(predicates, device.FcmTokenGT(*i.FcmTokenGT))
+	}
+	if i.FcmTokenGTE != nil {
+		predicates = append(predicates, device.FcmTokenGTE(*i.FcmTokenGTE))
+	}
+	if i.FcmTokenLT != nil {
+		predicates = append(predicates, device.FcmTokenLT(*i.FcmTokenLT))
+	}
+	if i.FcmTokenLTE != nil {
+		predicates = append(predicates, device.FcmTokenLTE(*i.FcmTokenLTE))
+	}
+	if i.FcmTokenContains != nil {
+		predicates = append(predicates, device.FcmTokenContains(*i.FcmTokenContains))
+	}
+	if i.FcmTokenHasPrefix != nil {
+		predicates = append(predicates, device.FcmTokenHasPrefix(*i.FcmTokenHasPrefix))
+	}
+	if i.FcmTokenHasSuffix != nil {
+		predicates = append(predicates, device.FcmTokenHasSuffix(*i.FcmTokenHasSuffix))
+	}
+	if i.FcmTokenEqualFold != nil {
+		predicates = append(predicates, device.FcmTokenEqualFold(*i.FcmTokenEqualFold))
+	}
+	if i.FcmTokenContainsFold != nil {
+		predicates = append(predicates, device.FcmTokenContainsFold(*i.FcmTokenContainsFold))
+	}
+	if i.CreatedAt != nil {
+		predicates = append(predicates, device.CreatedAtEQ(*i.CreatedAt))
+	}
+	if i.CreatedAtNEQ != nil {
+		predicates = append(predicates, device.CreatedAtNEQ(*i.CreatedAtNEQ))
+	}
+	if len(i.CreatedAtIn) > 0 {
+		predicates = append(predicates, device.CreatedAtIn(i.CreatedAtIn...))
+	}
+	if len(i.CreatedAtNotIn) > 0 {
+		predicates = append(predicates, device.CreatedAtNotIn(i.CreatedAtNotIn...))
+	}
+	if i.CreatedAtGT != nil {
+		predicates = append(predicates, device.CreatedAtGT(*i.CreatedAtGT))
+	}
+	if i.CreatedAtGTE != nil {
+		predicates = append(predicates, device.CreatedAtGTE(*i.CreatedAtGTE))
+	}
+	if i.CreatedAtLT != nil {
+		predicates = append(predicates, device.CreatedAtLT(*i.CreatedAtLT))
+	}
+	if i.CreatedAtLTE != nil {
+		predicates = append(predicates, device.CreatedAtLTE(*i.CreatedAtLTE))
+	}
+	if i.UpdatedAt != nil {
+		predicates = append(predicates, device.UpdatedAtEQ(*i.UpdatedAt))
+	}
+	if i.UpdatedAtNEQ != nil {
+		predicates = append(predicates, device.UpdatedAtNEQ(*i.UpdatedAtNEQ))
+	}
+	if len(i.UpdatedAtIn) > 0 {
+		predicates = append(predicates, device.UpdatedAtIn(i.UpdatedAtIn...))
+	}
+	if len(i.UpdatedAtNotIn) > 0 {
+		predicates = append(predicates, device.UpdatedAtNotIn(i.UpdatedAtNotIn...))
+	}
+	if i.UpdatedAtGT != nil {
+		predicates = append(predicates, device.UpdatedAtGT(*i.UpdatedAtGT))
+	}
+	if i.UpdatedAtGTE != nil {
+		predicates = append(predicates, device.UpdatedAtGTE(*i.UpdatedAtGTE))
+	}
+	if i.UpdatedAtLT != nil {
+		predicates = append(predicates, device.UpdatedAtLT(*i.UpdatedAtLT))
+	}
+	if i.UpdatedAtLTE != nil {
+		predicates = append(predicates, device.UpdatedAtLTE(*i.UpdatedAtLTE))
+	}
+
+	if i.HasUser != nil {
+		p := device.HasUser()
+		if !*i.HasUser {
+			p = device.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasUserWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasUserWith))
+		for _, w := range i.HasUserWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasUserWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, device.HasUserWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyDeviceWhereInput
+	case 1:
+		return predicates[0], nil
+	default:
+		return device.And(predicates...), nil
+	}
+}
 
 // FileWhereInput represents a where input for filtering File queries.
 type FileWhereInput struct {
@@ -1951,6 +2275,328 @@ func (i *MessageVoiceWhereInput) P() (predicate.MessageVoice, error) {
 	}
 }
 
+// NotificationWhereInput represents a where input for filtering Notification queries.
+type NotificationWhereInput struct {
+	Predicates []predicate.Notification  `json:"-"`
+	Not        *NotificationWhereInput   `json:"not,omitempty"`
+	Or         []*NotificationWhereInput `json:"or,omitempty"`
+	And        []*NotificationWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *pulid.ID  `json:"id,omitempty"`
+	IDNEQ   *pulid.ID  `json:"idNEQ,omitempty"`
+	IDIn    []pulid.ID `json:"idIn,omitempty"`
+	IDNotIn []pulid.ID `json:"idNotIn,omitempty"`
+	IDGT    *pulid.ID  `json:"idGT,omitempty"`
+	IDGTE   *pulid.ID  `json:"idGTE,omitempty"`
+	IDLT    *pulid.ID  `json:"idLT,omitempty"`
+	IDLTE   *pulid.ID  `json:"idLTE,omitempty"`
+
+	// "title" field predicates.
+	Title             *string  `json:"title,omitempty"`
+	TitleNEQ          *string  `json:"titleNEQ,omitempty"`
+	TitleIn           []string `json:"titleIn,omitempty"`
+	TitleNotIn        []string `json:"titleNotIn,omitempty"`
+	TitleGT           *string  `json:"titleGT,omitempty"`
+	TitleGTE          *string  `json:"titleGTE,omitempty"`
+	TitleLT           *string  `json:"titleLT,omitempty"`
+	TitleLTE          *string  `json:"titleLTE,omitempty"`
+	TitleContains     *string  `json:"titleContains,omitempty"`
+	TitleHasPrefix    *string  `json:"titleHasPrefix,omitempty"`
+	TitleHasSuffix    *string  `json:"titleHasSuffix,omitempty"`
+	TitleEqualFold    *string  `json:"titleEqualFold,omitempty"`
+	TitleContainsFold *string  `json:"titleContainsFold,omitempty"`
+
+	// "body" field predicates.
+	Body             *string  `json:"body,omitempty"`
+	BodyNEQ          *string  `json:"bodyNEQ,omitempty"`
+	BodyIn           []string `json:"bodyIn,omitempty"`
+	BodyNotIn        []string `json:"bodyNotIn,omitempty"`
+	BodyGT           *string  `json:"bodyGT,omitempty"`
+	BodyGTE          *string  `json:"bodyGTE,omitempty"`
+	BodyLT           *string  `json:"bodyLT,omitempty"`
+	BodyLTE          *string  `json:"bodyLTE,omitempty"`
+	BodyContains     *string  `json:"bodyContains,omitempty"`
+	BodyHasPrefix    *string  `json:"bodyHasPrefix,omitempty"`
+	BodyHasSuffix    *string  `json:"bodyHasSuffix,omitempty"`
+	BodyEqualFold    *string  `json:"bodyEqualFold,omitempty"`
+	BodyContainsFold *string  `json:"bodyContainsFold,omitempty"`
+
+	// "created_at" field predicates.
+	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
+	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
+	CreatedAtIn    []time.Time `json:"createdAtIn,omitempty"`
+	CreatedAtNotIn []time.Time `json:"createdAtNotIn,omitempty"`
+	CreatedAtGT    *time.Time  `json:"createdAtGT,omitempty"`
+	CreatedAtGTE   *time.Time  `json:"createdAtGTE,omitempty"`
+	CreatedAtLT    *time.Time  `json:"createdAtLT,omitempty"`
+	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
+
+	// "updated_at" field predicates.
+	UpdatedAt      *time.Time  `json:"updatedAt,omitempty"`
+	UpdatedAtNEQ   *time.Time  `json:"updatedAtNEQ,omitempty"`
+	UpdatedAtIn    []time.Time `json:"updatedAtIn,omitempty"`
+	UpdatedAtNotIn []time.Time `json:"updatedAtNotIn,omitempty"`
+	UpdatedAtGT    *time.Time  `json:"updatedAtGT,omitempty"`
+	UpdatedAtGTE   *time.Time  `json:"updatedAtGTE,omitempty"`
+	UpdatedAtLT    *time.Time  `json:"updatedAtLT,omitempty"`
+	UpdatedAtLTE   *time.Time  `json:"updatedAtLTE,omitempty"`
+
+	// "user" edge predicates.
+	HasUser     *bool             `json:"hasUser,omitempty"`
+	HasUserWith []*UserWhereInput `json:"hasUserWith,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *NotificationWhereInput) AddPredicates(predicates ...predicate.Notification) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Filter applies the NotificationWhereInput filter on the NotificationQuery builder.
+func (i *NotificationWhereInput) Filter(q *NotificationQuery) (*NotificationQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		if err == ErrEmptyNotificationWhereInput {
+			return q, nil
+		}
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// ErrEmptyNotificationWhereInput is returned in case the NotificationWhereInput is empty.
+var ErrEmptyNotificationWhereInput = errors.New("ent: empty predicate NotificationWhereInput")
+
+// P returns a predicate for filtering notifications.
+// An error is returned if the input is empty or invalid.
+func (i *NotificationWhereInput) P() (predicate.Notification, error) {
+	var predicates []predicate.Notification
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'not'", err)
+		}
+		predicates = append(predicates, notification.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'or'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.Notification, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'or'", err)
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, notification.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'and'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.Notification, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'and'", err)
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, notification.And(and...))
+	}
+	predicates = append(predicates, i.Predicates...)
+	if i.ID != nil {
+		predicates = append(predicates, notification.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, notification.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, notification.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, notification.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, notification.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, notification.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, notification.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, notification.IDLTE(*i.IDLTE))
+	}
+	if i.Title != nil {
+		predicates = append(predicates, notification.TitleEQ(*i.Title))
+	}
+	if i.TitleNEQ != nil {
+		predicates = append(predicates, notification.TitleNEQ(*i.TitleNEQ))
+	}
+	if len(i.TitleIn) > 0 {
+		predicates = append(predicates, notification.TitleIn(i.TitleIn...))
+	}
+	if len(i.TitleNotIn) > 0 {
+		predicates = append(predicates, notification.TitleNotIn(i.TitleNotIn...))
+	}
+	if i.TitleGT != nil {
+		predicates = append(predicates, notification.TitleGT(*i.TitleGT))
+	}
+	if i.TitleGTE != nil {
+		predicates = append(predicates, notification.TitleGTE(*i.TitleGTE))
+	}
+	if i.TitleLT != nil {
+		predicates = append(predicates, notification.TitleLT(*i.TitleLT))
+	}
+	if i.TitleLTE != nil {
+		predicates = append(predicates, notification.TitleLTE(*i.TitleLTE))
+	}
+	if i.TitleContains != nil {
+		predicates = append(predicates, notification.TitleContains(*i.TitleContains))
+	}
+	if i.TitleHasPrefix != nil {
+		predicates = append(predicates, notification.TitleHasPrefix(*i.TitleHasPrefix))
+	}
+	if i.TitleHasSuffix != nil {
+		predicates = append(predicates, notification.TitleHasSuffix(*i.TitleHasSuffix))
+	}
+	if i.TitleEqualFold != nil {
+		predicates = append(predicates, notification.TitleEqualFold(*i.TitleEqualFold))
+	}
+	if i.TitleContainsFold != nil {
+		predicates = append(predicates, notification.TitleContainsFold(*i.TitleContainsFold))
+	}
+	if i.Body != nil {
+		predicates = append(predicates, notification.BodyEQ(*i.Body))
+	}
+	if i.BodyNEQ != nil {
+		predicates = append(predicates, notification.BodyNEQ(*i.BodyNEQ))
+	}
+	if len(i.BodyIn) > 0 {
+		predicates = append(predicates, notification.BodyIn(i.BodyIn...))
+	}
+	if len(i.BodyNotIn) > 0 {
+		predicates = append(predicates, notification.BodyNotIn(i.BodyNotIn...))
+	}
+	if i.BodyGT != nil {
+		predicates = append(predicates, notification.BodyGT(*i.BodyGT))
+	}
+	if i.BodyGTE != nil {
+		predicates = append(predicates, notification.BodyGTE(*i.BodyGTE))
+	}
+	if i.BodyLT != nil {
+		predicates = append(predicates, notification.BodyLT(*i.BodyLT))
+	}
+	if i.BodyLTE != nil {
+		predicates = append(predicates, notification.BodyLTE(*i.BodyLTE))
+	}
+	if i.BodyContains != nil {
+		predicates = append(predicates, notification.BodyContains(*i.BodyContains))
+	}
+	if i.BodyHasPrefix != nil {
+		predicates = append(predicates, notification.BodyHasPrefix(*i.BodyHasPrefix))
+	}
+	if i.BodyHasSuffix != nil {
+		predicates = append(predicates, notification.BodyHasSuffix(*i.BodyHasSuffix))
+	}
+	if i.BodyEqualFold != nil {
+		predicates = append(predicates, notification.BodyEqualFold(*i.BodyEqualFold))
+	}
+	if i.BodyContainsFold != nil {
+		predicates = append(predicates, notification.BodyContainsFold(*i.BodyContainsFold))
+	}
+	if i.CreatedAt != nil {
+		predicates = append(predicates, notification.CreatedAtEQ(*i.CreatedAt))
+	}
+	if i.CreatedAtNEQ != nil {
+		predicates = append(predicates, notification.CreatedAtNEQ(*i.CreatedAtNEQ))
+	}
+	if len(i.CreatedAtIn) > 0 {
+		predicates = append(predicates, notification.CreatedAtIn(i.CreatedAtIn...))
+	}
+	if len(i.CreatedAtNotIn) > 0 {
+		predicates = append(predicates, notification.CreatedAtNotIn(i.CreatedAtNotIn...))
+	}
+	if i.CreatedAtGT != nil {
+		predicates = append(predicates, notification.CreatedAtGT(*i.CreatedAtGT))
+	}
+	if i.CreatedAtGTE != nil {
+		predicates = append(predicates, notification.CreatedAtGTE(*i.CreatedAtGTE))
+	}
+	if i.CreatedAtLT != nil {
+		predicates = append(predicates, notification.CreatedAtLT(*i.CreatedAtLT))
+	}
+	if i.CreatedAtLTE != nil {
+		predicates = append(predicates, notification.CreatedAtLTE(*i.CreatedAtLTE))
+	}
+	if i.UpdatedAt != nil {
+		predicates = append(predicates, notification.UpdatedAtEQ(*i.UpdatedAt))
+	}
+	if i.UpdatedAtNEQ != nil {
+		predicates = append(predicates, notification.UpdatedAtNEQ(*i.UpdatedAtNEQ))
+	}
+	if len(i.UpdatedAtIn) > 0 {
+		predicates = append(predicates, notification.UpdatedAtIn(i.UpdatedAtIn...))
+	}
+	if len(i.UpdatedAtNotIn) > 0 {
+		predicates = append(predicates, notification.UpdatedAtNotIn(i.UpdatedAtNotIn...))
+	}
+	if i.UpdatedAtGT != nil {
+		predicates = append(predicates, notification.UpdatedAtGT(*i.UpdatedAtGT))
+	}
+	if i.UpdatedAtGTE != nil {
+		predicates = append(predicates, notification.UpdatedAtGTE(*i.UpdatedAtGTE))
+	}
+	if i.UpdatedAtLT != nil {
+		predicates = append(predicates, notification.UpdatedAtLT(*i.UpdatedAtLT))
+	}
+	if i.UpdatedAtLTE != nil {
+		predicates = append(predicates, notification.UpdatedAtLTE(*i.UpdatedAtLTE))
+	}
+
+	if i.HasUser != nil {
+		p := notification.HasUser()
+		if !*i.HasUser {
+			p = notification.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasUserWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasUserWith))
+		for _, w := range i.HasUserWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasUserWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, notification.HasUserWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyNotificationWhereInput
+	case 1:
+		return predicates[0], nil
+	default:
+		return notification.And(predicates...), nil
+	}
+}
+
 // RoomWhereInput represents a where input for filtering Room queries.
 type RoomWhereInput struct {
 	Predicates []predicate.Room  `json:"-"`
@@ -3051,6 +3697,14 @@ type UserWhereInput struct {
 	UpdatedAtLT    *time.Time  `json:"updatedAtLT,omitempty"`
 	UpdatedAtLTE   *time.Time  `json:"updatedAtLTE,omitempty"`
 
+	// "device" edge predicates.
+	HasDevice     *bool               `json:"hasDevice,omitempty"`
+	HasDeviceWith []*DeviceWhereInput `json:"hasDeviceWith,omitempty"`
+
+	// "notifications" edge predicates.
+	HasNotifications     *bool                     `json:"hasNotifications,omitempty"`
+	HasNotificationsWith []*NotificationWhereInput `json:"hasNotificationsWith,omitempty"`
+
 	// "contacts" edge predicates.
 	HasContacts     *bool             `json:"hasContacts,omitempty"`
 	HasContactsWith []*UserWhereInput `json:"hasContactsWith,omitempty"`
@@ -3423,6 +4077,42 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 		predicates = append(predicates, user.UpdatedAtLTE(*i.UpdatedAtLTE))
 	}
 
+	if i.HasDevice != nil {
+		p := user.HasDevice()
+		if !*i.HasDevice {
+			p = user.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasDeviceWith) > 0 {
+		with := make([]predicate.Device, 0, len(i.HasDeviceWith))
+		for _, w := range i.HasDeviceWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasDeviceWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, user.HasDeviceWith(with...))
+	}
+	if i.HasNotifications != nil {
+		p := user.HasNotifications()
+		if !*i.HasNotifications {
+			p = user.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasNotificationsWith) > 0 {
+		with := make([]predicate.Notification, 0, len(i.HasNotificationsWith))
+		for _, w := range i.HasNotificationsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasNotificationsWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, user.HasNotificationsWith(with...))
+	}
 	if i.HasContacts != nil {
 		p := user.HasContacts()
 		if !*i.HasContacts {

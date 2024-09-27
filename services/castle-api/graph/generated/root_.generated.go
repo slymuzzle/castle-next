@@ -45,6 +45,26 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Device struct {
+		CreatedAt func(childComplexity int) int
+		DeviceID  func(childComplexity int) int
+		FcmToken  func(childComplexity int) int
+		ID        func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+		User      func(childComplexity int) int
+	}
+
+	DeviceConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	DeviceEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	File struct {
 		Bucket            func(childComplexity int) int
 		ContentType       func(childComplexity int) int
@@ -175,6 +195,27 @@ type ComplexityRoot struct {
 		UpdateRoom            func(childComplexity int, roomID pulid.ID, input model.UpdateRoomInput) int
 	}
 
+	Notification struct {
+		Body      func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		Data      func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Title     func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+		User      func(childComplexity int) int
+	}
+
+	NotificationConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	NotificationEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	PageInfo struct {
 		EndCursor       func(childComplexity int) int
 		HasNextPage     func(childComplexity int) int
@@ -184,12 +225,14 @@ type ComplexityRoot struct {
 
 	Query struct {
 		CallJoinToken            func(childComplexity int, roomID pulid.ID) int
+		Devices                  func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.DeviceOrder, where *ent.DeviceWhereInput) int
 		MessageAttachmentsByRoom func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageAttachmentOrder, where *ent.MessageAttachmentWhereInput) int
 		MessageLinksByRoom       func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageLinkOrder, where *ent.MessageLinkWhereInput) int
 		MessageVoicesByRoom      func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageVoiceOrder, where *ent.MessageVoiceWhereInput) int
 		MessagesByRoom           func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) int
 		Node                     func(childComplexity int, id pulid.ID) int
 		Nodes                    func(childComplexity int, ids []pulid.ID) int
+		Notifications            func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.NotificationOrder, where *ent.NotificationWhereInput) int
 		Room                     func(childComplexity int, roomID pulid.ID) int
 		RoomMembers              func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
 		RoomMembersByRoom        func(childComplexity int, roomID pulid.ID, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
@@ -270,19 +313,21 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		ContactPin   func(childComplexity int) int
-		Contacts     func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) int
-		CreatedAt    func(childComplexity int) int
-		Email        func(childComplexity int) int
-		FirstName    func(childComplexity int) int
-		ID           func(childComplexity int) int
-		LastName     func(childComplexity int) int
-		Memberships  func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
-		Messages     func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) int
-		Nickname     func(childComplexity int) int
-		Rooms        func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomOrder, where *ent.RoomWhereInput) int
-		UpdatedAt    func(childComplexity int) int
-		UserContacts func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserContactOrder, where *ent.UserContactWhereInput) int
+		ContactPin    func(childComplexity int) int
+		Contacts      func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) int
+		CreatedAt     func(childComplexity int) int
+		Device        func(childComplexity int) int
+		Email         func(childComplexity int) int
+		FirstName     func(childComplexity int) int
+		ID            func(childComplexity int) int
+		LastName      func(childComplexity int) int
+		Memberships   func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomMemberOrder, where *ent.RoomMemberWhereInput) int
+		Messages      func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.MessageOrder, where *ent.MessageWhereInput) int
+		Nickname      func(childComplexity int) int
+		Notifications func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.NotificationOrder, where *ent.NotificationWhereInput) int
+		Rooms         func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.RoomOrder, where *ent.RoomWhereInput) int
+		UpdatedAt     func(childComplexity int) int
+		UserContacts  func(childComplexity int, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.UserContactOrder, where *ent.UserContactWhereInput) int
 	}
 
 	UserConnection struct {
@@ -337,6 +382,83 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Device.createdAt":
+		if e.complexity.Device.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Device.CreatedAt(childComplexity), true
+
+	case "Device.deviceID":
+		if e.complexity.Device.DeviceID == nil {
+			break
+		}
+
+		return e.complexity.Device.DeviceID(childComplexity), true
+
+	case "Device.fcmToken":
+		if e.complexity.Device.FcmToken == nil {
+			break
+		}
+
+		return e.complexity.Device.FcmToken(childComplexity), true
+
+	case "Device.id":
+		if e.complexity.Device.ID == nil {
+			break
+		}
+
+		return e.complexity.Device.ID(childComplexity), true
+
+	case "Device.updatedAt":
+		if e.complexity.Device.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Device.UpdatedAt(childComplexity), true
+
+	case "Device.user":
+		if e.complexity.Device.User == nil {
+			break
+		}
+
+		return e.complexity.Device.User(childComplexity), true
+
+	case "DeviceConnection.edges":
+		if e.complexity.DeviceConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.DeviceConnection.Edges(childComplexity), true
+
+	case "DeviceConnection.pageInfo":
+		if e.complexity.DeviceConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.DeviceConnection.PageInfo(childComplexity), true
+
+	case "DeviceConnection.totalCount":
+		if e.complexity.DeviceConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.DeviceConnection.TotalCount(childComplexity), true
+
+	case "DeviceEdge.cursor":
+		if e.complexity.DeviceEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.DeviceEdge.Cursor(childComplexity), true
+
+	case "DeviceEdge.node":
+		if e.complexity.DeviceEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.DeviceEdge.Node(childComplexity), true
 
 	case "File.bucket":
 		if e.complexity.File.Bucket == nil {
@@ -972,6 +1094,90 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateRoom(childComplexity, args["roomID"].(pulid.ID), args["input"].(model.UpdateRoomInput)), true
 
+	case "Notification.body":
+		if e.complexity.Notification.Body == nil {
+			break
+		}
+
+		return e.complexity.Notification.Body(childComplexity), true
+
+	case "Notification.createdAt":
+		if e.complexity.Notification.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Notification.CreatedAt(childComplexity), true
+
+	case "Notification.data":
+		if e.complexity.Notification.Data == nil {
+			break
+		}
+
+		return e.complexity.Notification.Data(childComplexity), true
+
+	case "Notification.id":
+		if e.complexity.Notification.ID == nil {
+			break
+		}
+
+		return e.complexity.Notification.ID(childComplexity), true
+
+	case "Notification.title":
+		if e.complexity.Notification.Title == nil {
+			break
+		}
+
+		return e.complexity.Notification.Title(childComplexity), true
+
+	case "Notification.updatedAt":
+		if e.complexity.Notification.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Notification.UpdatedAt(childComplexity), true
+
+	case "Notification.user":
+		if e.complexity.Notification.User == nil {
+			break
+		}
+
+		return e.complexity.Notification.User(childComplexity), true
+
+	case "NotificationConnection.edges":
+		if e.complexity.NotificationConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.NotificationConnection.Edges(childComplexity), true
+
+	case "NotificationConnection.pageInfo":
+		if e.complexity.NotificationConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.NotificationConnection.PageInfo(childComplexity), true
+
+	case "NotificationConnection.totalCount":
+		if e.complexity.NotificationConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.NotificationConnection.TotalCount(childComplexity), true
+
+	case "NotificationEdge.cursor":
+		if e.complexity.NotificationEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.NotificationEdge.Cursor(childComplexity), true
+
+	case "NotificationEdge.node":
+		if e.complexity.NotificationEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.NotificationEdge.Node(childComplexity), true
+
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
 			break
@@ -1011,6 +1217,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.CallJoinToken(childComplexity, args["roomID"].(pulid.ID)), true
+
+	case "Query.devices":
+		if e.complexity.Query.Devices == nil {
+			break
+		}
+
+		args, err := ec.field_Query_devices_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Devices(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.DeviceOrder), args["where"].(*ent.DeviceWhereInput)), true
 
 	case "Query.messageAttachmentsByRoom":
 		if e.complexity.Query.MessageAttachmentsByRoom == nil {
@@ -1083,6 +1301,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Nodes(childComplexity, args["ids"].([]pulid.ID)), true
+
+	case "Query.notifications":
+		if e.complexity.Query.Notifications == nil {
+			break
+		}
+
+		args, err := ec.field_Query_notifications_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Notifications(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.NotificationOrder), args["where"].(*ent.NotificationWhereInput)), true
 
 	case "Query.room":
 		if e.complexity.Query.Room == nil {
@@ -1551,6 +1781,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.CreatedAt(childComplexity), true
 
+	case "User.device":
+		if e.complexity.User.Device == nil {
+			break
+		}
+
+		return e.complexity.User.Device(childComplexity), true
+
 	case "User.email":
 		if e.complexity.User.Email == nil {
 			break
@@ -1609,6 +1846,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Nickname(childComplexity), true
+
+	case "User.notifications":
+		if e.complexity.User.Notifications == nil {
+			break
+		}
+
+		args, err := ec.field_User_notifications_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.User.Notifications(childComplexity, args["after"].(*entgql.Cursor[pulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[pulid.ID]), args["last"].(*int), args["orderBy"].([]*ent.NotificationOrder), args["where"].(*ent.NotificationWhereInput)), true
 
 	case "User.rooms":
 		if e.complexity.User.Rooms == nil {
@@ -1777,6 +2026,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCreateMessageLinkInput,
 		ec.unmarshalInputCreateRoomInput,
+		ec.unmarshalInputDeviceOrder,
+		ec.unmarshalInputDeviceWhereInput,
 		ec.unmarshalInputFileOrder,
 		ec.unmarshalInputFileWhereInput,
 		ec.unmarshalInputMessageAttachmentOrder,
@@ -1787,6 +2038,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputMessageVoiceOrder,
 		ec.unmarshalInputMessageVoiceWhereInput,
 		ec.unmarshalInputMessageWhereInput,
+		ec.unmarshalInputNotificationOrder,
+		ec.unmarshalInputNotificationWhereInput,
 		ec.unmarshalInputRoomMemberOrder,
 		ec.unmarshalInputRoomMemberWhereInput,
 		ec.unmarshalInputRoomOrder,
@@ -1931,6 +2184,145 @@ Define a Relay Cursor type:
 https://relay.dev/graphql/connections.htm#sec-Cursor
 """
 scalar Cursor
+type Device implements Node {
+  id: ID!
+  deviceID: String!
+  fcmToken: String!
+  createdAt: Time!
+  updatedAt: Time!
+  user: User!
+}
+"""
+A connection to a list of items.
+"""
+type DeviceConnection {
+  """
+  A list of edges.
+  """
+  edges: [DeviceEdge]
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+  """
+  Identifies the total count of items in the connection.
+  """
+  totalCount: Int!
+}
+"""
+An edge in a connection.
+"""
+type DeviceEdge {
+  """
+  The item at the end of the edge.
+  """
+  node: Device
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+"""
+Ordering options for Device connections
+"""
+input DeviceOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection! = ASC
+  """
+  The field by which to order Devices.
+  """
+  field: DeviceOrderField!
+}
+"""
+Properties by which Device connections can be ordered.
+"""
+enum DeviceOrderField {
+  DEVICE_ID
+  FCM_TOKEN
+  CREATED_AT
+  UPDATED_AT
+}
+"""
+DeviceWhereInput is used for filtering Device objects.
+Input was generated by ent.
+"""
+input DeviceWhereInput {
+  not: DeviceWhereInput
+  and: [DeviceWhereInput!]
+  or: [DeviceWhereInput!]
+  """
+  id field predicates
+  """
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """
+  device_id field predicates
+  """
+  deviceID: String
+  deviceIDNEQ: String
+  deviceIDIn: [String!]
+  deviceIDNotIn: [String!]
+  deviceIDGT: String
+  deviceIDGTE: String
+  deviceIDLT: String
+  deviceIDLTE: String
+  deviceIDContains: String
+  deviceIDHasPrefix: String
+  deviceIDHasSuffix: String
+  deviceIDEqualFold: String
+  deviceIDContainsFold: String
+  """
+  fcm_token field predicates
+  """
+  fcmToken: String
+  fcmTokenNEQ: String
+  fcmTokenIn: [String!]
+  fcmTokenNotIn: [String!]
+  fcmTokenGT: String
+  fcmTokenGTE: String
+  fcmTokenLT: String
+  fcmTokenLTE: String
+  fcmTokenContains: String
+  fcmTokenHasPrefix: String
+  fcmTokenHasSuffix: String
+  fcmTokenEqualFold: String
+  fcmTokenContainsFold: String
+  """
+  created_at field predicates
+  """
+  createdAt: Time
+  createdAtNEQ: Time
+  createdAtIn: [Time!]
+  createdAtNotIn: [Time!]
+  createdAtGT: Time
+  createdAtGTE: Time
+  createdAtLT: Time
+  createdAtLTE: Time
+  """
+  updated_at field predicates
+  """
+  updatedAt: Time
+  updatedAtNEQ: Time
+  updatedAtIn: [Time!]
+  updatedAtNotIn: [Time!]
+  updatedAtGT: Time
+  updatedAtGTE: Time
+  updatedAtLT: Time
+  updatedAtLTE: Time
+  """
+  user edge predicates
+  """
+  hasUser: Boolean
+  hasUserWith: [UserWhereInput!]
+}
 type File implements Node {
   id: ID!
   name: String!
@@ -2115,6 +2507,10 @@ input FileWhereInput {
   hasMessageVoice: Boolean
   hasMessageVoiceWith: [MessageVoiceWhereInput!]
 }
+"""
+The builtin Map type
+"""
+scalar Map
 type Message implements Node {
   id: ID!
   content: String
@@ -2703,6 +3099,145 @@ interface Node @goModel(model: "journeyhub/ent.Noder") {
   """
   id: ID!
 }
+type Notification implements Node {
+  id: ID!
+  title: String!
+  body: String!
+  data: Map
+  createdAt: Time!
+  updatedAt: Time!
+  user: User
+}
+"""
+A connection to a list of items.
+"""
+type NotificationConnection {
+  """
+  A list of edges.
+  """
+  edges: [NotificationEdge]
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+  """
+  Identifies the total count of items in the connection.
+  """
+  totalCount: Int!
+}
+"""
+An edge in a connection.
+"""
+type NotificationEdge {
+  """
+  The item at the end of the edge.
+  """
+  node: Notification
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+"""
+Ordering options for Notification connections
+"""
+input NotificationOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection! = ASC
+  """
+  The field by which to order Notifications.
+  """
+  field: NotificationOrderField!
+}
+"""
+Properties by which Notification connections can be ordered.
+"""
+enum NotificationOrderField {
+  TITLE
+  CREATED_AT
+  UPDATED_AT
+}
+"""
+NotificationWhereInput is used for filtering Notification objects.
+Input was generated by ent.
+"""
+input NotificationWhereInput {
+  not: NotificationWhereInput
+  and: [NotificationWhereInput!]
+  or: [NotificationWhereInput!]
+  """
+  id field predicates
+  """
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """
+  title field predicates
+  """
+  title: String
+  titleNEQ: String
+  titleIn: [String!]
+  titleNotIn: [String!]
+  titleGT: String
+  titleGTE: String
+  titleLT: String
+  titleLTE: String
+  titleContains: String
+  titleHasPrefix: String
+  titleHasSuffix: String
+  titleEqualFold: String
+  titleContainsFold: String
+  """
+  body field predicates
+  """
+  body: String
+  bodyNEQ: String
+  bodyIn: [String!]
+  bodyNotIn: [String!]
+  bodyGT: String
+  bodyGTE: String
+  bodyLT: String
+  bodyLTE: String
+  bodyContains: String
+  bodyHasPrefix: String
+  bodyHasSuffix: String
+  bodyEqualFold: String
+  bodyContainsFold: String
+  """
+  created_at field predicates
+  """
+  createdAt: Time
+  createdAtNEQ: Time
+  createdAtIn: [Time!]
+  createdAtNotIn: [Time!]
+  createdAtGT: Time
+  createdAtGTE: Time
+  createdAtLT: Time
+  createdAtLTE: Time
+  """
+  updated_at field predicates
+  """
+  updatedAt: Time
+  updatedAtNEQ: Time
+  updatedAtIn: [Time!]
+  updatedAtNotIn: [Time!]
+  updatedAtGT: Time
+  updatedAtGTE: Time
+  updatedAtLT: Time
+  updatedAtLTE: Time
+  """
+  user edge predicates
+  """
+  hasUser: Boolean
+  hasUserWith: [UserWhereInput!]
+}
 """
 Possible directions in which to order a list of items when provided an ` + "`" + `orderBy` + "`" + ` argument.
 """
@@ -2757,6 +3292,68 @@ type Query {
     """
     ids: [ID!]!
   ): [Node]!
+  devices(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for Devices returned from the connection.
+    """
+    orderBy: [DeviceOrder!]
+
+    """
+    Filtering options for Devices returned from the connection.
+    """
+    where: DeviceWhereInput
+  ): DeviceConnection!
+  notifications(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for Notifications returned from the connection.
+    """
+    orderBy: [NotificationOrder!]
+
+    """
+    Filtering options for Notifications returned from the connection.
+    """
+    where: NotificationWhereInput
+  ): NotificationConnection!
   roomMembers(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -3371,6 +3968,38 @@ type User implements Node {
   contactPin: String
   createdAt: Time!
   updatedAt: Time!
+  device: Device
+  notifications(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for Notifications returned from the connection.
+    """
+    orderBy: [NotificationOrder!]
+
+    """
+    Filtering options for Notifications returned from the connection.
+    """
+    where: NotificationWhereInput
+  ): NotificationConnection!
   contacts(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -3797,6 +4426,16 @@ input UserWhereInput {
   updatedAtLT: Time
   updatedAtLTE: Time
   """
+  device edge predicates
+  """
+  hasDevice: Boolean
+  hasDeviceWith: [DeviceWhereInput!]
+  """
+  notifications edge predicates
+  """
+  hasNotifications: Boolean
+  hasNotificationsWith: [NotificationWhereInput!]
+  """
   contacts edge predicates
   """
   hasContacts: Boolean
@@ -4165,6 +4804,8 @@ UserLoginInput is used for user login.
 input UserLoginInput {
   nickname: String!
   password: String!
+  deviceID: String!
+  fcmToken: String!
 }
 
 type LoginUser {

@@ -6,7 +6,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"journeyhub/ent/device"
 	"journeyhub/ent/message"
+	"journeyhub/ent/notification"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
@@ -120,6 +122,40 @@ func (uc *UserCreate) SetNillableID(pu *pulid.ID) *UserCreate {
 		uc.SetID(*pu)
 	}
 	return uc
+}
+
+// SetDeviceID sets the "device" edge to the Device entity by ID.
+func (uc *UserCreate) SetDeviceID(id pulid.ID) *UserCreate {
+	uc.mutation.SetDeviceID(id)
+	return uc
+}
+
+// SetNillableDeviceID sets the "device" edge to the Device entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableDeviceID(id *pulid.ID) *UserCreate {
+	if id != nil {
+		uc = uc.SetDeviceID(*id)
+	}
+	return uc
+}
+
+// SetDevice sets the "device" edge to the Device entity.
+func (uc *UserCreate) SetDevice(d *Device) *UserCreate {
+	return uc.SetDeviceID(d.ID)
+}
+
+// AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
+func (uc *UserCreate) AddNotificationIDs(ids ...pulid.ID) *UserCreate {
+	uc.mutation.AddNotificationIDs(ids...)
+	return uc
+}
+
+// AddNotifications adds the "notifications" edges to the Notification entity.
+func (uc *UserCreate) AddNotifications(n ...*Notification) *UserCreate {
+	ids := make([]pulid.ID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return uc.AddNotificationIDs(ids...)
 }
 
 // AddContactIDs adds the "contacts" edge to the User entity by IDs.
@@ -333,6 +369,38 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if nodes := uc.mutation.DeviceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.DeviceTable,
+			Columns: []string{user.DeviceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.NotificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NotificationsTable,
+			Columns: []string{user.NotificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := uc.mutation.ContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

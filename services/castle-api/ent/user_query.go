@@ -6,7 +6,9 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
+	"journeyhub/ent/device"
 	"journeyhub/ent/message"
+	"journeyhub/ent/notification"
 	"journeyhub/ent/predicate"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
@@ -24,22 +26,25 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx                   *QueryContext
-	order                 []user.OrderOption
-	inters                []Interceptor
-	predicates            []predicate.User
-	withContacts          *UserQuery
-	withRooms             *RoomQuery
-	withMessages          *MessageQuery
-	withUserContacts      *UserContactQuery
-	withMemberships       *RoomMemberQuery
-	modifiers             []func(*sql.Selector)
-	loadTotal             []func(context.Context, []*User) error
-	withNamedContacts     map[string]*UserQuery
-	withNamedRooms        map[string]*RoomQuery
-	withNamedMessages     map[string]*MessageQuery
-	withNamedUserContacts map[string]*UserContactQuery
-	withNamedMemberships  map[string]*RoomMemberQuery
+	ctx                    *QueryContext
+	order                  []user.OrderOption
+	inters                 []Interceptor
+	predicates             []predicate.User
+	withDevice             *DeviceQuery
+	withNotifications      *NotificationQuery
+	withContacts           *UserQuery
+	withRooms              *RoomQuery
+	withMessages           *MessageQuery
+	withUserContacts       *UserContactQuery
+	withMemberships        *RoomMemberQuery
+	modifiers              []func(*sql.Selector)
+	loadTotal              []func(context.Context, []*User) error
+	withNamedNotifications map[string]*NotificationQuery
+	withNamedContacts      map[string]*UserQuery
+	withNamedRooms         map[string]*RoomQuery
+	withNamedMessages      map[string]*MessageQuery
+	withNamedUserContacts  map[string]*UserContactQuery
+	withNamedMemberships   map[string]*RoomMemberQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -74,6 +79,50 @@ func (uq *UserQuery) Unique(unique bool) *UserQuery {
 func (uq *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	uq.order = append(uq.order, o...)
 	return uq
+}
+
+// QueryDevice chains the current query on the "device" edge.
+func (uq *UserQuery) QueryDevice() *DeviceQuery {
+	query := (&DeviceClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.DeviceTable, user.DeviceColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNotifications chains the current query on the "notifications" edge.
+func (uq *UserQuery) QueryNotifications() *NotificationQuery {
+	query := (&NotificationClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(notification.Table, notification.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.NotificationsTable, user.NotificationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryContacts chains the current query on the "contacts" edge.
@@ -373,20 +422,44 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:           uq.config,
-		ctx:              uq.ctx.Clone(),
-		order:            append([]user.OrderOption{}, uq.order...),
-		inters:           append([]Interceptor{}, uq.inters...),
-		predicates:       append([]predicate.User{}, uq.predicates...),
-		withContacts:     uq.withContacts.Clone(),
-		withRooms:        uq.withRooms.Clone(),
-		withMessages:     uq.withMessages.Clone(),
-		withUserContacts: uq.withUserContacts.Clone(),
-		withMemberships:  uq.withMemberships.Clone(),
+		config:            uq.config,
+		ctx:               uq.ctx.Clone(),
+		order:             append([]user.OrderOption{}, uq.order...),
+		inters:            append([]Interceptor{}, uq.inters...),
+		predicates:        append([]predicate.User{}, uq.predicates...),
+		withDevice:        uq.withDevice.Clone(),
+		withNotifications: uq.withNotifications.Clone(),
+		withContacts:      uq.withContacts.Clone(),
+		withRooms:         uq.withRooms.Clone(),
+		withMessages:      uq.withMessages.Clone(),
+		withUserContacts:  uq.withUserContacts.Clone(),
+		withMemberships:   uq.withMemberships.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
 	}
+}
+
+// WithDevice tells the query-builder to eager-load the nodes that are connected to
+// the "device" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithDevice(opts ...func(*DeviceQuery)) *UserQuery {
+	query := (&DeviceClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withDevice = query
+	return uq
+}
+
+// WithNotifications tells the query-builder to eager-load the nodes that are connected to
+// the "notifications" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNotifications(opts ...func(*NotificationQuery)) *UserQuery {
+	query := (&NotificationClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withNotifications = query
+	return uq
 }
 
 // WithContacts tells the query-builder to eager-load the nodes that are connected to
@@ -522,7 +595,9 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [7]bool{
+			uq.withDevice != nil,
+			uq.withNotifications != nil,
 			uq.withContacts != nil,
 			uq.withRooms != nil,
 			uq.withMessages != nil,
@@ -550,6 +625,19 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
+	}
+	if query := uq.withDevice; query != nil {
+		if err := uq.loadDevice(ctx, query, nodes, nil,
+			func(n *User, e *Device) { n.Edges.Device = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withNotifications; query != nil {
+		if err := uq.loadNotifications(ctx, query, nodes,
+			func(n *User) { n.Edges.Notifications = []*Notification{} },
+			func(n *User, e *Notification) { n.Edges.Notifications = append(n.Edges.Notifications, e) }); err != nil {
+			return nil, err
+		}
 	}
 	if query := uq.withContacts; query != nil {
 		if err := uq.loadContacts(ctx, query, nodes,
@@ -583,6 +671,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadMemberships(ctx, query, nodes,
 			func(n *User) { n.Edges.Memberships = []*RoomMember{} },
 			func(n *User, e *RoomMember) { n.Edges.Memberships = append(n.Edges.Memberships, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedNotifications {
+		if err := uq.loadNotifications(ctx, query, nodes,
+			func(n *User) { n.appendNamedNotifications(name) },
+			func(n *User, e *Notification) { n.appendNamedNotifications(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -629,6 +724,65 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	return nodes, nil
 }
 
+func (uq *UserQuery) loadDevice(ctx context.Context, query *DeviceQuery, nodes []*User, init func(*User), assign func(*User, *Device)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[pulid.ID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	query.withFKs = true
+	query.Where(predicate.Device(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.DeviceColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_device
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_device" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_device" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadNotifications(ctx context.Context, query *NotificationQuery, nodes []*User, init func(*User), assign func(*User, *Notification)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[pulid.ID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Notification(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.NotificationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_notifications
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_notifications" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_notifications" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 func (uq *UserQuery) loadContacts(ctx context.Context, query *UserQuery, nodes []*User, init func(*User), assign func(*User, *User)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[pulid.ID]*User)
@@ -925,6 +1079,20 @@ func (uq *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedNotifications tells the query-builder to eager-load the nodes that are connected to the "notifications"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedNotifications(name string, opts ...func(*NotificationQuery)) *UserQuery {
+	query := (&NotificationClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedNotifications == nil {
+		uq.withNamedNotifications = make(map[string]*NotificationQuery)
+	}
+	uq.withNamedNotifications[name] = query
+	return uq
 }
 
 // WithNamedContacts tells the query-builder to eager-load the nodes that are connected to the "contacts"

@@ -73,6 +73,13 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.To("device", Device.Type).
+			Unique(),
+		edge.To("notifications", Notification.Type).
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				entgql.RelayConnection(),
+			),
 		edge.To("contacts", User.Type).
 			Through("user_contacts", UserContact.Type).
 			Annotations(

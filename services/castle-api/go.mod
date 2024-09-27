@@ -7,6 +7,7 @@ require (
 	entgo.io/contrib v0.6.0
 	entgo.io/ent v0.14.0
 	github.com/99designs/gqlgen v0.17.49
+	github.com/appleboy/gorush v1.18.8
 	github.com/gabriel-vasile/mimetype v1.4.5
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-kit/log v0.2.1
@@ -29,6 +30,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.16
 	golang.org/x/crypto v0.26.0
 	golang.org/x/sync v0.8.0
+	google.golang.org/grpc v1.66.2
 )
 
 require (

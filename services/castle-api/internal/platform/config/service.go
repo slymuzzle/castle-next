@@ -15,6 +15,10 @@ type ServerConfig struct {
 	Port int    `koanf:"port"`
 }
 
+type NotificationsConfig struct {
+	Host string `koanf:"host"`
+}
+
 type AuthConfig struct {
 	Secret string `koanf:"secret"`
 }
@@ -47,12 +51,13 @@ type S3Config struct {
 }
 
 type Config struct {
-	Server   ServerConfig   `koanf:"server"`
-	Auth     AuthConfig     `koanf:"auth"`
-	Livekit  LivekitConfig  `koanf:"livekit"`
-	Nats     NatsConfig     `koanf:"nats"`
-	Database DatabaseConfig `koanf:"database"`
-	S3       S3Config       `koanf:"s3"`
+	Server        ServerConfig        `koanf:"server"`
+	Auth          AuthConfig          `koanf:"auth"`
+	Notifications NotificationsConfig `koanf:"notifications"`
+	Livekit       LivekitConfig       `koanf:"livekit"`
+	Nats          NatsConfig          `koanf:"nats"`
+	Database      DatabaseConfig      `koanf:"database"`
+	S3            S3Config            `koanf:"s3"`
 }
 
 var (

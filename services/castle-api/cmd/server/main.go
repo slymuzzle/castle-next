@@ -14,6 +14,7 @@ import (
 	"journeyhub/internal/modules/chat"
 	"journeyhub/internal/modules/contacts"
 	"journeyhub/internal/modules/media"
+	"journeyhub/internal/modules/notification"
 	"journeyhub/internal/modules/roommembers"
 	"journeyhub/internal/modules/rooms"
 	"journeyhub/internal/platform/config"
@@ -107,6 +108,14 @@ func main() {
 	validationService = validation.NewServiceLogging(
 		log.With(logger, "component", "validation"),
 		validationService,
+	)
+
+	// Initialize notifications service
+	var notificationService notification.Service
+	notificationService = notification.NewService(config.Notifications)
+	notificationService = notification.NewServiceLogging(
+		log.With(logger, "component", "notification"),
+		notificationService,
 	)
 
 	// Initialize auth service

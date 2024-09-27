@@ -84,6 +84,10 @@ func (ec *executionContext) fieldContext_LoginUser_user(_ context.Context, field
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
+			case "device":
+				return ec.fieldContext_User_device(ctx, field)
+			case "notifications":
+				return ec.fieldContext_User_notifications(ctx, field)
 			case "contacts":
 				return ec.fieldContext_User_contacts(ctx, field)
 			case "rooms":
@@ -156,7 +160,7 @@ func (ec *executionContext) unmarshalInputUserLoginInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"nickname", "password"}
+	fieldsInOrder := [...]string{"nickname", "password", "deviceID", "fcmToken"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -177,6 +181,20 @@ func (ec *executionContext) unmarshalInputUserLoginInput(ctx context.Context, ob
 				return it, err
 			}
 			it.Password = data
+		case "deviceID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deviceID"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DeviceID = data
+		case "fcmToken":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fcmToken"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FcmToken = data
 		}
 	}
 

@@ -4,11 +4,13 @@ package ent
 
 import (
 	"fmt"
+	"journeyhub/ent/device"
 	"journeyhub/ent/file"
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/messagelink"
 	"journeyhub/ent/messagevoice"
+	"journeyhub/ent/notification"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
@@ -18,11 +20,13 @@ import (
 
 // prefixMap maps PULID prefixes to table names.
 var prefixMap = map[pulid.ID]string{
+	"DE": device.Table,
 	"FE": file.Table,
 	"ME": message.Table,
 	"MA": messageattachment.Table,
 	"ML": messagelink.Table,
 	"MV": messagevoice.Table,
+	"NN": notification.Table,
 	"RO": room.Table,
 	"RM": roommember.Table,
 	"UR": user.Table,
@@ -31,11 +35,13 @@ var prefixMap = map[pulid.ID]string{
 
 // tableMap maps table names to PULID prefixes.
 var tableMap = map[string]pulid.ID{
+	device.Table:            "DE",
 	file.Table:              "FE",
 	message.Table:           "ME",
 	messageattachment.Table: "MA",
 	messagelink.Table:       "ML",
 	messagevoice.Table:      "MV",
+	notification.Table:      "NN",
 	room.Table:              "RO",
 	roommember.Table:        "RM",
 	user.Table:              "UR",

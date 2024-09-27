@@ -12,6 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Device is the client for interacting with the Device builders.
+	Device *DeviceClient
 	// File is the client for interacting with the File builders.
 	File *FileClient
 	// Message is the client for interacting with the Message builders.
@@ -22,6 +24,8 @@ type Tx struct {
 	MessageLink *MessageLinkClient
 	// MessageVoice is the client for interacting with the MessageVoice builders.
 	MessageVoice *MessageVoiceClient
+	// Notification is the client for interacting with the Notification builders.
+	Notification *NotificationClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
 	// RoomMember is the client for interacting with the RoomMember builders.
@@ -161,11 +165,13 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Device = NewDeviceClient(tx.config)
 	tx.File = NewFileClient(tx.config)
 	tx.Message = NewMessageClient(tx.config)
 	tx.MessageAttachment = NewMessageAttachmentClient(tx.config)
 	tx.MessageLink = NewMessageLinkClient(tx.config)
 	tx.MessageVoice = NewMessageVoiceClient(tx.config)
+	tx.Notification = NewNotificationClient(tx.config)
 	tx.Room = NewRoomClient(tx.config)
 	tx.RoomMember = NewRoomMemberClient(tx.config)
 	tx.User = NewUserClient(tx.config)
@@ -179,7 +185,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: File.QueryXXX(), the query will be executed
+// applies a query, for example: Device.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

@@ -8,6 +8,14 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+func (d *Device) User(ctx context.Context) (*User, error) {
+	result, err := d.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = d.QueryUser().Only(ctx)
+	}
+	return result, err
+}
+
 func (f *File) MessageAttachment(ctx context.Context) (*MessageAttachment, error) {
 	result, err := f.Edges.MessageAttachmentOrErr()
 	if IsNotLoaded(err) {
@@ -154,6 +162,14 @@ func (mv *MessageVoice) File(ctx context.Context) (*File, error) {
 		result, err = mv.QueryFile().Only(ctx)
 	}
 	return result, err
+}
+
+func (n *Notification) User(ctx context.Context) (*User, error) {
+	result, err := n.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = n.QueryUser().Only(ctx)
+	}
+	return result, MaskNotFound(err)
 }
 
 func (r *Room) UserContacts(ctx context.Context) (result []*UserContact, err error) {
@@ -318,6 +334,35 @@ func (rm *RoomMember) Room(ctx context.Context) (*Room, error) {
 	return result, err
 }
 
+func (u *User) Device(ctx context.Context) (*Device, error) {
+	result, err := u.Edges.DeviceOrErr()
+	if IsNotLoaded(err) {
+		result, err = u.QueryDevice().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (u *User) Notifications(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*NotificationOrder, where *NotificationWhereInput,
+) (*NotificationConnection, error) {
+	opts := []NotificationPaginateOption{
+		WithNotificationOrder(orderBy),
+		WithNotificationFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := u.Edges.totalCount[1][alias]
+	if nodes, err := u.NamedNotifications(alias); err == nil || hasTotalCount {
+		pager, err := newNotificationPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &NotificationConnection{Edges: []*NotificationEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return u.QueryNotifications().Paginate(ctx, after, first, before, last, opts...)
+}
+
 func (u *User) Contacts(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*UserOrder, where *UserWhereInput,
 ) (*UserConnection, error) {
@@ -326,7 +371,7 @@ func (u *User) Contacts(
 		WithUserFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := u.Edges.totalCount[0][alias]
+	totalCount, hasTotalCount := u.Edges.totalCount[2][alias]
 	if nodes, err := u.NamedContacts(alias); err == nil || hasTotalCount {
 		pager, err := newUserPager(opts, last != nil)
 		if err != nil {
@@ -347,7 +392,7 @@ func (u *User) Rooms(
 		WithRoomFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := u.Edges.totalCount[1][alias]
+	totalCount, hasTotalCount := u.Edges.totalCount[3][alias]
 	if nodes, err := u.NamedRooms(alias); err == nil || hasTotalCount {
 		pager, err := newRoomPager(opts, last != nil)
 		if err != nil {
@@ -368,7 +413,7 @@ func (u *User) Messages(
 		WithMessageFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := u.Edges.totalCount[2][alias]
+	totalCount, hasTotalCount := u.Edges.totalCount[4][alias]
 	if nodes, err := u.NamedMessages(alias); err == nil || hasTotalCount {
 		pager, err := newMessagePager(opts, last != nil)
 		if err != nil {
@@ -389,7 +434,7 @@ func (u *User) UserContacts(
 		WithUserContactFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := u.Edges.totalCount[3][alias]
+	totalCount, hasTotalCount := u.Edges.totalCount[5][alias]
 	if nodes, err := u.NamedUserContacts(alias); err == nil || hasTotalCount {
 		pager, err := newUserContactPager(opts, last != nil)
 		if err != nil {
@@ -410,7 +455,7 @@ func (u *User) Memberships(
 		WithRoomMemberFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := u.Edges.totalCount[4][alias]
+	totalCount, hasTotalCount := u.Edges.totalCount[6][alias]
 	if nodes, err := u.NamedMemberships(alias); err == nil || hasTotalCount {
 		pager, err := newRoomMemberPager(opts, last != nil)
 		if err != nil {

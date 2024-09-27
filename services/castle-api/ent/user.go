@@ -4,6 +4,7 @@ package ent
 
 import (
 	"fmt"
+	"journeyhub/ent/device"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 	"strings"
@@ -42,6 +43,10 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
+	// Device holds the value of the device edge.
+	Device *Device `json:"device,omitempty"`
+	// Notifications holds the value of the notifications edge.
+	Notifications []*Notification `json:"notifications,omitempty"`
 	// Contacts holds the value of the contacts edge.
 	Contacts []*User `json:"contacts,omitempty"`
 	// Rooms holds the value of the rooms edge.
@@ -54,21 +59,42 @@ type UserEdges struct {
 	Memberships []*RoomMember `json:"memberships,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [7]bool
 	// totalCount holds the count of the edges above.
-	totalCount [5]map[string]int
+	totalCount [7]map[string]int
 
-	namedContacts     map[string][]*User
-	namedRooms        map[string][]*Room
-	namedMessages     map[string][]*Message
-	namedUserContacts map[string][]*UserContact
-	namedMemberships  map[string][]*RoomMember
+	namedNotifications map[string][]*Notification
+	namedContacts      map[string][]*User
+	namedRooms         map[string][]*Room
+	namedMessages      map[string][]*Message
+	namedUserContacts  map[string][]*UserContact
+	namedMemberships   map[string][]*RoomMember
+}
+
+// DeviceOrErr returns the Device value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) DeviceOrErr() (*Device, error) {
+	if e.Device != nil {
+		return e.Device, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: device.Label}
+	}
+	return nil, &NotLoadedError{edge: "device"}
+}
+
+// NotificationsOrErr returns the Notifications value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) NotificationsOrErr() ([]*Notification, error) {
+	if e.loadedTypes[1] {
+		return e.Notifications, nil
+	}
+	return nil, &NotLoadedError{edge: "notifications"}
 }
 
 // ContactsOrErr returns the Contacts value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ContactsOrErr() ([]*User, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[2] {
 		return e.Contacts, nil
 	}
 	return nil, &NotLoadedError{edge: "contacts"}
@@ -77,7 +103,7 @@ func (e UserEdges) ContactsOrErr() ([]*User, error) {
 // RoomsOrErr returns the Rooms value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) RoomsOrErr() ([]*Room, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[3] {
 		return e.Rooms, nil
 	}
 	return nil, &NotLoadedError{edge: "rooms"}
@@ -86,7 +112,7 @@ func (e UserEdges) RoomsOrErr() ([]*Room, error) {
 // MessagesOrErr returns the Messages value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) MessagesOrErr() ([]*Message, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[4] {
 		return e.Messages, nil
 	}
 	return nil, &NotLoadedError{edge: "messages"}
@@ -95,7 +121,7 @@ func (e UserEdges) MessagesOrErr() ([]*Message, error) {
 // UserContactsOrErr returns the UserContacts value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UserContactsOrErr() ([]*UserContact, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[5] {
 		return e.UserContacts, nil
 	}
 	return nil, &NotLoadedError{edge: "user_contacts"}
@@ -104,7 +130,7 @@ func (e UserEdges) UserContactsOrErr() ([]*UserContact, error) {
 // MembershipsOrErr returns the Memberships value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) MembershipsOrErr() ([]*RoomMember, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[6] {
 		return e.Memberships, nil
 	}
 	return nil, &NotLoadedError{edge: "memberships"}
@@ -203,6 +229,16 @@ func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
 }
 
+// QueryDevice queries the "device" edge of the User entity.
+func (u *User) QueryDevice() *DeviceQuery {
+	return NewUserClient(u.config).QueryDevice(u)
+}
+
+// QueryNotifications queries the "notifications" edge of the User entity.
+func (u *User) QueryNotifications() *NotificationQuery {
+	return NewUserClient(u.config).QueryNotifications(u)
+}
+
 // QueryContacts queries the "contacts" edge of the User entity.
 func (u *User) QueryContacts() *UserQuery {
 	return NewUserClient(u.config).QueryContacts(u)
@@ -275,6 +311,30 @@ func (u *User) String() string {
 	builder.WriteString(u.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedNotifications returns the Notifications named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedNotifications(name string) ([]*Notification, error) {
+	if u.Edges.namedNotifications == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedNotifications[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedNotifications(name string, edges ...*Notification) {
+	if u.Edges.namedNotifications == nil {
+		u.Edges.namedNotifications = make(map[string][]*Notification)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedNotifications[name] = []*Notification{}
+	} else {
+		u.Edges.namedNotifications[name] = append(u.Edges.namedNotifications[name], edges...)
+	}
 }
 
 // NamedContacts returns the Contacts named value or an error if the edge was not

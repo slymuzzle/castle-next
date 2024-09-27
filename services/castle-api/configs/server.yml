@@ -7,6 +7,10 @@ server:
 auth:
   secret: secret
 
+# Notifications configuration
+notifications:
+  host: secret
+
 # Livekit configuration
 livekit:
   access: devkey

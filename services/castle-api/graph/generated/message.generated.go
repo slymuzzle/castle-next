@@ -814,6 +814,10 @@ func (ec *executionContext) fieldContext_Mutation_register(ctx context.Context, 
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
+			case "device":
+				return ec.fieldContext_User_device(ctx, field)
+			case "notifications":
+				return ec.fieldContext_User_notifications(ctx, field)
 			case "contacts":
 				return ec.fieldContext_User_contacts(ctx, field)
 			case "rooms":

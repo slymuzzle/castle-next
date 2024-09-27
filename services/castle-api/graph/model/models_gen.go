@@ -86,6 +86,8 @@ type UploadMessageFileInput struct {
 type UserLoginInput struct {
 	Nickname string `json:"nickname"`
 	Password string `json:"password"`
+	DeviceID string `json:"deviceID"`
+	FcmToken string `json:"fcmToken"`
 }
 
 // UserRegisterInput is used for user register.

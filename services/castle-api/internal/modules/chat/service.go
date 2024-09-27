@@ -9,6 +9,7 @@ import (
 	"journeyhub/graph/model"
 	"journeyhub/internal/modules/auth"
 	"journeyhub/internal/modules/media"
+	"journeyhub/internal/modules/notification"
 	"journeyhub/internal/modules/roommembers"
 	"journeyhub/internal/modules/rooms"
 )
@@ -39,12 +40,13 @@ type Service interface {
 }
 
 type service struct {
-	subscriptions      Subscriptions
-	chatRepository     Repository
-	authService        auth.Service
-	roomsService       rooms.Service
-	roomMembersService roommembers.Service
-	mediaService       media.Service
+	subscriptions       Subscriptions
+	chatRepository      Repository
+	authService         auth.Service
+	roomsService        rooms.Service
+	roomMembersService  roommembers.Service
+	mediaService        media.Service
+	notificationService notification.Service
 }
 
 func NewService(

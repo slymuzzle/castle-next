@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"journeyhub/ent"
+	"journeyhub/ent/device"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/user"
 )
@@ -24,6 +25,12 @@ type Repository interface {
 		nickname string,
 		password string,
 	) (*ent.User, error)
+	CreateOrUpdateUserDevice(
+		ctx context.Context,
+		userID pulid.ID,
+		deviceID string,
+		fcmToken string,
+	) (pulid.ID, error)
 }
 
 type repository struct {
@@ -67,6 +74,22 @@ func (r *repository) CreateUser(
 		SetNickname(nickname).
 		SetPassword(password).
 		Save(ctx)
+}
+
+func (r *repository) CreateOrUpdateUserDevice(
+	ctx context.Context,
+	userID pulid.ID,
+	deviceID string,
+	fcmToken string,
+) (pulid.ID, error) {
+	return r.getClient(ctx).Device.
+		Create().
+		SetUserID(userID).
+		SetDeviceID(deviceID).
+		SetFcmToken(fcmToken).
+		OnConflictColumns(device.FieldDeviceID).
+		UpdateNewValues().
+		ID(ctx)
 }
 
 func (r *repository) getClient(ctx context.Context) *ent.Client {

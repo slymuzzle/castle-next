@@ -15,13 +15,14 @@ import (
 )
 
 var (
-	ErrUserExist          = errors.New("user already exists")
-	ErrPasswordConfirm    = errors.New("passwords do not match")
-	ErrPasswordHash       = errors.New("failed to hash password")
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrCreateUser         = errors.New("failed to create user")
-	ErrUserNotFound       = errors.New("user not found")
-	ErrGenerateToken      = errors.New("failed to generate token")
+	ErrUserExist                = errors.New("user already exists")
+	ErrPasswordConfirm          = errors.New("passwords do not match")
+	ErrPasswordHash             = errors.New("failed to hash password")
+	ErrInvalidCredentials       = errors.New("invalid credentials")
+	ErrCreateUser               = errors.New("failed to create user")
+	ErrUserNotFound             = errors.New("user not found")
+	ErrGenerateToken            = errors.New("failed to generate token")
+	ErrCreateOrUpdateUserDevice = errors.New("failed to create or update user device")
 )
 
 type Service interface {
@@ -35,8 +36,7 @@ type Service interface {
 	) (*ent.User, error)
 	Login(
 		ctx context.Context,
-		nickname string,
-		password string,
+		input model.UserLoginInput,
 	) (*model.LoginUser, error)
 	Auth(ctx context.Context) (pulid.ID, error)
 	AuthUser(ctx context.Context) (*ent.User, error)
@@ -95,20 +95,16 @@ func (s *service) Register(
 	return user, nil
 }
 
-func (s *service) Login(
-	ctx context.Context,
-	nickname string,
-	password string,
-) (*model.LoginUser, error) {
+func (s *service) Login(ctx context.Context, input model.UserLoginInput) (*model.LoginUser, error) {
 	existingUser, err := s.authRepository.
-		FindUserByNickname(ctx, nickname)
+		FindUserByNickname(ctx, input.Nickname)
 	if err != nil {
-		return nil, ErrInvalidCredentials
+		return nil, errors.Join(ErrInvalidCredentials, err)
 	}
 
-	err = pass.Compare(existingUser.Password, password)
+	err = pass.Compare(existingUser.Password, input.Password)
 	if err != nil {
-		return nil, ErrInvalidCredentials
+		return nil, errors.Join(ErrInvalidCredentials, err)
 	}
 
 	claims := map[string]interface{}{
@@ -120,6 +116,16 @@ func (s *service) Login(
 	_, token, err := s.jwtAuth.Encode(claims)
 	if err != nil {
 		return nil, err
+	}
+
+	_, err = s.authRepository.CreateOrUpdateUserDevice(
+		ctx,
+		existingUser.ID,
+		input.DeviceID,
+		input.FcmToken,
+	)
+	if err != nil {
+		return nil, errors.Join(ErrCreateOrUpdateUserDevice, err)
 	}
 
 	return &model.LoginUser{User: existingUser, Token: token}, nil

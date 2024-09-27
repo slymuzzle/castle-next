@@ -5,11 +5,13 @@ package ent
 import (
 	"context"
 	"fmt"
+	"journeyhub/ent/device"
 	"journeyhub/ent/file"
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/messagelink"
 	"journeyhub/ent/messagevoice"
+	"journeyhub/ent/notification"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/pulid"
@@ -25,6 +27,11 @@ import (
 type Noder interface {
 	IsNode()
 }
+
+var deviceImplementors = []string{"Device", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Device) IsNode() {}
 
 var fileImplementors = []string{"File", "Node"}
 
@@ -50,6 +57,11 @@ var messagevoiceImplementors = []string{"MessageVoice", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*MessageVoice) IsNode() {}
+
+var notificationImplementors = []string{"Notification", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Notification) IsNode() {}
 
 var roomImplementors = []string{"Room", "Node"}
 
@@ -129,6 +141,19 @@ func (c *Client) Noder(ctx context.Context, id pulid.ID, opts ...NodeOption) (_ 
 
 func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, error) {
 	switch table {
+	case device.Table:
+		var uid pulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.Device.Query().
+			Where(device.ID(uid))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, deviceImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
 	case file.Table:
 		var uid pulid.ID
 		if err := uid.UnmarshalGQL(id); err != nil {
@@ -190,6 +215,19 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 			Where(messagevoice.ID(uid))
 		if fc := graphql.GetFieldContext(ctx); fc != nil {
 			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, messagevoiceImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case notification.Table:
+		var uid pulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.Notification.Query().
+			Where(notification.ID(uid))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, notificationImplementors...); err != nil {
 				return nil, err
 			}
 		}
@@ -319,6 +357,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
+	case device.Table:
+		query := c.Device.Query().
+			Where(device.IDIn(ids...))
+		query, err := query.CollectFields(ctx, deviceImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case file.Table:
 		query := c.File.Query().
 			Where(file.IDIn(ids...))
@@ -387,6 +441,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 		query := c.MessageVoice.Query().
 			Where(messagevoice.IDIn(ids...))
 		query, err := query.CollectFields(ctx, messagevoiceImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case notification.Table:
+		query := c.Notification.Query().
+			Where(notification.IDIn(ids...))
+		query, err := query.CollectFields(ctx, notificationImplementors...)
 		if err != nil {
 			return nil, err
 		}

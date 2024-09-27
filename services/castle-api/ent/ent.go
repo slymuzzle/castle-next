@@ -6,11 +6,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"journeyhub/ent/device"
 	"journeyhub/ent/file"
 	"journeyhub/ent/message"
 	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/messagelink"
 	"journeyhub/ent/messagevoice"
+	"journeyhub/ent/notification"
 	"journeyhub/ent/room"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/user"
@@ -81,11 +83,13 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			device.Table:            device.ValidColumn,
 			file.Table:              file.ValidColumn,
 			message.Table:           message.ValidColumn,
 			messageattachment.Table: messageattachment.ValidColumn,
 			messagelink.Table:       messagelink.ValidColumn,
 			messagevoice.Table:      messagevoice.ValidColumn,
+			notification.Table:      notification.ValidColumn,
 			room.Table:              room.ValidColumn,
 			roommember.Table:        roommember.ValidColumn,
 			user.Table:              user.ValidColumn,

@@ -15,6 +15,8 @@ UserLoginInput is used for user login.
 input UserLoginInput {
   nickname: String!
   password: String!
+  deviceID: String!
+  fcmToken: String!
 }
 
 type LoginUser {

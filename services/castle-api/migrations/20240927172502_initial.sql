@@ -1,3 +1,19 @@
+-- Create "devices" table
+CREATE TABLE "devices" (
+  "id" character varying NOT NULL,
+  "device_id" character varying NOT NULL,
+  "fcm_token" character varying NOT NULL,
+  "created_at" timestamptz NOT NULL,
+  "updated_at" timestamptz NOT NULL,
+  "user_device" character varying NOT NULL,
+  PRIMARY KEY ("id")
+);
+-- Create index "devices_device_id_key" to table: "devices"
+CREATE UNIQUE INDEX "devices_device_id_key" ON "devices" ("device_id");
+-- Create index "devices_fcm_token_key" to table: "devices"
+CREATE UNIQUE INDEX "devices_fcm_token_key" ON "devices" ("fcm_token");
+-- Create index "devices_user_device_key" to table: "devices"
+CREATE UNIQUE INDEX "devices_user_device_key" ON "devices" ("user_device");
 -- Create "files" table
 CREATE TABLE "files" (
   "id" character varying NOT NULL,
@@ -62,6 +78,17 @@ CREATE TABLE "messages" (
   PRIMARY KEY ("id"),
   CONSTRAINT "messages_messages_replies" FOREIGN KEY ("message_replies") REFERENCES "messages" ("id") ON UPDATE NO ACTION ON DELETE SET NULL
 );
+-- Create "notifications" table
+CREATE TABLE "notifications" (
+  "id" character varying NOT NULL,
+  "title" character varying NOT NULL,
+  "body" text NOT NULL,
+  "data" jsonb NULL,
+  "created_at" timestamptz NOT NULL,
+  "updated_at" timestamptz NOT NULL,
+  "user_notifications" character varying NULL,
+  PRIMARY KEY ("id")
+);
 -- Create "room_members" table
 CREATE TABLE "room_members" (
   "id" character varying NOT NULL,
@@ -120,6 +147,9 @@ CREATE UNIQUE INDEX "users_contact_pin_key" ON "users" ("contact_pin");
 CREATE UNIQUE INDEX "users_email_key" ON "users" ("email");
 -- Create index "users_nickname_key" to table: "users"
 CREATE UNIQUE INDEX "users_nickname_key" ON "users" ("nickname");
+-- Modify "devices" table
+ALTER TABLE "devices" ADD
+ CONSTRAINT "devices_users_device" FOREIGN KEY ("user_device") REFERENCES "users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION;
 -- Modify "message_attachments" table
 ALTER TABLE "message_attachments" ADD
  CONSTRAINT "message_attachments_files_message_attachment" FOREIGN KEY ("file_message_attachment") REFERENCES "files" ("id") ON UPDATE NO ACTION ON DELETE CASCADE, ADD
@@ -138,6 +168,9 @@ ALTER TABLE "message_voices" ADD
 ALTER TABLE "messages" ADD
  CONSTRAINT "messages_rooms_messages" FOREIGN KEY ("room_messages") REFERENCES "rooms" ("id") ON UPDATE NO ACTION ON DELETE CASCADE, ADD
  CONSTRAINT "messages_users_messages" FOREIGN KEY ("user_messages") REFERENCES "users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE;
+-- Modify "notifications" table
+ALTER TABLE "notifications" ADD
+ CONSTRAINT "notifications_users_notifications" FOREIGN KEY ("user_notifications") REFERENCES "users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE;
 -- Modify "room_members" table
 ALTER TABLE "room_members" ADD
  CONSTRAINT "room_members_rooms_room" FOREIGN KEY ("room_id") REFERENCES "rooms" ("id") ON UPDATE NO ACTION ON DELETE CASCADE, ADD

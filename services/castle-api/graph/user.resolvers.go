@@ -32,11 +32,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.UserLoginInput
 		return nil, validationErrors
 	}
 
-	return r.authService.Login(
-		ctx,
-		input.Nickname,
-		input.Password,
-	)
+	return r.authService.Login(ctx, input)
 }
 
 // Self is the resolver for the self field.
