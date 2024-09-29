@@ -20,21 +20,6 @@ func NewServiceLogging(logger log.Logger, s Service) Service {
 	return &serviceLogging{logger, s}
 }
 
-func (s *serviceLogging) CreateRoomMembers(
-	ctx context.Context,
-	inputs []CreateRoomMemberInput,
-) (roomMembers []*ent.RoomMember, err error) {
-	defer func(begin time.Time) {
-		level.Debug(s.logger).Log(
-			"method", "CreateRoomMembers",
-			"ID", len(roomMembers),
-			"took", time.Since(begin),
-			"err", err,
-		)
-	}(time.Now())
-	return s.Service.CreateRoomMembers(ctx, inputs)
-}
-
 func (s *serviceLogging) IncrementUnreadMessagesCount(
 	ctx context.Context,
 	ID pulid.ID,

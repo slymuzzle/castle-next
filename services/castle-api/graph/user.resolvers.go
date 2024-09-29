@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+
 	"journeyhub/ent"
 	"journeyhub/graph/model"
 )
@@ -16,14 +17,7 @@ func (r *mutationResolver) Register(ctx context.Context, input model.UserRegiste
 		return nil, validationErrors
 	}
 
-	return r.authService.Register(
-		ctx,
-		input.FirstName,
-		input.LastName,
-		input.Nickname,
-		input.Password,
-		input.PasswordConfirmation,
-	)
+	return r.authService.Register(ctx, input)
 }
 
 // Login is the resolver for the login field.

@@ -6,10 +6,32 @@ package graph
 
 import (
 	"context"
+
 	"journeyhub/ent/schema/pulid"
+	"journeyhub/graph/generated"
 )
+
+// StartCall is the resolver for the startCall field.
+func (r *mutationResolver) StartCall(ctx context.Context, roomID pulid.ID) (bool, error) {
+	return r.callService.StartCall(ctx, roomID)
+}
+
+// EndCall is the resolver for the endCall field.
+func (r *mutationResolver) EndCall(ctx context.Context, roomID pulid.ID) (bool, error) {
+	return r.callService.EndCall(ctx, roomID)
+}
+
+// DeclineCall is the resolver for the declineCall field.
+func (r *mutationResolver) DeclineCall(ctx context.Context, roomID pulid.ID) (bool, error) {
+	return r.callService.DeclineCall(ctx, roomID)
+}
 
 // CallJoinToken is the resolver for the callJoinToken field.
 func (r *queryResolver) CallJoinToken(ctx context.Context, roomID pulid.ID) (string, error) {
 	return r.callService.GetCallJoinToken(ctx, roomID)
 }
+
+// Mutation returns generated.MutationResolver implementation.
+func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+
+type mutationResolver struct{ *Resolver }

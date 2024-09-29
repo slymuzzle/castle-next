@@ -39,11 +39,13 @@ type Service interface {
 		prefix string,
 		files []*model.UploadMessageFileInput,
 	) ([]*UploadInfo, error)
+
 	UploadFile(
 		ctx context.Context,
 		prefix string,
 		file *graphql.Upload,
 	) (*UploadInfo, error)
+
 	Config() config.S3Config
 }
 

@@ -7,7 +7,6 @@ import (
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/internal/modules/auth"
 	"journeyhub/internal/modules/roommembers"
-	"journeyhub/internal/platform/nats"
 )
 
 type Service interface {
@@ -15,11 +14,6 @@ type Service interface {
 	// 	ctx context.Context,
 	// 	targetUserID pulid.ID,
 	// ) (*ent.Room, error)
-
-	FindRoomByMessage(
-		ctx context.Context,
-		messageID pulid.ID,
-	) (*ent.Room, error)
 
 	IncrementRoomVersion(
 		ctx context.Context,
@@ -34,23 +28,20 @@ type Service interface {
 }
 
 type service struct {
-	roomsRepository    Repository
+	entClient          *ent.Client
 	authService        auth.Service
 	roomMembersService roommembers.Service
-	natsService        nats.Service
 }
 
 func NewService(
-	roomsRepository Repository,
+	entClient *ent.Client,
 	roomMembersService roommembers.Service,
 	authService auth.Service,
-	natsService nats.Service,
 ) Service {
 	return &service{
-		roomsRepository:    roomsRepository,
+		entClient:          entClient,
 		roomMembersService: roomMembersService,
 		authService:        authService,
-		natsService:        natsService,
 	}
 }
 
@@ -95,13 +86,6 @@ func NewService(
 // 	return room, nil
 // }
 
-func (s *service) FindRoomByMessage(
-	ctx context.Context,
-	messageID pulid.ID,
-) (*ent.Room, error) {
-	return s.roomsRepository.FindByMessage(ctx, messageID)
-}
-
 func (s *service) IncrementRoomVersion(
 	ctx context.Context,
 	ID pulid.ID,
@@ -119,7 +103,13 @@ func (s *service) IncrementRoomVersion(
 		lastMessageID = &lastMessage.ID
 	}
 
-	room, err := s.roomsRepository.IncrementVersion(ctx, ID, lastMessageID)
+	repository := s.entClient
+
+	room, err := repository.Room.
+		UpdateOneID(ID).
+		AddVersion(1).
+		SetNillableLastMessageID(lastMessageID).
+		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -136,5 +126,19 @@ func (s *service) DeleteRoom(
 		return nil, err
 	}
 
-	return s.roomsRepository.Delete(ctx, ID)
+	repository := s.entClient
+
+	room, err := repository.Room.Get(ctx, ID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = repository.Room.
+		DeleteOneID(ID).
+		Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return room, nil
 }

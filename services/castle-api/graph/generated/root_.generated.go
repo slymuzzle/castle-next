@@ -182,15 +182,18 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddUserContact        func(childComplexity int, pincode string) int
 		CreateRoom            func(childComplexity int, input model.CreateRoomInput) int
+		DeclineCall           func(childComplexity int, roomID pulid.ID) int
 		DeleteMessage         func(childComplexity int, messageID pulid.ID) int
 		DeleteRoom            func(childComplexity int, roomID pulid.ID) int
 		DeleteRoomMember      func(childComplexity int, roomMemberID pulid.ID) int
 		DeleteUserContact     func(childComplexity int, userContactID pulid.ID) int
+		EndCall               func(childComplexity int, roomID pulid.ID) int
 		GeneratePinCode       func(childComplexity int) int
 		Login                 func(childComplexity int, input model.UserLoginInput) int
 		MarkRoomMemeberAsSeen func(childComplexity int, roomMemberID pulid.ID) int
 		Register              func(childComplexity int, input model.UserRegisterInput) int
 		SendMessage           func(childComplexity int, input model.SendMessageInput) int
+		StartCall             func(childComplexity int, roomID pulid.ID) int
 		UpdateMessage         func(childComplexity int, messageID pulid.ID, input model.UpdateMessageInput) int
 		UpdateRoom            func(childComplexity int, roomID pulid.ID, input model.UpdateRoomInput) int
 	}
@@ -967,6 +970,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateRoom(childComplexity, args["input"].(model.CreateRoomInput)), true
 
+	case "Mutation.declineCall":
+		if e.complexity.Mutation.DeclineCall == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_declineCall_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeclineCall(childComplexity, args["roomID"].(pulid.ID)), true
+
 	case "Mutation.deleteMessage":
 		if e.complexity.Mutation.DeleteMessage == nil {
 			break
@@ -1014,6 +1029,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteUserContact(childComplexity, args["userContactID"].(pulid.ID)), true
+
+	case "Mutation.endCall":
+		if e.complexity.Mutation.EndCall == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_endCall_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EndCall(childComplexity, args["roomID"].(pulid.ID)), true
 
 	case "Mutation.generatePinCode":
 		if e.complexity.Mutation.GeneratePinCode == nil {
@@ -1069,6 +1096,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SendMessage(childComplexity, args["input"].(model.SendMessageInput)), true
+
+	case "Mutation.startCall":
+		if e.complexity.Mutation.StartCall == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_startCall_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.StartCall(childComplexity, args["roomID"].(pulid.ID)), true
 
 	case "Mutation.updateMessage":
 		if e.complexity.Mutation.UpdateMessage == nil {
@@ -2170,6 +2209,12 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var sources = []*ast.Source{
 	{Name: "../schema/call.graphql", Input: `extend type Query {
   callJoinToken(roomID: ID!): String!
+}
+
+extend type Mutation {
+  startCall(roomID: ID!): Boolean!
+  endCall(roomID: ID!): Boolean!
+  declineCall(roomID: ID!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../schema/directives.graphql", Input: `directive @goTag(

@@ -89,11 +89,7 @@ func (r *subscriptionResolver) MessageDeleted(ctx context.Context, roomID pulid.
 	return r.chatService.Subscriptions().SubscribeToMessageDeletedEvent(ctx, roomID)
 }
 
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
-
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
-type mutationResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }

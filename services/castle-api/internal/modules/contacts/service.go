@@ -5,6 +5,7 @@ import (
 
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
+	"journeyhub/ent/user"
 	"journeyhub/internal/modules/auth"
 )
 
@@ -12,10 +13,12 @@ type Service interface {
 	GenerateUserPinCode(
 		ctx context.Context,
 	) (*string, error)
+
 	AddUserContact(
 		ctx context.Context,
 		pincode string,
 	) (*ent.UserContact, error)
+
 	DeleteUserContact(
 		ctx context.Context,
 		ID pulid.ID,
@@ -23,14 +26,14 @@ type Service interface {
 }
 
 type service struct {
-	contactsRepository Repository
-	authService        auth.Service
+	entClient   *ent.Client
+	authService auth.Service
 }
 
-func NewService(userContactsRepository Repository, authService auth.Service) Service {
+func NewService(entClient *ent.Client, authService auth.Service) Service {
 	return &service{
-		contactsRepository: userContactsRepository,
-		authService:        authService,
+		entClient:   entClient,
+		authService: authService,
 	}
 }
 
@@ -44,11 +47,12 @@ func (s *service) GenerateUserPinCode(
 
 	pincode := string(pulid.MustNew("PIN"))
 
-	_, err = s.contactsRepository.UpdateUserPinCode(
-		ctx,
-		currentUserID,
-		pincode,
-	)
+	repository := s.entClient
+
+	err = repository.User.
+		UpdateOneID(currentUserID).
+		SetContactPin(pincode).
+		Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -65,15 +69,23 @@ func (s *service) AddUserContact(
 		return nil, err
 	}
 
-	pincodeUser, err := s.contactsRepository.FindUserByPinCode(ctx, pincode)
+	repository := s.entClient
+
+	pincodeUser, err := repository.User.
+		Query().
+		Where(
+			user.ContactPin(pincode),
+		).
+		Only(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	userContact, err := s.contactsRepository.Create(ctx, CreateUserContactInput{
-		UserID:    currentUserID,
-		ContactID: pincodeUser.ID,
-	})
+	userContact, err := repository.UserContact.
+		Create().
+		SetUserID(currentUserID).
+		SetContactID(pincodeUser.ID).
+		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +102,16 @@ func (s *service) DeleteUserContact(
 		return nil, err
 	}
 
-	userContact, err := s.contactsRepository.Delete(ctx, ID)
+	repository := s.entClient
+
+	userContact, err := repository.UserContact.Get(ctx, ID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = repository.UserContact.
+		DeleteOneID(ID).
+		Exec(ctx)
 	if err != nil {
 		return nil, err
 	}

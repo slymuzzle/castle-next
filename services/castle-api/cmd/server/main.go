@@ -14,12 +14,12 @@ import (
 	"journeyhub/internal/modules/chat"
 	"journeyhub/internal/modules/contacts"
 	"journeyhub/internal/modules/media"
-	"journeyhub/internal/modules/notification"
 	"journeyhub/internal/modules/roommembers"
 	"journeyhub/internal/modules/rooms"
 	"journeyhub/internal/platform/config"
 	"journeyhub/internal/platform/db"
 	"journeyhub/internal/platform/nats"
+	"journeyhub/internal/platform/notification"
 	"journeyhub/internal/platform/validation"
 
 	"github.com/go-kit/log"
@@ -118,25 +118,29 @@ func main() {
 		notificationService,
 	)
 
+	if nErr := notificationService.Connect(); nErr != nil {
+		level.Error(logger).Log("exit", nErr)
+		os.Exit(1)
+	}
+	defer notificationService.Close()
+
 	// Initialize auth service
 	var authService auth.Service
-	authRepository := auth.NewRepository(entClient)
-	authService = auth.NewService(config.Auth, authRepository)
+	authService = auth.NewService(config.Auth, entClient)
 	authService = auth.NewServiceLogging(
 		log.With(logger, "component", "auth"),
 		authService,
 	)
 
 	// Initialize room members service
-	roomMembersRepository := roommembers.NewRepository(entClient)
 	var roomMembersSubscriptions roommembers.Subscriptions
-	roomMembersSubscriptions = roommembers.NewSubscriptions(roomMembersRepository, authService, natsService)
+	roomMembersSubscriptions = roommembers.NewSubscriptions(entClient, authService, natsService)
 	roomMembersSubscriptions = roommembers.NewSubscriptionsLogging(
 		log.With(logger, "component", "roommembers-subscriptions"),
 		roomMembersSubscriptions,
 	)
 	var roomMembersService roommembers.Service
-	roomMembersService = roommembers.NewService(roomMembersSubscriptions, roomMembersRepository, authService)
+	roomMembersService = roommembers.NewService(entClient, roomMembersSubscriptions, authService)
 	roomMembersService = roommembers.NewServiceLogging(
 		log.With(logger, "component", "roommembers"),
 		roomMembersService,
@@ -144,8 +148,7 @@ func main() {
 
 	// Initialize rooms service
 	var roomsService rooms.Service
-	roomsRepository := rooms.NewRepository(entClient)
-	roomsService = rooms.NewService(roomsRepository, roomMembersService, authService, natsService)
+	roomsService = rooms.NewService(entClient, roomMembersService, authService)
 	roomsService = rooms.NewServiceLogging(
 		log.With(logger, "component", "rooms"),
 		roomsService,
@@ -153,27 +156,29 @@ func main() {
 
 	// Initialize contacts service
 	var contactsService contacts.Service
-	contactsRepository := contacts.NewRepository(entClient)
-	contactsService = contacts.NewService(contactsRepository, authService)
+	contactsService = contacts.NewService(entClient, authService)
+	contactsService = contacts.NewServiceLogging(
+		log.With(logger, "component", "contacts"),
+		contactsService,
+	)
 
 	// Initialize call service
 	var callService call.Service
-	callService = call.NewService(config.Livekit, authService)
+	callService = call.NewService(config.Livekit, entClient, authService, notificationService)
 	callService = call.NewServiceLogging(
 		log.With(logger, "component", "call"),
 		callService,
 	)
 
 	// Initialize chat service
-	chatRepository := chat.NewRepository(entClient)
 	var chatSubscriptions chat.Subscriptions
-	chatSubscriptions = chat.NewSubscriptions(chatRepository, natsService)
+	chatSubscriptions = chat.NewSubscriptions(entClient, natsService)
 	chatSubscriptions = chat.NewSubscriptionsLogging(
 		log.With(logger, "component", "chat-subscriptions"),
 		chatSubscriptions,
 	)
 	var chatService chat.Service
-	chatService = chat.NewService(chatSubscriptions, chatRepository, authService, roomsService, roomMembersService, mediaService)
+	chatService = chat.NewService(entClient, chatSubscriptions, authService, roomsService, roomMembersService, mediaService)
 	chatService = chat.NewServiceLogging(
 		log.With(logger, "component", "chat"),
 		chatService,

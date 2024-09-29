@@ -6,6 +6,7 @@ import (
 
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
+	"journeyhub/graph/model"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -22,7 +23,7 @@ func NewServiceLogging(logger log.Logger, s Service) Service {
 
 func (s *serviceLogging) SendMessage(
 	ctx context.Context,
-	input SendMessageInput,
+	input model.SendMessageInput,
 ) (msg *ent.Message, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
@@ -42,7 +43,7 @@ func (s *serviceLogging) SendMessage(
 func (s *serviceLogging) UpdateMessage(
 	ctx context.Context,
 	messageID pulid.ID,
-	input UpdateMessageInput,
+	input model.UpdateMessageInput,
 ) (msg *ent.Message, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(

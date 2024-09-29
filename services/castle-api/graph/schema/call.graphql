@@ -1,3 +1,9 @@
 extend type Query {
   callJoinToken(roomID: ID!): String!
 }
+
+extend type Mutation {
+  startCall(roomID: ID!): Boolean!
+  endCall(roomID: ID!): Boolean!
+  declineCall(roomID: ID!): Boolean!
+}

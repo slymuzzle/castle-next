@@ -4,16 +4,13 @@ import (
 	"context"
 
 	"journeyhub/ent"
+	"journeyhub/ent/roommember"
+	"journeyhub/ent/schema/mixin"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/internal/modules/auth"
 )
 
 type Service interface {
-	CreateRoomMembers(
-		ctx context.Context,
-		inputs []CreateRoomMemberInput,
-	) ([]*ent.RoomMember, error)
-
 	IncrementUnreadMessagesCount(
 		ctx context.Context,
 		roomID pulid.ID,
@@ -38,40 +35,21 @@ type Service interface {
 }
 
 type service struct {
-	subscriptions         Subscriptions
-	roomMembersRepository Repository
-	authService           auth.Service
+	entClient     *ent.Client
+	subscriptions Subscriptions
+	authService   auth.Service
 }
 
 func NewService(
+	entClient *ent.Client,
 	subscriptions Subscriptions,
-	roomMembersRepository Repository,
 	authService auth.Service,
 ) Service {
 	return &service{
-		subscriptions:         subscriptions,
-		roomMembersRepository: roomMembersRepository,
-		authService:           authService,
+		entClient:     entClient,
+		subscriptions: subscriptions,
+		authService:   authService,
 	}
-}
-
-func (s *service) CreateRoomMembers(
-	ctx context.Context,
-	inputs []CreateRoomMemberInput,
-) ([]*ent.RoomMember, error) {
-	roomMembersToNotify, err := s.roomMembersRepository.CreateBulk(ctx, inputs)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, roomMember := range roomMembersToNotify {
-		_, err := s.subscriptions.PublishRoomMemberCreatedEvent(ctx, roomMember.UserID, roomMember.ID)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return roomMembersToNotify, nil
 }
 
 func (s *service) IncrementUnreadMessagesCount(
@@ -83,8 +61,33 @@ func (s *service) IncrementUnreadMessagesCount(
 		return nil, err
 	}
 
-	roomMembersToNotify, err := s.roomMembersRepository.
-		IncrementUnreadMessagesCount(ctx, currentUserID, roomID)
+	repository := s.entClient
+
+	err = repository.RoomMember.
+		Update().
+		Where(
+			roommember.And(
+				roommember.UserIDNEQ(currentUserID),
+				roommember.RoomID(roomID),
+			),
+		).
+		AddUnreadMessagesCount(1).
+		Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	roomMembersToNotify, err := repository.RoomMember.
+		Query().
+		Where(
+			roommember.And(
+				roommember.UserIDNEQ(currentUserID),
+				roommember.RoomID(roomID),
+			),
+		).
+		WithRoom().
+		WithUser().
+		All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +106,16 @@ func (s *service) DeleteRoomMember(
 	ctx context.Context,
 	ID pulid.ID,
 ) (*ent.RoomMember, error) {
-	roomMember, err := s.roomMembersRepository.Delete(ctx, ID)
+	repository := s.entClient
+
+	roomMember, err := repository.RoomMember.Get(ctx, ID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = repository.RoomMember.
+		DeleteOneID(ID).
+		Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -113,14 +125,19 @@ func (s *service) DeleteRoomMember(
 		return nil, err
 	}
 
-	return s.roomMembersRepository.Delete(ctx, ID)
+	return roomMember, nil
 }
 
 func (s *service) MarkRoomMemberAsSeen(
 	ctx context.Context,
 	ID pulid.ID,
 ) (*ent.RoomMember, error) {
-	roomMember, err := s.roomMembersRepository.MarkAsSeen(ctx, ID)
+	repository := s.entClient
+
+	roomMember, err := repository.RoomMember.
+		UpdateOneID(ID).
+		SetUnreadMessagesCount(0).
+		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -137,12 +154,32 @@ func (s *service) RestoreRoomMembersByRoom(
 	ctx context.Context,
 	roomID pulid.ID,
 ) ([]*ent.RoomMember, error) {
-	currentUserID, err := s.authService.Auth(ctx)
+	_, err := s.authService.Auth(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	roomMembersToNotify, err := s.roomMembersRepository.RestoreByRoom(ctx, currentUserID, roomID)
+	repository := s.entClient
+
+	roomMembersToNotify, err := repository.RoomMember.
+		Query().
+		Where(
+			roommember.RoomID(roomID),
+			roommember.DeletedAtNotNil(),
+		).
+		All(mixin.SkipSoftDelete(ctx))
+	if err != nil {
+		return nil, err
+	}
+
+	err = repository.RoomMember.
+		Update().
+		Where(
+			roommember.RoomID(roomID),
+			roommember.DeletedAtNotNil(),
+		).
+		ClearDeletedAt().
+		Exec(ctx)
 	if err != nil {
 		return nil, err
 	}

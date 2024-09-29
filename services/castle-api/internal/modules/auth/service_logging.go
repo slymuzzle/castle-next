@@ -24,29 +24,18 @@ func NewServiceLogging(logger log.Logger, s Service) Service {
 
 func (s *serviceLogging) Register(
 	ctx context.Context,
-	firstName string,
-	lastName string,
-	nickname string,
-	password string,
-	passwordConfirmation string,
+	input model.UserRegisterInput,
 ) (user *ent.User, err error) {
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "Register",
-			"nickname", nickname,
+			"nickname", input.Nickname,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
 
-	return s.Service.Register(
-		ctx,
-		firstName,
-		lastName,
-		nickname,
-		password,
-		passwordConfirmation,
-	)
+	return s.Service.Register(ctx, input)
 }
 
 func (s *serviceLogging) Login(
@@ -56,7 +45,7 @@ func (s *serviceLogging) Login(
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "Login",
-			"loginUser", loginUser,
+			"loginUser", input.Nickname,
 			"took", time.Since(begin),
 			"err", err,
 		)
@@ -82,7 +71,7 @@ func (s *serviceLogging) AuthUser(ctx context.Context) (user *ent.User, err erro
 	defer func(begin time.Time) {
 		level.Debug(s.logger).Log(
 			"method", "User",
-			"user", user,
+			// "userID", user.ID,
 			"took", time.Since(begin),
 			"err", err,
 		)

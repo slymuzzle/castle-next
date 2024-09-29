@@ -9,7 +9,7 @@ auth:
 
 # Notifications configuration
 notifications:
-  host: secret
+  host: gorush:9000
 
 # Livekit configuration
 livekit:

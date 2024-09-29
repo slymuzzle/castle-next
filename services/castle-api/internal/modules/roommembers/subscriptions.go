@@ -42,20 +42,20 @@ type Subscriptions interface {
 }
 
 type subscriptions struct {
-	roomMembersRepository Repository
-	authService           auth.Service
-	natsService           nats.Service
+	entClient   *ent.Client
+	authService auth.Service
+	natsService nats.Service
 }
 
 func NewSubscriptions(
-	roomMembersRepository Repository,
+	entClient *ent.Client,
 	authService auth.Service,
 	natsService nats.Service,
 ) Subscriptions {
 	return &subscriptions{
-		roomMembersRepository: roomMembersRepository,
-		authService:           authService,
-		natsService:           natsService,
+		entClient:   entClient,
+		authService: authService,
+		natsService: natsService,
 	}
 }
 
@@ -172,7 +172,7 @@ func (s *subscriptions) subscribe(
 	ch := make(chan *ent.RoomMemberEdge, 1)
 
 	sub, err := natsClient.Subscribe(subject, func(roomMemberID pulid.ID) {
-		rm, err := s.roomMembersRepository.FindByID(ctx, roomMemberID)
+		rm, err := s.entClient.RoomMember.Get(ctx, roomMemberID)
 		if err != nil {
 			return
 		}

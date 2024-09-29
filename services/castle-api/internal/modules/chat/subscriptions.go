@@ -45,17 +45,17 @@ type Subscriptions interface {
 }
 
 type subscriptions struct {
-	chatRepository Repository
-	natsService    nats.Service
+	entClient   *ent.Client
+	natsService nats.Service
 }
 
 func NewSubscriptions(
-	chatRepository Repository,
+	entClient *ent.Client,
 	natsService nats.Service,
 ) Subscriptions {
 	return &subscriptions{
-		chatRepository: chatRepository,
-		natsService:    natsService,
+		entClient:   entClient,
+		natsService: natsService,
 	}
 }
 
@@ -156,7 +156,7 @@ func (s *subscriptions) subscribe(
 	ch := make(chan *ent.MessageEdge, 1)
 
 	sub, err := natsClient.Subscribe(subject, func(messageID pulid.ID) {
-		message, err := s.chatRepository.FindByID(ctx, messageID)
+		message, err := s.entClient.Message.Get(ctx, messageID)
 		if err != nil {
 			return
 		}

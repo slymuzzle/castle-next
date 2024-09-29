@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"journeyhub/ent"
+	"journeyhub/ent/device"
 	"journeyhub/ent/schema/pulid"
+	"journeyhub/ent/user"
 	"journeyhub/graph/model"
 	"journeyhub/internal/modules/auth/jwtauth"
 	"journeyhub/internal/platform/config"
@@ -28,66 +30,61 @@ var (
 type Service interface {
 	Register(
 		ctx context.Context,
-		firstName string,
-		lastName string,
-		nickname string,
-		password string,
-		passwordConfirmation string,
+		input model.UserRegisterInput,
 	) (*ent.User, error)
+
 	Login(
 		ctx context.Context,
 		input model.UserLoginInput,
 	) (*model.LoginUser, error)
+
 	Auth(ctx context.Context) (pulid.ID, error)
+
 	AuthUser(ctx context.Context) (*ent.User, error)
+
 	JWTAuthClient() *jwtauth.JWTAuth
 }
 
 type service struct {
-	config         config.AuthConfig
-	jwtAuth        *jwtauth.JWTAuth
-	authRepository Repository
+	config    config.AuthConfig
+	entClient *ent.Client
+	jwtAuth   *jwtauth.JWTAuth
 }
 
-func NewService(config config.AuthConfig, authRepository Repository) Service {
+func NewService(config config.AuthConfig, entClient *ent.Client) Service {
 	jwtAuth := jwtauth.New("HS256", []byte(config.Secret), nil)
 	return &service{
-		config:         config,
-		jwtAuth:        jwtAuth,
-		authRepository: authRepository,
+		config:    config,
+		entClient: entClient,
+		jwtAuth:   jwtAuth,
 	}
 }
 
-func (s *service) Register(
-	ctx context.Context,
-	firstName string,
-	lastName string,
-	nickname string,
-	password string,
-	passwordConfirmation string,
-) (*ent.User, error) {
-	existingUser, _ := s.authRepository.
-		FindUserByNickname(ctx, nickname)
+func (s *service) Register(ctx context.Context, input model.UserRegisterInput) (*ent.User, error) {
+	existingUser, _ := s.entClient.User.
+		Query().
+		Where(user.Nickname(input.Nickname)).
+		Only(ctx)
 	if existingUser != nil {
 		return nil, ErrUserExist
 	}
 
-	if password != passwordConfirmation {
+	if input.Password != input.PasswordConfirmation {
 		return nil, ErrPasswordConfirm
 	}
 
-	hashedPassword, err := pass.Hash(password)
+	hashedPassword, err := pass.Hash(input.Password)
 	if err != nil {
 		return nil, ErrPasswordHash
 	}
 
-	user, err := s.authRepository.CreateUser(
-		ctx,
-		firstName,
-		lastName,
-		nickname,
-		hashedPassword,
-	)
+	user, err := s.entClient.User.
+		Create().
+		SetFirstName(input.FirstName).
+		SetLastName(input.LastName).
+		SetNickname(input.Nickname).
+		SetPassword(hashedPassword).
+		Save(ctx)
 	if err != nil {
 		return nil, ErrCreateUser
 	}
@@ -96,8 +93,10 @@ func (s *service) Register(
 }
 
 func (s *service) Login(ctx context.Context, input model.UserLoginInput) (*model.LoginUser, error) {
-	existingUser, err := s.authRepository.
-		FindUserByNickname(ctx, input.Nickname)
+	existingUser, err := s.entClient.User.
+		Query().
+		Where(user.Nickname(input.Nickname)).
+		Only(ctx)
 	if err != nil {
 		return nil, errors.Join(ErrInvalidCredentials, err)
 	}
@@ -118,12 +117,14 @@ func (s *service) Login(ctx context.Context, input model.UserLoginInput) (*model
 		return nil, err
 	}
 
-	_, err = s.authRepository.CreateOrUpdateUserDevice(
-		ctx,
-		existingUser.ID,
-		input.DeviceID,
-		input.FcmToken,
-	)
+	_, err = s.entClient.Device.
+		Create().
+		SetUserID(existingUser.ID).
+		SetDeviceID(input.DeviceID).
+		SetFcmToken(input.FcmToken).
+		OnConflictColumns(device.FieldDeviceID).
+		UpdateNewValues().
+		ID(ctx)
 	if err != nil {
 		return nil, errors.Join(ErrCreateOrUpdateUserDevice, err)
 	}
@@ -152,10 +153,11 @@ func (s *service) AuthUser(ctx context.Context) (*ent.User, error) {
 
 	subject := jwtToken.Subject()
 
-	user, err := s.authRepository.FindUserByID(
-		ctx,
-		pulid.ID(subject),
-	)
+	user, err := s.entClient.User.
+		Query().
+		Where(user.ID(pulid.ID(subject))).
+		WithDevice().
+		Only(ctx)
 	if err != nil {
 		return nil, ErrUserNotFound
 	}

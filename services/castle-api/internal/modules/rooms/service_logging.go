@@ -35,21 +35,6 @@ func NewServiceLogging(logger log.Logger, s Service) Service {
 // 	return s.Service.FindOrCreatePersonalRoom(ctx, targetUserID)
 // }
 
-func (s *serviceLogging) FindRoomByMessage(
-	ctx context.Context,
-	messageID pulid.ID,
-) (room *ent.Room, err error) {
-	defer func(begin time.Time) {
-		level.Debug(s.logger).Log(
-			"method", "FindRoomByMessage",
-			"messageID", messageID,
-			"took", time.Since(begin),
-			"err", err,
-		)
-	}(time.Now())
-	return s.Service.FindRoomByMessage(ctx, messageID)
-}
-
 func (s *serviceLogging) IncrementRoomVersion(
 	ctx context.Context,
 	ID pulid.ID,

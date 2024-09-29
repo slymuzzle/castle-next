@@ -12,8 +12,11 @@ import (
 
 type Service interface {
 	Connect() error
+
 	Client() proto.GorushClient
+
 	Config() config.NotificationsConfig
+
 	Close() error
 }
 
