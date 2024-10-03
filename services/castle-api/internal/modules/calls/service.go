@@ -1,4 +1,4 @@
-package call
+package calls
 
 import (
 	"context"
@@ -8,9 +8,10 @@ import (
 	"journeyhub/ent"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/ent/usercontact"
+	"journeyhub/graph/model"
 	"journeyhub/internal/modules/auth"
+	"journeyhub/internal/modules/notifications"
 	"journeyhub/internal/platform/config"
-	"journeyhub/internal/platform/notification"
 
 	"github.com/appleboy/gorush/rpc/proto"
 
@@ -18,28 +19,29 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-type CallNotificationType int
-
-const (
-	Start CallNotificationType = iota
-	End
-	Decline
-)
-
 type Service interface {
 	StartCall(
 		ctx context.Context,
 		roomID pulid.ID,
+		callType model.CallType,
 	) (bool, error)
 
 	EndCall(
 		ctx context.Context,
 		roomID pulid.ID,
+		callType model.CallType,
 	) (bool, error)
 
 	DeclineCall(
 		ctx context.Context,
 		roomID pulid.ID,
+		callType model.CallType,
+	) (bool, error)
+
+	AnswerCall(
+		ctx context.Context,
+		roomID pulid.ID,
+		callType model.CallType,
 	) (bool, error)
 
 	GetCallJoinToken(
@@ -52,14 +54,14 @@ type service struct {
 	config              config.LivekitConfig
 	entClient           *ent.Client
 	authService         auth.Service
-	notificationService notification.Service
+	notificationService notifications.Service
 }
 
 func NewService(
 	config config.LivekitConfig,
 	entClient *ent.Client,
 	authService auth.Service,
-	notificationService notification.Service,
+	notificationService notifications.Service,
 ) Service {
 	return &service{
 		config:              config,
@@ -72,6 +74,7 @@ func NewService(
 func (s *service) StartCall(
 	ctx context.Context,
 	roomID pulid.ID,
+	callType model.CallType,
 ) (bool, error) {
 	currentUser, err := s.authService.AuthUser(ctx)
 	if err != nil {
@@ -84,12 +87,11 @@ func (s *service) StartCall(
 	}
 
 	_, err = s.notificationService.Client().Send(ctx, &proto.NotificationRequest{
-		Platform: 2,
-		Tokens:   []string{userContact.Edges.User.Edges.Device.FcmToken},
-		Title:    "Test Title",
-		Message:  "Test Message",
-		Priority: proto.NotificationRequest_HIGH,
-		Data:     s.getCallData(Start, userContact),
+		Platform:         2,
+		Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
+		Priority:         proto.NotificationRequest_HIGH,
+		ContentAvailable: true,
+		Data:             s.getCallData(model.CallNotificationTypeStartCall, callType, userContact),
 	})
 	if err != nil {
 		return false, err
@@ -101,6 +103,7 @@ func (s *service) StartCall(
 func (s *service) EndCall(
 	ctx context.Context,
 	roomID pulid.ID,
+	callType model.CallType,
 ) (bool, error) {
 	currentUser, err := s.authService.AuthUser(ctx)
 	if err != nil {
@@ -113,12 +116,11 @@ func (s *service) EndCall(
 	}
 
 	_, err = s.notificationService.Client().Send(ctx, &proto.NotificationRequest{
-		Platform: 2,
-		Tokens:   []string{userContact.Edges.User.Edges.Device.FcmToken},
-		Title:    "Test Title",
-		Message:  "Test Message",
-		Priority: proto.NotificationRequest_HIGH,
-		Data:     s.getCallData(End, userContact),
+		Platform:         2,
+		Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
+		Priority:         proto.NotificationRequest_HIGH,
+		ContentAvailable: true,
+		Data:             s.getCallData(model.CallNotificationTypeEndCall, callType, userContact),
 	})
 	if err != nil {
 		return false, err
@@ -130,6 +132,7 @@ func (s *service) EndCall(
 func (s *service) DeclineCall(
 	ctx context.Context,
 	roomID pulid.ID,
+	callType model.CallType,
 ) (bool, error) {
 	currentUser, err := s.authService.AuthUser(ctx)
 	if err != nil {
@@ -142,12 +145,40 @@ func (s *service) DeclineCall(
 	}
 
 	_, err = s.notificationService.Client().Send(ctx, &proto.NotificationRequest{
-		Platform: 2,
-		Tokens:   []string{userContact.Edges.User.Edges.Device.FcmToken},
-		Title:    "Test Title",
-		Message:  "Test Message",
-		Priority: proto.NotificationRequest_HIGH,
-		Data:     s.getCallData(Decline, userContact),
+		Platform:         2,
+		Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
+		Priority:         proto.NotificationRequest_HIGH,
+		ContentAvailable: true,
+		Data:             s.getCallData(model.CallNotificationTypeDeclineCall, callType, userContact),
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (s *service) AnswerCall(
+	ctx context.Context,
+	roomID pulid.ID,
+	callType model.CallType,
+) (bool, error) {
+	currentUser, err := s.authService.AuthUser(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	userContact, err := s.getInversedUserContact(ctx, roomID, currentUser.ID)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = s.notificationService.Client().Send(ctx, &proto.NotificationRequest{
+		Platform:         2,
+		Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
+		Priority:         proto.NotificationRequest_HIGH,
+		ContentAvailable: true,
+		Data:             s.getCallData(model.CallNotificationTypeAnswerCall, callType, userContact),
 	})
 	if err != nil {
 		return false, err
@@ -196,13 +227,17 @@ func (s *service) getInversedUserContact(
 }
 
 func (s *service) getCallData(
-	callType CallNotificationType,
+	notificationType model.CallNotificationType,
+	callType model.CallType,
 	userContact *ent.UserContact,
 ) *structpb.Struct {
 	return &structpb.Struct{
 		Fields: map[string]*structpb.Value{
-			"type": {
-				Kind: &structpb.Value_NumberValue{NumberValue: float64(callType)},
+			"callNotificationType": {
+				Kind: &structpb.Value_StringValue{StringValue: notificationType.String()},
+			},
+			"callType": {
+				Kind: &structpb.Value_StringValue{StringValue: callType.String()},
 			},
 			"contactID": {
 				Kind: &structpb.Value_StringValue{StringValue: string(userContact.ID)},

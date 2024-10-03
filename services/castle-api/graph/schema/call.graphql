@@ -1,9 +1,22 @@
+enum CallType {
+  AUDIO
+  VIDEO
+}
+
+enum CallNotificationType {
+  START_CALL
+  END_CALL
+  DECLINE_CALL
+  ANSWER_CALL
+}
+
 extend type Query {
   callJoinToken(roomID: ID!): String!
 }
 
 extend type Mutation {
-  startCall(roomID: ID!): Boolean!
-  endCall(roomID: ID!): Boolean!
-  declineCall(roomID: ID!): Boolean!
+  startCall(roomID: ID!, callType: CallType!): Boolean!
+  endCall(roomID: ID!, callType: CallType!): Boolean!
+  declineCall(roomID: ID!, callType: CallType!): Boolean!
+  answerCall(roomID: ID!, callType: CallType!): Boolean!
 }

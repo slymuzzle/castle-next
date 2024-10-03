@@ -11,9 +11,9 @@ import (
 	"journeyhub/graph/model"
 	"journeyhub/internal/modules/auth"
 	"journeyhub/internal/modules/media"
+	"journeyhub/internal/modules/notifications"
 	"journeyhub/internal/modules/roommembers"
 	"journeyhub/internal/modules/rooms"
-	"journeyhub/internal/platform/notification"
 )
 
 type Service interface {
@@ -43,7 +43,7 @@ type service struct {
 	roomsService        rooms.Service
 	roomMembersService  roommembers.Service
 	mediaService        media.Service
-	notificationService notification.Service
+	notificationService notifications.Service
 }
 
 func NewService(

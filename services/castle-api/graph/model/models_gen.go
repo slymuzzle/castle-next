@@ -3,10 +3,13 @@
 package model
 
 import (
+	"fmt"
+	"io"
 	"journeyhub/ent"
 	"journeyhub/ent/messageattachment"
 	"journeyhub/ent/room"
 	"journeyhub/ent/schema/pulid"
+	"strconv"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -97,4 +100,90 @@ type UserRegisterInput struct {
 	Nickname             string `json:"nickname" validate:"min=8,max=255"`
 	Password             string `json:"password" validate:"min=8,max=64"`
 	PasswordConfirmation string `json:"passwordConfirmation" validate:"min=8,max=64"`
+}
+
+type CallNotificationType string
+
+const (
+	CallNotificationTypeStartCall   CallNotificationType = "START_CALL"
+	CallNotificationTypeEndCall     CallNotificationType = "END_CALL"
+	CallNotificationTypeDeclineCall CallNotificationType = "DECLINE_CALL"
+	CallNotificationTypeAnswerCall  CallNotificationType = "ANSWER_CALL"
+)
+
+var AllCallNotificationType = []CallNotificationType{
+	CallNotificationTypeStartCall,
+	CallNotificationTypeEndCall,
+	CallNotificationTypeDeclineCall,
+	CallNotificationTypeAnswerCall,
+}
+
+func (e CallNotificationType) IsValid() bool {
+	switch e {
+	case CallNotificationTypeStartCall, CallNotificationTypeEndCall, CallNotificationTypeDeclineCall, CallNotificationTypeAnswerCall:
+		return true
+	}
+	return false
+}
+
+func (e CallNotificationType) String() string {
+	return string(e)
+}
+
+func (e *CallNotificationType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CallNotificationType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CallNotificationType", str)
+	}
+	return nil
+}
+
+func (e CallNotificationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CallType string
+
+const (
+	CallTypeAudio CallType = "AUDIO"
+	CallTypeVideo CallType = "VIDEO"
+)
+
+var AllCallType = []CallType{
+	CallTypeAudio,
+	CallTypeVideo,
+}
+
+func (e CallType) IsValid() bool {
+	switch e {
+	case CallTypeAudio, CallTypeVideo:
+		return true
+	}
+	return false
+}
+
+func (e CallType) String() string {
+	return string(e)
+}
+
+func (e *CallType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CallType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CallType", str)
+	}
+	return nil
+}
+
+func (e CallType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

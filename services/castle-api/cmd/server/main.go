@@ -10,16 +10,16 @@ import (
 	"journeyhub/graph/server"
 	"journeyhub/internal/modules/auth"
 	"journeyhub/internal/modules/auth/jwtauth"
-	"journeyhub/internal/modules/call"
+	"journeyhub/internal/modules/calls"
 	"journeyhub/internal/modules/chat"
 	"journeyhub/internal/modules/contacts"
 	"journeyhub/internal/modules/media"
+	"journeyhub/internal/modules/notifications"
 	"journeyhub/internal/modules/roommembers"
 	"journeyhub/internal/modules/rooms"
 	"journeyhub/internal/platform/config"
 	"journeyhub/internal/platform/db"
 	"journeyhub/internal/platform/nats"
-	"journeyhub/internal/platform/notification"
 	"journeyhub/internal/platform/validation"
 
 	"github.com/go-kit/log"
@@ -111,18 +111,18 @@ func main() {
 	)
 
 	// Initialize notifications service
-	var notificationService notification.Service
-	notificationService = notification.NewService(config.Notifications)
-	notificationService = notification.NewServiceLogging(
-		log.With(logger, "component", "notification"),
-		notificationService,
+	var notificationsService notifications.Service
+	notificationsService = notifications.NewService(config.Notifications)
+	notificationsService = notifications.NewServiceLogging(
+		log.With(logger, "component", "notifications"),
+		notificationsService,
 	)
 
-	if nErr := notificationService.Connect(); nErr != nil {
+	if nErr := notificationsService.Connect(); nErr != nil {
 		level.Error(logger).Log("exit", nErr)
 		os.Exit(1)
 	}
-	defer notificationService.Close()
+	defer notificationsService.Close()
 
 	// Initialize auth service
 	var authService auth.Service
@@ -163,11 +163,11 @@ func main() {
 	)
 
 	// Initialize call service
-	var callService call.Service
-	callService = call.NewService(config.Livekit, entClient, authService, notificationService)
-	callService = call.NewServiceLogging(
-		log.With(logger, "component", "call"),
-		callService,
+	var callsService calls.Service
+	callsService = calls.NewService(config.Livekit, entClient, authService, notificationsService)
+	callsService = calls.NewServiceLogging(
+		log.With(logger, "component", "calls"),
+		callsService,
 	)
 
 	// Initialize chat service
@@ -215,7 +215,7 @@ func main() {
 			roomsService,
 			roomMembersService,
 			contactsService,
-			callService,
+			callsService,
 			chatService,
 		),
 		graphqlLogger,
