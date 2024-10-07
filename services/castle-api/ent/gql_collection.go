@@ -813,6 +813,11 @@ func (mv *MessageVoiceQuery) collectField(ctx context.Context, oneNode bool, opC
 				return err
 			}
 			mv.withFile = query
+		case "length":
+			if _, ok := fieldSeen[messagevoice.FieldLength]; !ok {
+				selectedFields = append(selectedFields, messagevoice.FieldLength)
+				fieldSeen[messagevoice.FieldLength] = struct{}{}
+			}
 		case "attachedAt":
 			if _, ok := fieldSeen[messagevoice.FieldAttachedAt]; !ok {
 				selectedFields = append(selectedFields, messagevoice.FieldAttachedAt)

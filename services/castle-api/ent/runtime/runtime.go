@@ -118,7 +118,7 @@ func init() {
 	messagevoiceFields := schema.MessageVoice{}.Fields()
 	_ = messagevoiceFields
 	// messagevoiceDescAttachedAt is the schema descriptor for attached_at field.
-	messagevoiceDescAttachedAt := messagevoiceFields[0].Descriptor()
+	messagevoiceDescAttachedAt := messagevoiceFields[1].Descriptor()
 	// messagevoice.DefaultAttachedAt holds the default value on creation for the attached_at field.
 	messagevoice.DefaultAttachedAt = messagevoiceDescAttachedAt.Default.(func() time.Time)
 	// messagevoiceDescID is the schema descriptor for id field.

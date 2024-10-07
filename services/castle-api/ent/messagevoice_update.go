@@ -31,6 +31,27 @@ func (mvu *MessageVoiceUpdate) Where(ps ...predicate.MessageVoice) *MessageVoice
 	return mvu
 }
 
+// SetLength sets the "length" field.
+func (mvu *MessageVoiceUpdate) SetLength(u uint64) *MessageVoiceUpdate {
+	mvu.mutation.ResetLength()
+	mvu.mutation.SetLength(u)
+	return mvu
+}
+
+// SetNillableLength sets the "length" field if the given value is not nil.
+func (mvu *MessageVoiceUpdate) SetNillableLength(u *uint64) *MessageVoiceUpdate {
+	if u != nil {
+		mvu.SetLength(*u)
+	}
+	return mvu
+}
+
+// AddLength adds u to the "length" field.
+func (mvu *MessageVoiceUpdate) AddLength(u int64) *MessageVoiceUpdate {
+	mvu.mutation.AddLength(u)
+	return mvu
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (mvu *MessageVoiceUpdate) SetRoomID(id pulid.ID) *MessageVoiceUpdate {
 	mvu.mutation.SetRoomID(id)
@@ -140,6 +161,12 @@ func (mvu *MessageVoiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := mvu.mutation.Length(); ok {
+		_spec.SetField(messagevoice.FieldLength, field.TypeUint64, value)
+	}
+	if value, ok := mvu.mutation.AddedLength(); ok {
+		_spec.AddField(messagevoice.FieldLength, field.TypeUint64, value)
+	}
 	if mvu.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -245,6 +272,27 @@ type MessageVoiceUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *MessageVoiceMutation
+}
+
+// SetLength sets the "length" field.
+func (mvuo *MessageVoiceUpdateOne) SetLength(u uint64) *MessageVoiceUpdateOne {
+	mvuo.mutation.ResetLength()
+	mvuo.mutation.SetLength(u)
+	return mvuo
+}
+
+// SetNillableLength sets the "length" field if the given value is not nil.
+func (mvuo *MessageVoiceUpdateOne) SetNillableLength(u *uint64) *MessageVoiceUpdateOne {
+	if u != nil {
+		mvuo.SetLength(*u)
+	}
+	return mvuo
+}
+
+// AddLength adds u to the "length" field.
+func (mvuo *MessageVoiceUpdateOne) AddLength(u int64) *MessageVoiceUpdateOne {
+	mvuo.mutation.AddLength(u)
+	return mvuo
 }
 
 // SetRoomID sets the "room" edge to the Room entity by ID.
@@ -385,6 +433,12 @@ func (mvuo *MessageVoiceUpdateOne) sqlSave(ctx context.Context) (_node *MessageV
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := mvuo.mutation.Length(); ok {
+		_spec.SetField(messagevoice.FieldLength, field.TypeUint64, value)
+	}
+	if value, ok := mvuo.mutation.AddedLength(); ok {
+		_spec.AddField(messagevoice.FieldLength, field.TypeUint64, value)
 	}
 	if mvuo.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{

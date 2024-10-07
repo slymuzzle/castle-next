@@ -715,6 +715,7 @@ enum MessageOrderField {
 }
 type MessageVoice implements Node {
   id: ID!
+  length: Uint64!
   attachedAt: Time!
   room: Room!
   message: Message!
@@ -767,6 +768,7 @@ input MessageVoiceOrder {
 Properties by which MessageVoice connections can be ordered.
 """
 enum MessageVoiceOrderField {
+  LENGTH
   ATTACHED_AT
 }
 """
@@ -788,6 +790,17 @@ input MessageVoiceWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
+  """
+  length field predicates
+  """
+  length: Uint64
+  lengthNEQ: Uint64
+  lengthIn: [Uint64!]
+  lengthNotIn: [Uint64!]
+  lengthGT: Uint64
+  lengthGTE: Uint64
+  lengthLT: Uint64
+  lengthLTE: Uint64
   """
   attached_at field predicates
   """

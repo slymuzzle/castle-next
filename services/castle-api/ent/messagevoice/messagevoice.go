@@ -15,6 +15,8 @@ const (
 	Label = "message_voice"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldLength holds the string denoting the length field in the database.
+	FieldLength = "length"
 	// FieldAttachedAt holds the string denoting the attached_at field in the database.
 	FieldAttachedAt = "attached_at"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
@@ -51,6 +53,7 @@ const (
 // Columns holds all SQL columns for messagevoice fields.
 var Columns = []string{
 	FieldID,
+	FieldLength,
 	FieldAttachedAt,
 }
 
@@ -90,6 +93,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByLength orders the results by the length field.
+func ByLength(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLength, opts...).ToFunc()
 }
 
 // ByAttachedAt orders the results by the attached_at field.

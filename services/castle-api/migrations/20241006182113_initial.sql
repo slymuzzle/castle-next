@@ -56,6 +56,7 @@ CREATE TABLE "message_links" (
 -- Create "message_voices" table
 CREATE TABLE "message_voices" (
   "id" character varying NOT NULL,
+  "length" bigint NOT NULL,
   "attached_at" timestamptz NOT NULL,
   "file_message_voice" character varying NOT NULL,
   "message_voice" character varying NOT NULL,

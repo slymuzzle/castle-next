@@ -4,20 +4,34 @@ import (
 	"slices"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/gabriel-vasile/mimetype"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
+	"github.com/k0kubun/pp/v3"
 )
 
 var voiceContentTypes = []string{
-	"audio/ogg",
+	"audio/mp4",
+	"video/mp4",
 }
 
 func handleGqlUploadIsVoiceTag(fl validator.FieldLevel) bool {
-	upload := fl.Field().Interface().(*graphql.Upload)
-	if upload == nil {
+	if fl.Field().IsZero() {
 		return true
 	}
-	return slices.Contains(voiceContentTypes, upload.ContentType)
+
+	upload := fl.Field().Interface().(graphql.Upload)
+
+	mtype, err := mimetype.DetectReader(upload.File)
+	if err != nil {
+		return false
+	}
+
+	pp.Print(upload)
+
+	pp.Print(mtype)
+
+	return slices.Contains(voiceContentTypes, mtype.String())
 }
 
 func RegisterGqlUploadIsVoiceTag(val *validator.Validate, trans ut.Translator) error {
@@ -28,7 +42,7 @@ func RegisterGqlUploadIsVoiceTag(val *validator.Validate, trans ut.Translator) e
 	if err := val.RegisterTranslation(
 		"gql_upload_is_voice",
 		trans,
-		registerTranslator("gql_upload_is_voice", "{0} must be in (audio/ogg) format"),
+		registerTranslator("gql_upload_is_voice", "{0} must be in (audio/mp4) format"),
 		translate,
 	); err != nil {
 		return err

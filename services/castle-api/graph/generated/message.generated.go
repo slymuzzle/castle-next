@@ -544,7 +544,7 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 			it.Files = data
 		case "voice":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("voice"))
-			data, err := ec.unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			data, err := ec.unmarshalOUploadMessageVoiceInput2ᚖjourneyhubᚋgraphᚋmodelᚐUploadMessageVoiceInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -617,6 +617,40 @@ func (ec *executionContext) unmarshalInputUploadMessageFileInput(ctx context.Con
 				return it, err
 			}
 			it.Type = data
+		case "file":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
+			data, err := ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.File = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUploadMessageVoiceInput(ctx context.Context, obj interface{}) (model.UploadMessageVoiceInput, error) {
+	var it model.UploadMessageVoiceInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"length", "file"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "length":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("length"))
+			data, err := ec.unmarshalNUint642uint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Length = data
 		case "file":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
 			data, err := ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
@@ -705,6 +739,14 @@ func (ec *executionContext) unmarshalOUploadMessageFileInput2ᚕᚖjourneyhubᚋ
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalOUploadMessageVoiceInput2ᚖjourneyhubᚋgraphᚋmodelᚐUploadMessageVoiceInput(ctx context.Context, v interface{}) (*model.UploadMessageVoiceInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputUploadMessageVoiceInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 // endregion ***************************** type.gotpl *****************************

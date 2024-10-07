@@ -164,6 +164,7 @@ type ComplexityRoot struct {
 		AttachedAt func(childComplexity int) int
 		File       func(childComplexity int) int
 		ID         func(childComplexity int) int
+		Length     func(childComplexity int) int
 		Message    func(childComplexity int) int
 		Room       func(childComplexity int) int
 	}
@@ -897,6 +898,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MessageVoice.ID(childComplexity), true
+
+	case "MessageVoice.length":
+		if e.complexity.MessageVoice.Length == nil {
+			break
+		}
+
+		return e.complexity.MessageVoice.Length(childComplexity), true
 
 	case "MessageVoice.message":
 		if e.complexity.MessageVoice.Message == nil {
@@ -2100,6 +2108,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateMessageInput,
 		ec.unmarshalInputUpdateRoomInput,
 		ec.unmarshalInputUploadMessageFileInput,
+		ec.unmarshalInputUploadMessageVoiceInput,
 		ec.unmarshalInputUserContactOrder,
 		ec.unmarshalInputUserContactWhereInput,
 		ec.unmarshalInputUserLoginInput,
@@ -2965,6 +2974,7 @@ enum MessageOrderField {
 }
 type MessageVoice implements Node {
   id: ID!
+  length: Uint64!
   attachedAt: Time!
   room: Room!
   message: Message!
@@ -3017,6 +3027,7 @@ input MessageVoiceOrder {
 Properties by which MessageVoice connections can be ordered.
 """
 enum MessageVoiceOrderField {
+  LENGTH
   ATTACHED_AT
 }
 """
@@ -3038,6 +3049,17 @@ input MessageVoiceWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
+  """
+  length field predicates
+  """
+  length: Uint64
+  lengthNEQ: Uint64
+  lengthIn: [Uint64!]
+  lengthNotIn: [Uint64!]
+  lengthGT: Uint64
+  lengthGTE: Uint64
+  lengthLT: Uint64
+  lengthLTE: Uint64
   """
   attached_at field predicates
   """
@@ -4542,6 +4564,14 @@ input UploadMessageFileInput {
 }
 
 """
+UploadMessageFile is used for upload message files.
+"""
+input UploadMessageVoiceInput {
+  length: Uint64!
+  file: Upload! @goTag(key: "validate", value: "gql_upload_is_voice")
+}
+
+"""
 CreateMessageInput is used for create Message object.
 """
 input SendMessageInput {
@@ -4550,7 +4580,7 @@ input SendMessageInput {
   replyTo: ID
   content: String @goTag(key: "validate", value: "omitempty,max=4096")
   files: [UploadMessageFileInput!] @goTag(key: "validate", value: "max=20")
-  voice: Upload @goTag(key: "validate", value: "gql_upload_is_voice")
+  voice: UploadMessageVoiceInput
   links: [CreateMessageLinkInput!]
 }
 

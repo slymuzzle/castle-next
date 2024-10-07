@@ -58,7 +58,7 @@ type SendMessageInput struct {
 	ReplyTo      *pulid.ID                 `json:"replyTo,omitempty"`
 	Content      *string                   `json:"content,omitempty" validate:"omitempty,max=4096"`
 	Files        []*UploadMessageFileInput `json:"files,omitempty" validate:"max=20"`
-	Voice        *graphql.Upload           `json:"voice,omitempty" validate:"gql_upload_is_voice"`
+	Voice        *UploadMessageVoiceInput  `json:"voice,omitempty"`
 	Links        []*CreateMessageLinkInput `json:"links,omitempty"`
 }
 
@@ -83,6 +83,12 @@ type UpdateRoomInput struct {
 type UploadMessageFileInput struct {
 	Type messageattachment.Type `json:"type"`
 	File graphql.Upload         `json:"file"`
+}
+
+// UploadMessageFile is used for upload message files.
+type UploadMessageVoiceInput struct {
+	Length uint64         `json:"length"`
+	File   graphql.Upload `json:"file" validate:"gql_upload_is_voice"`
 }
 
 // UserLoginInput is used for user login.

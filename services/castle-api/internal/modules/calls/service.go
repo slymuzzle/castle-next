@@ -51,23 +51,23 @@ type Service interface {
 }
 
 type service struct {
-	config              config.LivekitConfig
-	entClient           *ent.Client
-	authService         auth.Service
-	notificationService notifications.Service
+	config               config.LivekitConfig
+	entClient            *ent.Client
+	authService          auth.Service
+	notificationsService notifications.Service
 }
 
 func NewService(
 	config config.LivekitConfig,
 	entClient *ent.Client,
 	authService auth.Service,
-	notificationService notifications.Service,
+	notificationsService notifications.Service,
 ) Service {
 	return &service{
-		config:              config,
-		entClient:           entClient,
-		authService:         authService,
-		notificationService: notificationService,
+		config:               config,
+		entClient:            entClient,
+		authService:          authService,
+		notificationsService: notificationsService,
 	}
 }
 
@@ -86,7 +86,7 @@ func (s *service) StartCall(
 		return false, err
 	}
 
-	_, err = s.notificationService.Client().Send(ctx, &proto.NotificationRequest{
+	_, err = s.notificationsService.Client().Send(ctx, &proto.NotificationRequest{
 		Platform:         2,
 		Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
 		Priority:         proto.NotificationRequest_HIGH,
@@ -115,7 +115,7 @@ func (s *service) EndCall(
 		return false, err
 	}
 
-	_, err = s.notificationService.Client().Send(ctx, &proto.NotificationRequest{
+	_, err = s.notificationsService.Client().Send(ctx, &proto.NotificationRequest{
 		Platform:         2,
 		Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
 		Priority:         proto.NotificationRequest_HIGH,
@@ -144,7 +144,7 @@ func (s *service) DeclineCall(
 		return false, err
 	}
 
-	_, err = s.notificationService.Client().Send(ctx, &proto.NotificationRequest{
+	_, err = s.notificationsService.Client().Send(ctx, &proto.NotificationRequest{
 		Platform:         2,
 		Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
 		Priority:         proto.NotificationRequest_HIGH,
@@ -173,7 +173,7 @@ func (s *service) AnswerCall(
 		return false, err
 	}
 
-	_, err = s.notificationService.Client().Send(ctx, &proto.NotificationRequest{
+	_, err = s.notificationsService.Client().Send(ctx, &proto.NotificationRequest{
 		Platform:         2,
 		Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
 		Priority:         proto.NotificationRequest_HIGH,

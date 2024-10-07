@@ -146,7 +146,7 @@ func (s *service) SendMessage(
 
 	if input.Voice != nil {
 		uploadPrefix := fmt.Sprintf("rooms/%s/%s/voice", input.RoomID, message.ID)
-		uVoiceInfo, uErr := s.mediaService.UploadFile(ctx, uploadPrefix, input.Voice)
+		uVoiceInfo, uErr := s.mediaService.UploadFile(ctx, uploadPrefix, &input.Voice.File)
 		if uErr != nil {
 			return nil, uErr
 		}
@@ -170,6 +170,7 @@ func (s *service) SendMessage(
 			SetMessage(message).
 			SetRoomID(input.RoomID).
 			SetFile(voiceFile).
+			SetLength(input.Voice.Length).
 			Exec(ctx)
 		if uErr != nil {
 			return nil, uErr

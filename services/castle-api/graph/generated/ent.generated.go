@@ -2476,6 +2476,8 @@ func (ec *executionContext) fieldContext_File_messageVoice(_ context.Context, fi
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_MessageVoice_id(ctx, field)
+			case "length":
+				return ec.fieldContext_MessageVoice_length(ctx, field)
 			case "attachedAt":
 				return ec.fieldContext_MessageVoice_attachedAt(ctx, field)
 			case "room":
@@ -2702,6 +2704,8 @@ func (ec *executionContext) fieldContext_Message_voice(_ context.Context, field 
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_MessageVoice_id(ctx, field)
+			case "length":
+				return ec.fieldContext_MessageVoice_length(ctx, field)
 			case "attachedAt":
 				return ec.fieldContext_MessageVoice_attachedAt(ctx, field)
 			case "room":
@@ -4736,6 +4740,50 @@ func (ec *executionContext) fieldContext_MessageVoice_id(_ context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _MessageVoice_length(ctx context.Context, field graphql.CollectedField, obj *ent.MessageVoice) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageVoice_length(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Length, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageVoice_length(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageVoice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MessageVoice_attachedAt(ctx context.Context, field graphql.CollectedField, obj *ent.MessageVoice) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_MessageVoice_attachedAt(ctx, field)
 	if err != nil {
@@ -5175,6 +5223,8 @@ func (ec *executionContext) fieldContext_MessageVoiceEdge_node(_ context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_MessageVoice_id(ctx, field)
+			case "length":
+				return ec.fieldContext_MessageVoice_length(ctx, field)
 			case "attachedAt":
 				return ec.fieldContext_MessageVoice_attachedAt(ctx, field)
 			case "room":
@@ -12869,7 +12919,7 @@ func (ec *executionContext) unmarshalInputMessageVoiceWhereInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "attachedAt", "attachedAtNEQ", "attachedAtIn", "attachedAtNotIn", "attachedAtGT", "attachedAtGTE", "attachedAtLT", "attachedAtLTE", "hasRoom", "hasRoomWith", "hasMessage", "hasMessageWith", "hasFile", "hasFileWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "length", "lengthNEQ", "lengthIn", "lengthNotIn", "lengthGT", "lengthGTE", "lengthLT", "lengthLTE", "attachedAt", "attachedAtNEQ", "attachedAtIn", "attachedAtNotIn", "attachedAtGT", "attachedAtGTE", "attachedAtLT", "attachedAtLTE", "hasRoom", "hasRoomWith", "hasMessage", "hasMessageWith", "hasFile", "hasFileWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -12953,6 +13003,62 @@ func (ec *executionContext) unmarshalInputMessageVoiceWhereInput(ctx context.Con
 				return it, err
 			}
 			it.IDLTE = data
+		case "length":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("length"))
+			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Length = data
+		case "lengthNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lengthNEQ"))
+			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LengthNEQ = data
+		case "lengthIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lengthIn"))
+			data, err := ec.unmarshalOUint642ᚕuint64ᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LengthIn = data
+		case "lengthNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lengthNotIn"))
+			data, err := ec.unmarshalOUint642ᚕuint64ᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LengthNotIn = data
+		case "lengthGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lengthGT"))
+			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LengthGT = data
+		case "lengthGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lengthGTE"))
+			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LengthGTE = data
+		case "lengthLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lengthLT"))
+			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LengthLT = data
+		case "lengthLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lengthLTE"))
+			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LengthLTE = data
 		case "attachedAt":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("attachedAt"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
@@ -17308,6 +17414,11 @@ func (ec *executionContext) _MessageVoice(ctx context.Context, sel ast.Selection
 			out.Values[i] = graphql.MarshalString("MessageVoice")
 		case "id":
 			out.Values[i] = ec._MessageVoice_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "length":
+			out.Values[i] = ec._MessageVoice_length(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

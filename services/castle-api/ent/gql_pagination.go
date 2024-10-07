@@ -2302,6 +2302,20 @@ func (mv *MessageVoiceQuery) Paginate(
 }
 
 var (
+	// MessageVoiceOrderFieldLength orders MessageVoice by length.
+	MessageVoiceOrderFieldLength = &MessageVoiceOrderField{
+		Value: func(mv *MessageVoice) (ent.Value, error) {
+			return mv.Length, nil
+		},
+		column: messagevoice.FieldLength,
+		toTerm: messagevoice.ByLength,
+		toCursor: func(mv *MessageVoice) Cursor {
+			return Cursor{
+				ID:    mv.ID,
+				Value: mv.Length,
+			}
+		},
+	}
 	// MessageVoiceOrderFieldAttachedAt orders MessageVoice by attached_at.
 	MessageVoiceOrderFieldAttachedAt = &MessageVoiceOrderField{
 		Value: func(mv *MessageVoice) (ent.Value, error) {
@@ -2322,6 +2336,8 @@ var (
 func (f MessageVoiceOrderField) String() string {
 	var str string
 	switch f.column {
+	case MessageVoiceOrderFieldLength.column:
+		str = "LENGTH"
 	case MessageVoiceOrderFieldAttachedAt.column:
 		str = "ATTACHED_AT"
 	}
@@ -2340,6 +2356,8 @@ func (f *MessageVoiceOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("MessageVoiceOrderField %T must be a string", v)
 	}
 	switch str {
+	case "LENGTH":
+		*f = *MessageVoiceOrderFieldLength
 	case "ATTACHED_AT":
 		*f = *MessageVoiceOrderFieldAttachedAt
 	default:

@@ -140,7 +140,7 @@ func main() {
 		roomMembersSubscriptions,
 	)
 	var roomMembersService roommembers.Service
-	roomMembersService = roommembers.NewService(entClient, roomMembersSubscriptions, authService)
+	roomMembersService = roommembers.NewService(entClient, roomMembersSubscriptions, authService, notificationsService)
 	roomMembersService = roommembers.NewServiceLogging(
 		log.With(logger, "component", "roommembers"),
 		roomMembersService,

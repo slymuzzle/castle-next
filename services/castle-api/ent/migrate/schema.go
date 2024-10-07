@@ -156,6 +156,7 @@ var (
 	// MessageVoicesColumns holds the columns for the "message_voices" table.
 	MessageVoicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
+		{Name: "length", Type: field.TypeUint64},
 		{Name: "attached_at", Type: field.TypeTime},
 		{Name: "file_message_voice", Type: field.TypeString, Unique: true},
 		{Name: "message_voice", Type: field.TypeString, Unique: true},
@@ -169,19 +170,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "message_voices_files_message_voice",
-				Columns:    []*schema.Column{MessageVoicesColumns[2]},
+				Columns:    []*schema.Column{MessageVoicesColumns[3]},
 				RefColumns: []*schema.Column{FilesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "message_voices_messages_voice",
-				Columns:    []*schema.Column{MessageVoicesColumns[3]},
+				Columns:    []*schema.Column{MessageVoicesColumns[4]},
 				RefColumns: []*schema.Column{MessagesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "message_voices_rooms_message_voices",
-				Columns:    []*schema.Column{MessageVoicesColumns[4]},
+				Columns:    []*schema.Column{MessageVoicesColumns[5]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

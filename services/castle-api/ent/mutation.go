@@ -3915,6 +3915,8 @@ type MessageVoiceMutation struct {
 	op             Op
 	typ            string
 	id             *pulid.ID
+	length         *uint64
+	addlength      *int64
 	attached_at    *time.Time
 	clearedFields  map[string]struct{}
 	room           *pulid.ID
@@ -4030,6 +4032,62 @@ func (m *MessageVoiceMutation) IDs(ctx context.Context) ([]pulid.ID, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetLength sets the "length" field.
+func (m *MessageVoiceMutation) SetLength(u uint64) {
+	m.length = &u
+	m.addlength = nil
+}
+
+// Length returns the value of the "length" field in the mutation.
+func (m *MessageVoiceMutation) Length() (r uint64, exists bool) {
+	v := m.length
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLength returns the old "length" field's value of the MessageVoice entity.
+// If the MessageVoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageVoiceMutation) OldLength(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLength is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLength requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLength: %w", err)
+	}
+	return oldValue.Length, nil
+}
+
+// AddLength adds u to the "length" field.
+func (m *MessageVoiceMutation) AddLength(u int64) {
+	if m.addlength != nil {
+		*m.addlength += u
+	} else {
+		m.addlength = &u
+	}
+}
+
+// AddedLength returns the value that was added to the "length" field in this mutation.
+func (m *MessageVoiceMutation) AddedLength() (r int64, exists bool) {
+	v := m.addlength
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLength resets all changes to the "length" field.
+func (m *MessageVoiceMutation) ResetLength() {
+	m.length = nil
+	m.addlength = nil
 }
 
 // SetAttachedAt sets the "attached_at" field.
@@ -4219,7 +4277,10 @@ func (m *MessageVoiceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MessageVoiceMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 2)
+	if m.length != nil {
+		fields = append(fields, messagevoice.FieldLength)
+	}
 	if m.attached_at != nil {
 		fields = append(fields, messagevoice.FieldAttachedAt)
 	}
@@ -4231,6 +4292,8 @@ func (m *MessageVoiceMutation) Fields() []string {
 // schema.
 func (m *MessageVoiceMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case messagevoice.FieldLength:
+		return m.Length()
 	case messagevoice.FieldAttachedAt:
 		return m.AttachedAt()
 	}
@@ -4242,6 +4305,8 @@ func (m *MessageVoiceMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *MessageVoiceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case messagevoice.FieldLength:
+		return m.OldLength(ctx)
 	case messagevoice.FieldAttachedAt:
 		return m.OldAttachedAt(ctx)
 	}
@@ -4253,6 +4318,13 @@ func (m *MessageVoiceMutation) OldField(ctx context.Context, name string) (ent.V
 // type.
 func (m *MessageVoiceMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case messagevoice.FieldLength:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLength(v)
+		return nil
 	case messagevoice.FieldAttachedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -4267,13 +4339,21 @@ func (m *MessageVoiceMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *MessageVoiceMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addlength != nil {
+		fields = append(fields, messagevoice.FieldLength)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *MessageVoiceMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case messagevoice.FieldLength:
+		return m.AddedLength()
+	}
 	return nil, false
 }
 
@@ -4282,6 +4362,13 @@ func (m *MessageVoiceMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *MessageVoiceMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case messagevoice.FieldLength:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLength(v)
+		return nil
 	}
 	return fmt.Errorf("unknown MessageVoice numeric field %s", name)
 }
@@ -4309,6 +4396,9 @@ func (m *MessageVoiceMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *MessageVoiceMutation) ResetField(name string) error {
 	switch name {
+	case messagevoice.FieldLength:
+		m.ResetLength()
+		return nil
 	case messagevoice.FieldAttachedAt:
 		m.ResetAttachedAt()
 		return nil

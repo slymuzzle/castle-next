@@ -6,7 +6,6 @@ package graph
 
 import (
 	"context"
-
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/graph/generated"
 	"journeyhub/graph/model"

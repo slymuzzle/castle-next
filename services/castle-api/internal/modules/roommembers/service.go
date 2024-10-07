@@ -2,12 +2,16 @@ package roommembers
 
 import (
 	"context"
+	"fmt"
 
 	"journeyhub/ent"
 	"journeyhub/ent/roommember"
 	"journeyhub/ent/schema/mixin"
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/internal/modules/auth"
+	"journeyhub/internal/modules/notifications"
+
+	"github.com/appleboy/gorush/rpc/proto"
 )
 
 type Service interface {
@@ -35,20 +39,23 @@ type Service interface {
 }
 
 type service struct {
-	entClient     *ent.Client
-	subscriptions Subscriptions
-	authService   auth.Service
+	entClient            *ent.Client
+	subscriptions        Subscriptions
+	authService          auth.Service
+	notificationsService notifications.Service
 }
 
 func NewService(
 	entClient *ent.Client,
 	subscriptions Subscriptions,
 	authService auth.Service,
+	notificationsService notifications.Service,
 ) Service {
 	return &service{
-		entClient:     entClient,
-		subscriptions: subscriptions,
-		authService:   authService,
+		entClient:            entClient,
+		subscriptions:        subscriptions,
+		authService:          authService,
+		notificationsService: notificationsService,
 	}
 }
 
@@ -56,7 +63,7 @@ func (s *service) IncrementUnreadMessagesCount(
 	ctx context.Context,
 	roomID pulid.ID,
 ) ([]*ent.RoomMember, error) {
-	currentUserID, err := s.authService.Auth(ctx)
+	currentUser, err := s.authService.AuthUser(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +74,7 @@ func (s *service) IncrementUnreadMessagesCount(
 		Update().
 		Where(
 			roommember.And(
-				roommember.UserIDNEQ(currentUserID),
+				roommember.UserIDNEQ(currentUser.ID),
 				roommember.RoomID(roomID),
 			),
 		).
@@ -81,22 +88,40 @@ func (s *service) IncrementUnreadMessagesCount(
 		Query().
 		Where(
 			roommember.And(
-				roommember.UserIDNEQ(currentUserID),
+				roommember.UserIDNEQ(currentUser.ID),
 				roommember.RoomID(roomID),
 			),
 		).
 		WithRoom().
-		WithUser().
+		WithUser(func(q *ent.UserQuery) {
+			q.WithDevice()
+		}).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	fcmTokens := make([]string, 0, len(roomMembersToNotify))
 	for _, roomMember := range roomMembersToNotify {
-		_, err := s.subscriptions.PublishRoomMemberUpdatedEvent(ctx, roomMember.UserID, roomMember.ID)
+		_, err = s.subscriptions.PublishRoomMemberUpdatedEvent(ctx, roomMember.UserID, roomMember.ID)
 		if err != nil {
 			return nil, err
 		}
+		if roomMember.Edges.User.Edges.Device.FcmToken != "" {
+			fcmTokens = append(fcmTokens, roomMember.Edges.User.Edges.Device.FcmToken)
+		}
+	}
+
+	_, err = s.notificationsService.Client().Send(ctx, &proto.NotificationRequest{
+		Platform: 2,
+		Tokens:   fcmTokens,
+		Priority: proto.NotificationRequest_HIGH,
+		Title:    fmt.Sprintf("%s %s", currentUser.FirstName, currentUser.LastName),
+		Message:  "У вас новое сообщение",
+		Badge:    1,
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return roomMembersToNotify, nil

@@ -7,6 +7,14 @@ input UploadMessageFileInput {
 }
 
 """
+UploadMessageFile is used for upload message files.
+"""
+input UploadMessageVoiceInput {
+  length: Uint64!
+  file: Upload! @goTag(key: "validate", value: "gql_upload_is_voice")
+}
+
+"""
 CreateMessageInput is used for create Message object.
 """
 input SendMessageInput {
@@ -15,7 +23,7 @@ input SendMessageInput {
   replyTo: ID
   content: String @goTag(key: "validate", value: "omitempty,max=4096")
   files: [UploadMessageFileInput!] @goTag(key: "validate", value: "max=20")
-  voice: Upload @goTag(key: "validate", value: "gql_upload_is_voice")
+  voice: UploadMessageVoiceInput
   links: [CreateMessageLinkInput!]
 }
 

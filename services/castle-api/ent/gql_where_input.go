@@ -2068,6 +2068,16 @@ type MessageVoiceWhereInput struct {
 	IDLT    *pulid.ID  `json:"idLT,omitempty"`
 	IDLTE   *pulid.ID  `json:"idLTE,omitempty"`
 
+	// "length" field predicates.
+	Length      *uint64  `json:"length,omitempty"`
+	LengthNEQ   *uint64  `json:"lengthNEQ,omitempty"`
+	LengthIn    []uint64 `json:"lengthIn,omitempty"`
+	LengthNotIn []uint64 `json:"lengthNotIn,omitempty"`
+	LengthGT    *uint64  `json:"lengthGT,omitempty"`
+	LengthGTE   *uint64  `json:"lengthGTE,omitempty"`
+	LengthLT    *uint64  `json:"lengthLT,omitempty"`
+	LengthLTE   *uint64  `json:"lengthLTE,omitempty"`
+
 	// "attached_at" field predicates.
 	AttachedAt      *time.Time  `json:"attachedAt,omitempty"`
 	AttachedAtNEQ   *time.Time  `json:"attachedAtNEQ,omitempty"`
@@ -2185,6 +2195,30 @@ func (i *MessageVoiceWhereInput) P() (predicate.MessageVoice, error) {
 	}
 	if i.IDLTE != nil {
 		predicates = append(predicates, messagevoice.IDLTE(*i.IDLTE))
+	}
+	if i.Length != nil {
+		predicates = append(predicates, messagevoice.LengthEQ(*i.Length))
+	}
+	if i.LengthNEQ != nil {
+		predicates = append(predicates, messagevoice.LengthNEQ(*i.LengthNEQ))
+	}
+	if len(i.LengthIn) > 0 {
+		predicates = append(predicates, messagevoice.LengthIn(i.LengthIn...))
+	}
+	if len(i.LengthNotIn) > 0 {
+		predicates = append(predicates, messagevoice.LengthNotIn(i.LengthNotIn...))
+	}
+	if i.LengthGT != nil {
+		predicates = append(predicates, messagevoice.LengthGT(*i.LengthGT))
+	}
+	if i.LengthGTE != nil {
+		predicates = append(predicates, messagevoice.LengthGTE(*i.LengthGTE))
+	}
+	if i.LengthLT != nil {
+		predicates = append(predicates, messagevoice.LengthLT(*i.LengthLT))
+	}
+	if i.LengthLTE != nil {
+		predicates = append(predicates, messagevoice.LengthLTE(*i.LengthLTE))
 	}
 	if i.AttachedAt != nil {
 		predicates = append(predicates, messagevoice.AttachedAtEQ(*i.AttachedAt))
