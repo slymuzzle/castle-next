@@ -14,9 +14,18 @@ extend type Query {
   callJoinToken(roomID: ID!): String!
 }
 
+"""
+CallParamsInput is used for call configuration.
+"""
+input CallParamsInput {
+  roomID: ID!
+  callType: CallType!
+  callID: String!
+}
+
 extend type Mutation {
-  startCall(roomID: ID!, callType: CallType!): Boolean!
-  endCall(roomID: ID!, callType: CallType!): Boolean!
-  declineCall(roomID: ID!, callType: CallType!): Boolean!
-  answerCall(roomID: ID!, callType: CallType!): Boolean!
+  startCall(input: CallParamsInput!): Boolean!
+  endCall(input: CallParamsInput!): Boolean!
+  declineCall(input: CallParamsInput!): Boolean!
+  answerCall(input: CallParamsInput!): Boolean!
 }

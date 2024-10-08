@@ -107,7 +107,10 @@ func (s *service) IncrementUnreadMessagesCount(
 		if err != nil {
 			return nil, err
 		}
-		if roomMember.Edges.User.Edges.Device.FcmToken != "" {
+		if roomMember != nil &&
+			roomMember.Edges.User != nil &&
+			roomMember.Edges.User.Edges.Device != nil &&
+			roomMember.Edges.User.Edges.Device.FcmToken != "" {
 			fcmTokens = append(fcmTokens, roomMember.Edges.User.Edges.Device.FcmToken)
 		}
 	}

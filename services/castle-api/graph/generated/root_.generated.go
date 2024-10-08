@@ -182,20 +182,20 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddUserContact        func(childComplexity int, pincode string) int
-		AnswerCall            func(childComplexity int, roomID pulid.ID, callType model.CallType) int
+		AnswerCall            func(childComplexity int, input model.CallParamsInput) int
 		CreateRoom            func(childComplexity int, input model.CreateRoomInput) int
-		DeclineCall           func(childComplexity int, roomID pulid.ID, callType model.CallType) int
+		DeclineCall           func(childComplexity int, input model.CallParamsInput) int
 		DeleteMessage         func(childComplexity int, messageID pulid.ID) int
 		DeleteRoom            func(childComplexity int, roomID pulid.ID) int
 		DeleteRoomMember      func(childComplexity int, roomMemberID pulid.ID) int
 		DeleteUserContact     func(childComplexity int, userContactID pulid.ID) int
-		EndCall               func(childComplexity int, roomID pulid.ID, callType model.CallType) int
+		EndCall               func(childComplexity int, input model.CallParamsInput) int
 		GeneratePinCode       func(childComplexity int) int
 		Login                 func(childComplexity int, input model.UserLoginInput) int
 		MarkRoomMemeberAsSeen func(childComplexity int, roomMemberID pulid.ID) int
 		Register              func(childComplexity int, input model.UserRegisterInput) int
 		SendMessage           func(childComplexity int, input model.SendMessageInput) int
-		StartCall             func(childComplexity int, roomID pulid.ID, callType model.CallType) int
+		StartCall             func(childComplexity int, input model.CallParamsInput) int
 		UpdateMessage         func(childComplexity int, messageID pulid.ID, input model.UpdateMessageInput) int
 		UpdateRoom            func(childComplexity int, roomID pulid.ID, input model.UpdateRoomInput) int
 	}
@@ -977,7 +977,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AnswerCall(childComplexity, args["roomID"].(pulid.ID), args["callType"].(model.CallType)), true
+		return e.complexity.Mutation.AnswerCall(childComplexity, args["input"].(model.CallParamsInput)), true
 
 	case "Mutation.createRoom":
 		if e.complexity.Mutation.CreateRoom == nil {
@@ -1001,7 +1001,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeclineCall(childComplexity, args["roomID"].(pulid.ID), args["callType"].(model.CallType)), true
+		return e.complexity.Mutation.DeclineCall(childComplexity, args["input"].(model.CallParamsInput)), true
 
 	case "Mutation.deleteMessage":
 		if e.complexity.Mutation.DeleteMessage == nil {
@@ -1061,7 +1061,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EndCall(childComplexity, args["roomID"].(pulid.ID), args["callType"].(model.CallType)), true
+		return e.complexity.Mutation.EndCall(childComplexity, args["input"].(model.CallParamsInput)), true
 
 	case "Mutation.generatePinCode":
 		if e.complexity.Mutation.GeneratePinCode == nil {
@@ -1128,7 +1128,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.StartCall(childComplexity, args["roomID"].(pulid.ID), args["callType"].(model.CallType)), true
+		return e.complexity.Mutation.StartCall(childComplexity, args["input"].(model.CallParamsInput)), true
 
 	case "Mutation.updateMessage":
 		if e.complexity.Mutation.UpdateMessage == nil {
@@ -2084,6 +2084,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputCallParamsInput,
 		ec.unmarshalInputCreateMessageLinkInput,
 		ec.unmarshalInputCreateRoomInput,
 		ec.unmarshalInputDeviceOrder,
@@ -2245,11 +2246,20 @@ extend type Query {
   callJoinToken(roomID: ID!): String!
 }
 
+"""
+CallParamsInput is used for call configuration.
+"""
+input CallParamsInput {
+  roomID: ID!
+  callType: CallType!
+  callID: String!
+}
+
 extend type Mutation {
-  startCall(roomID: ID!, callType: CallType!): Boolean!
-  endCall(roomID: ID!, callType: CallType!): Boolean!
-  declineCall(roomID: ID!, callType: CallType!): Boolean!
-  answerCall(roomID: ID!, callType: CallType!): Boolean!
+  startCall(input: CallParamsInput!): Boolean!
+  endCall(input: CallParamsInput!): Boolean!
+  declineCall(input: CallParamsInput!): Boolean!
+  answerCall(input: CallParamsInput!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../schema/directives.graphql", Input: `directive @goTag(

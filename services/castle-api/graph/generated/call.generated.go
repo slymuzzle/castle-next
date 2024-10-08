@@ -19,10 +19,10 @@ import (
 // region    ************************** generated!.gotpl **************************
 
 type MutationResolver interface {
-	StartCall(ctx context.Context, roomID pulid.ID, callType model.CallType) (bool, error)
-	EndCall(ctx context.Context, roomID pulid.ID, callType model.CallType) (bool, error)
-	DeclineCall(ctx context.Context, roomID pulid.ID, callType model.CallType) (bool, error)
-	AnswerCall(ctx context.Context, roomID pulid.ID, callType model.CallType) (bool, error)
+	StartCall(ctx context.Context, input model.CallParamsInput) (bool, error)
+	EndCall(ctx context.Context, input model.CallParamsInput) (bool, error)
+	DeclineCall(ctx context.Context, input model.CallParamsInput) (bool, error)
+	AnswerCall(ctx context.Context, input model.CallParamsInput) (bool, error)
 	SendMessage(ctx context.Context, input model.SendMessageInput) (*ent.MessageEdge, error)
 	UpdateMessage(ctx context.Context, messageID pulid.ID, input model.UpdateMessageInput) (*ent.MessageEdge, error)
 	DeleteMessage(ctx context.Context, messageID pulid.ID) (*ent.MessageEdge, error)
@@ -60,24 +60,15 @@ func (ec *executionContext) field_Mutation_addUserContact_args(ctx context.Conte
 func (ec *executionContext) field_Mutation_answerCall_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 pulid.ID
-	if tmp, ok := rawArgs["roomID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomID"))
-		arg0, err = ec.unmarshalNID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx, tmp)
+	var arg0 model.CallParamsInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCallParamsInput2journeyhubᚋgraphᚋmodelᚐCallParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["roomID"] = arg0
-	var arg1 model.CallType
-	if tmp, ok := rawArgs["callType"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("callType"))
-		arg1, err = ec.unmarshalNCallType2journeyhubᚋgraphᚋmodelᚐCallType(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["callType"] = arg1
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -99,24 +90,15 @@ func (ec *executionContext) field_Mutation_createRoom_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_declineCall_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 pulid.ID
-	if tmp, ok := rawArgs["roomID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomID"))
-		arg0, err = ec.unmarshalNID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx, tmp)
+	var arg0 model.CallParamsInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCallParamsInput2journeyhubᚋgraphᚋmodelᚐCallParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["roomID"] = arg0
-	var arg1 model.CallType
-	if tmp, ok := rawArgs["callType"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("callType"))
-		arg1, err = ec.unmarshalNCallType2journeyhubᚋgraphᚋmodelᚐCallType(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["callType"] = arg1
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -183,24 +165,15 @@ func (ec *executionContext) field_Mutation_deleteUserContact_args(ctx context.Co
 func (ec *executionContext) field_Mutation_endCall_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 pulid.ID
-	if tmp, ok := rawArgs["roomID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomID"))
-		arg0, err = ec.unmarshalNID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx, tmp)
+	var arg0 model.CallParamsInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCallParamsInput2journeyhubᚋgraphᚋmodelᚐCallParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["roomID"] = arg0
-	var arg1 model.CallType
-	if tmp, ok := rawArgs["callType"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("callType"))
-		arg1, err = ec.unmarshalNCallType2journeyhubᚋgraphᚋmodelᚐCallType(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["callType"] = arg1
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -267,24 +240,15 @@ func (ec *executionContext) field_Mutation_sendMessage_args(ctx context.Context,
 func (ec *executionContext) field_Mutation_startCall_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 pulid.ID
-	if tmp, ok := rawArgs["roomID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomID"))
-		arg0, err = ec.unmarshalNID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx, tmp)
+	var arg0 model.CallParamsInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCallParamsInput2journeyhubᚋgraphᚋmodelᚐCallParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["roomID"] = arg0
-	var arg1 model.CallType
-	if tmp, ok := rawArgs["callType"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("callType"))
-		arg1, err = ec.unmarshalNCallType2journeyhubᚋgraphᚋmodelᚐCallType(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["callType"] = arg1
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -358,7 +322,7 @@ func (ec *executionContext) _Mutation_startCall(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().StartCall(rctx, fc.Args["roomID"].(pulid.ID), fc.Args["callType"].(model.CallType))
+		return ec.resolvers.Mutation().StartCall(rctx, fc.Args["input"].(model.CallParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -413,7 +377,7 @@ func (ec *executionContext) _Mutation_endCall(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EndCall(rctx, fc.Args["roomID"].(pulid.ID), fc.Args["callType"].(model.CallType))
+		return ec.resolvers.Mutation().EndCall(rctx, fc.Args["input"].(model.CallParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -468,7 +432,7 @@ func (ec *executionContext) _Mutation_declineCall(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeclineCall(rctx, fc.Args["roomID"].(pulid.ID), fc.Args["callType"].(model.CallType))
+		return ec.resolvers.Mutation().DeclineCall(rctx, fc.Args["input"].(model.CallParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -523,7 +487,7 @@ func (ec *executionContext) _Mutation_answerCall(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AnswerCall(rctx, fc.Args["roomID"].(pulid.ID), fc.Args["callType"].(model.CallType))
+		return ec.resolvers.Mutation().AnswerCall(rctx, fc.Args["input"].(model.CallParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1331,6 +1295,47 @@ func (ec *executionContext) fieldContext_Mutation_deleteUserContact(ctx context.
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCallParamsInput(ctx context.Context, obj interface{}) (model.CallParamsInput, error) {
+	var it model.CallParamsInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"roomID", "callType", "callID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "roomID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomID"))
+			data, err := ec.unmarshalNID2journeyhubᚋentᚋschemaᚋpulidᚐID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RoomID = data
+		case "callType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("callType"))
+			data, err := ec.unmarshalNCallType2journeyhubᚋgraphᚋmodelᚐCallType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CallType = data
+		case "callID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("callID"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CallID = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -1464,6 +1469,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) unmarshalNCallParamsInput2journeyhubᚋgraphᚋmodelᚐCallParamsInput(ctx context.Context, v interface{}) (model.CallParamsInput, error) {
+	res, err := ec.unmarshalInputCallParamsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
 
 func (ec *executionContext) unmarshalNCallType2journeyhubᚋgraphᚋmodelᚐCallType(ctx context.Context, v interface{}) (model.CallType, error) {
 	var res model.CallType

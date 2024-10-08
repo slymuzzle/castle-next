@@ -6,29 +6,30 @@ package graph
 
 import (
 	"context"
+
 	"journeyhub/ent/schema/pulid"
 	"journeyhub/graph/generated"
 	"journeyhub/graph/model"
 )
 
 // StartCall is the resolver for the startCall field.
-func (r *mutationResolver) StartCall(ctx context.Context, roomID pulid.ID, callType model.CallType) (bool, error) {
-	return r.callsService.StartCall(ctx, roomID, callType)
+func (r *mutationResolver) StartCall(ctx context.Context, input model.CallParamsInput) (bool, error) {
+	return r.callsService.StartCall(ctx, input)
 }
 
 // EndCall is the resolver for the endCall field.
-func (r *mutationResolver) EndCall(ctx context.Context, roomID pulid.ID, callType model.CallType) (bool, error) {
-	return r.callsService.EndCall(ctx, roomID, callType)
+func (r *mutationResolver) EndCall(ctx context.Context, input model.CallParamsInput) (bool, error) {
+	return r.callsService.EndCall(ctx, input)
 }
 
 // DeclineCall is the resolver for the declineCall field.
-func (r *mutationResolver) DeclineCall(ctx context.Context, roomID pulid.ID, callType model.CallType) (bool, error) {
-	return r.callsService.DeclineCall(ctx, roomID, callType)
+func (r *mutationResolver) DeclineCall(ctx context.Context, input model.CallParamsInput) (bool, error) {
+	return r.callsService.DeclineCall(ctx, input)
 }
 
 // AnswerCall is the resolver for the answerCall field.
-func (r *mutationResolver) AnswerCall(ctx context.Context, roomID pulid.ID, callType model.CallType) (bool, error) {
-	return r.callsService.AnswerCall(ctx, roomID, callType)
+func (r *mutationResolver) AnswerCall(ctx context.Context, input model.CallParamsInput) (bool, error) {
+	return r.callsService.AnswerCall(ctx, input)
 }
 
 // CallJoinToken is the resolver for the callJoinToken field.

@@ -2,6 +2,7 @@ package calls
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -19,29 +20,27 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
+var ErrFcmTokenNotExists = errors.New("fcm token not exist")
+
 type Service interface {
 	StartCall(
 		ctx context.Context,
-		roomID pulid.ID,
-		callType model.CallType,
+		input model.CallParamsInput,
 	) (bool, error)
 
 	EndCall(
 		ctx context.Context,
-		roomID pulid.ID,
-		callType model.CallType,
+		input model.CallParamsInput,
 	) (bool, error)
 
 	DeclineCall(
 		ctx context.Context,
-		roomID pulid.ID,
-		callType model.CallType,
+		input model.CallParamsInput,
 	) (bool, error)
 
 	AnswerCall(
 		ctx context.Context,
-		roomID pulid.ID,
-		callType model.CallType,
+		input model.CallParamsInput,
 	) (bool, error)
 
 	GetCallJoinToken(
@@ -73,118 +72,166 @@ func NewService(
 
 func (s *service) StartCall(
 	ctx context.Context,
-	roomID pulid.ID,
-	callType model.CallType,
+	input model.CallParamsInput,
 ) (bool, error) {
 	currentUser, err := s.authService.AuthUser(ctx)
 	if err != nil {
 		return false, err
 	}
 
-	userContact, err := s.getInversedUserContact(ctx, roomID, currentUser.ID)
+	userContact, err := s.getInversedUserContact(ctx, input.RoomID, currentUser.ID)
 	if err != nil {
 		return false, err
 	}
 
-	_, err = s.notificationsService.Client().Send(ctx, &proto.NotificationRequest{
-		Platform:         2,
-		Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
-		Priority:         proto.NotificationRequest_HIGH,
-		ContentAvailable: true,
-		Data:             s.getCallData(model.CallNotificationTypeStartCall, callType, userContact),
-	})
-	if err != nil {
-		return false, err
+	if userContact != nil &&
+		userContact.Edges.User != nil &&
+		userContact.Edges.User.Edges.Device != nil &&
+		userContact.Edges.User.Edges.Device.FcmToken != "" {
+
+		_, err = s.notificationsService.Client().Send(ctx, &proto.NotificationRequest{
+			Platform:         2,
+			Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
+			Priority:         proto.NotificationRequest_HIGH,
+			ContentAvailable: true,
+			Data: s.getCallData(
+				model.CallNotificationTypeStartCall,
+				input.CallType,
+				input.CallID,
+				userContact,
+			),
+		})
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
 	}
 
-	return true, nil
+	return false, ErrFcmTokenNotExists
 }
 
 func (s *service) EndCall(
 	ctx context.Context,
-	roomID pulid.ID,
-	callType model.CallType,
+	input model.CallParamsInput,
 ) (bool, error) {
 	currentUser, err := s.authService.AuthUser(ctx)
 	if err != nil {
 		return false, err
 	}
 
-	userContact, err := s.getInversedUserContact(ctx, roomID, currentUser.ID)
+	userContact, err := s.getInversedUserContact(ctx, input.RoomID, currentUser.ID)
 	if err != nil {
 		return false, err
 	}
 
-	_, err = s.notificationsService.Client().Send(ctx, &proto.NotificationRequest{
-		Platform:         2,
-		Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
-		Priority:         proto.NotificationRequest_HIGH,
-		ContentAvailable: true,
-		Data:             s.getCallData(model.CallNotificationTypeEndCall, callType, userContact),
-	})
-	if err != nil {
-		return false, err
+	if userContact != nil &&
+		userContact.Edges.User != nil &&
+		userContact.Edges.User.Edges.Device != nil &&
+		userContact.Edges.User.Edges.Device.FcmToken != "" {
+
+		_, err = s.notificationsService.Client().Send(ctx, &proto.NotificationRequest{
+			Platform:         2,
+			Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
+			Priority:         proto.NotificationRequest_HIGH,
+			ContentAvailable: true,
+			Data: s.getCallData(
+				model.CallNotificationTypeEndCall,
+				input.CallType,
+				input.CallID,
+				userContact,
+			),
+		})
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
 	}
 
-	return true, nil
+	return false, ErrFcmTokenNotExists
 }
 
 func (s *service) DeclineCall(
 	ctx context.Context,
-	roomID pulid.ID,
-	callType model.CallType,
+	input model.CallParamsInput,
 ) (bool, error) {
 	currentUser, err := s.authService.AuthUser(ctx)
 	if err != nil {
 		return false, err
 	}
 
-	userContact, err := s.getInversedUserContact(ctx, roomID, currentUser.ID)
+	userContact, err := s.getInversedUserContact(ctx, input.RoomID, currentUser.ID)
 	if err != nil {
 		return false, err
 	}
 
-	_, err = s.notificationsService.Client().Send(ctx, &proto.NotificationRequest{
-		Platform:         2,
-		Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
-		Priority:         proto.NotificationRequest_HIGH,
-		ContentAvailable: true,
-		Data:             s.getCallData(model.CallNotificationTypeDeclineCall, callType, userContact),
-	})
-	if err != nil {
-		return false, err
+	if userContact != nil &&
+		userContact.Edges.User != nil &&
+		userContact.Edges.User.Edges.Device != nil &&
+		userContact.Edges.User.Edges.Device.FcmToken != "" {
+
+		_, err = s.notificationsService.Client().Send(ctx, &proto.NotificationRequest{
+			Platform:         2,
+			Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
+			Priority:         proto.NotificationRequest_HIGH,
+			ContentAvailable: true,
+			Data: s.getCallData(
+				model.CallNotificationTypeDeclineCall,
+				input.CallType,
+				input.CallID,
+				userContact,
+			),
+		})
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
 	}
 
-	return true, nil
+	return false, ErrFcmTokenNotExists
 }
 
 func (s *service) AnswerCall(
 	ctx context.Context,
-	roomID pulid.ID,
-	callType model.CallType,
+	input model.CallParamsInput,
 ) (bool, error) {
 	currentUser, err := s.authService.AuthUser(ctx)
 	if err != nil {
 		return false, err
 	}
 
-	userContact, err := s.getInversedUserContact(ctx, roomID, currentUser.ID)
+	userContact, err := s.getInversedUserContact(ctx, input.RoomID, currentUser.ID)
 	if err != nil {
 		return false, err
 	}
 
-	_, err = s.notificationsService.Client().Send(ctx, &proto.NotificationRequest{
-		Platform:         2,
-		Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
-		Priority:         proto.NotificationRequest_HIGH,
-		ContentAvailable: true,
-		Data:             s.getCallData(model.CallNotificationTypeAnswerCall, callType, userContact),
-	})
-	if err != nil {
-		return false, err
+	if userContact != nil &&
+		userContact.Edges.User != nil &&
+		userContact.Edges.User.Edges.Device != nil &&
+		userContact.Edges.User.Edges.Device.FcmToken != "" {
+
+		_, err = s.notificationsService.Client().Send(ctx, &proto.NotificationRequest{
+			Platform:         2,
+			Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
+			Priority:         proto.NotificationRequest_HIGH,
+			ContentAvailable: true,
+			Data: s.getCallData(
+				model.CallNotificationTypeAnswerCall,
+				input.CallType,
+				input.CallID,
+				userContact,
+			),
+		})
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
 	}
 
-	return true, nil
+	return false, ErrFcmTokenNotExists
 }
 
 func (s *service) GetCallJoinToken(
@@ -219,6 +266,7 @@ func (s *service) getInversedUserContact(
 		WithUser(func(q *ent.UserQuery) {
 			q.WithDevice()
 		}).
+		WithContact().
 		Where(
 			usercontact.RoomID(roomID),
 			usercontact.ContactID(currentUserID),
@@ -229,12 +277,16 @@ func (s *service) getInversedUserContact(
 func (s *service) getCallData(
 	notificationType model.CallNotificationType,
 	callType model.CallType,
+	callID string,
 	userContact *ent.UserContact,
 ) *structpb.Struct {
 	return &structpb.Struct{
 		Fields: map[string]*structpb.Value{
 			"callNotificationType": {
 				Kind: &structpb.Value_StringValue{StringValue: notificationType.String()},
+			},
+			"callID": {
+				Kind: &structpb.Value_StringValue{StringValue: callID},
 			},
 			"callType": {
 				Kind: &structpb.Value_StringValue{StringValue: callType.String()},
@@ -246,13 +298,13 @@ func (s *service) getCallData(
 				Kind: &structpb.Value_StringValue{StringValue: string(userContact.RoomID)},
 			},
 			"userID": {
-				Kind: &structpb.Value_StringValue{StringValue: string(userContact.Edges.User.ID)},
+				Kind: &structpb.Value_StringValue{StringValue: string(userContact.Edges.Contact.ID)},
 			},
 			"userFirstName": {
-				Kind: &structpb.Value_StringValue{StringValue: string(userContact.Edges.User.FirstName)},
+				Kind: &structpb.Value_StringValue{StringValue: string(userContact.Edges.Contact.FirstName)},
 			},
 			"userLastName": {
-				Kind: &structpb.Value_StringValue{StringValue: string(userContact.Edges.User.LastName)},
+				Kind: &structpb.Value_StringValue{StringValue: string(userContact.Edges.Contact.LastName)},
 			},
 		},
 	}

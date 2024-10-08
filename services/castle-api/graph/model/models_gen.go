@@ -15,6 +15,13 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+// CallParamsInput is used for call configuration.
+type CallParamsInput struct {
+	RoomID   pulid.ID `json:"roomID"`
+	CallType CallType `json:"callType"`
+	CallID   string   `json:"callID"`
+}
+
 // CreateMessageLinkInput is used for create message link object.
 type CreateMessageLinkInput struct {
 	Link        string  `json:"link"`
