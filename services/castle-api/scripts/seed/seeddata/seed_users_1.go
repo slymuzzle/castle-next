@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SeedUsers(dbService db.Service) error {
+func SeedUsers1(dbService db.Service) error {
 	entClient := dbService.Client()
 
 	hashedPassword, err := bcrypt.GenerateFromPassword(
@@ -25,10 +25,10 @@ func SeedUsers(dbService db.Service) error {
 
 	adminUser, err := entClient.User.
 		Create().
-		SetFirstName("Admin").
-		SetLastName("Admin").
-		SetEmail("admin@admin.com").
-		SetNickname("admin").
+		SetFirstName("Igor").
+		SetLastName("Igor").
+		SetEmail("igor@admin.com").
+		SetNickname("igor").
 		SetPassword(string(hashedPassword)).
 		Save(ctx)
 	if err != nil {
@@ -37,10 +37,10 @@ func SeedUsers(dbService db.Service) error {
 
 	testUser1, err := entClient.User.
 		Create().
-		SetFirstName("Эпона").
-		SetLastName("Ортен").
-		SetEmail("test@test.com").
-		SetNickname("test").
+		SetFirstName("Владислав").
+		SetLastName("Моранте").
+		SetEmail("test1igor@test.com").
+		SetNickname("test1igor").
 		SetPassword(string(hashedPassword)).
 		Save(ctx)
 	if err != nil {
@@ -49,10 +49,10 @@ func SeedUsers(dbService db.Service) error {
 
 	testUser2, err := entClient.User.
 		Create().
-		SetFirstName("Боеслав").
-		SetLastName("Рей").
-		SetEmail("test1@test.com").
-		SetNickname("test1").
+		SetFirstName("Валериан").
+		SetLastName("Фудзивара").
+		SetEmail("test2igor@test.com").
+		SetNickname("test2igor").
 		SetPassword(string(hashedPassword)).
 		Save(ctx)
 	if err != nil {
@@ -61,10 +61,10 @@ func SeedUsers(dbService db.Service) error {
 
 	testUser3, err := entClient.User.
 		Create().
-		SetFirstName("Реджинолд").
-		SetLastName("Вуд").
-		SetEmail("test3@test.com").
-		SetNickname("test3").
+		SetFirstName("Аделонда").
+		SetLastName("Шелли").
+		SetEmail("test3igor@test.com").
+		SetNickname("test3igor").
 		SetPassword(string(hashedPassword)).
 		Save(ctx)
 	if err != nil {
@@ -73,10 +73,10 @@ func SeedUsers(dbService db.Service) error {
 
 	testUser4, err := entClient.User.
 		Create().
-		SetFirstName("Готчолк").
-		SetLastName("Галилей").
-		SetEmail("test4@test.com").
-		SetNickname("test4").
+		SetFirstName("Отан").
+		SetLastName("Огафонов").
+		SetEmail("test4igor@test.com").
+		SetNickname("test4igor").
 		SetPassword(string(hashedPassword)).
 		Save(ctx)
 	if err != nil {

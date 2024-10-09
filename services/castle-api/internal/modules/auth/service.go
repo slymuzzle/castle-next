@@ -122,7 +122,7 @@ func (s *service) Login(ctx context.Context, input model.UserLoginInput) (*model
 		SetUserID(existingUser.ID).
 		SetDeviceID(input.DeviceID).
 		SetFcmToken(input.FcmToken).
-		OnConflictColumns(device.FieldDeviceID).
+		OnConflictColumns(device.UserColumn).
 		UpdateNewValues().
 		ID(ctx)
 	if err != nil {

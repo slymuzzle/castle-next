@@ -51,7 +51,13 @@ func main() {
 	}
 	defer dbService.Close()
 
-	err = seeddata.SeedUsers(dbService)
+	err = seeddata.SeedUsers0(dbService)
+	if err != nil {
+		level.Error(logger).Log("msg", err)
+		os.Exit(1)
+	}
+
+	err = seeddata.SeedUsers1(dbService)
 	if err != nil {
 		level.Error(logger).Log("msg", err)
 		os.Exit(1)

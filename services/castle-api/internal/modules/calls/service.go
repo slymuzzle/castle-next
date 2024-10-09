@@ -94,6 +94,7 @@ func (s *service) StartCall(
 			Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
 			Priority:         proto.NotificationRequest_HIGH,
 			ContentAvailable: true,
+			Title:            "Start",
 			Data: s.getCallData(
 				model.CallNotificationTypeStartCall,
 				input.CallType,
@@ -135,6 +136,7 @@ func (s *service) EndCall(
 			Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
 			Priority:         proto.NotificationRequest_HIGH,
 			ContentAvailable: true,
+			Title:            "End",
 			Data: s.getCallData(
 				model.CallNotificationTypeEndCall,
 				input.CallType,
@@ -176,6 +178,7 @@ func (s *service) DeclineCall(
 			Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
 			Priority:         proto.NotificationRequest_HIGH,
 			ContentAvailable: true,
+			Title:            "Decline",
 			Data: s.getCallData(
 				model.CallNotificationTypeDeclineCall,
 				input.CallType,
@@ -217,6 +220,7 @@ func (s *service) AnswerCall(
 			Tokens:           []string{userContact.Edges.User.Edges.Device.FcmToken},
 			Priority:         proto.NotificationRequest_HIGH,
 			ContentAvailable: true,
+			Title:            "Answer",
 			Data: s.getCallData(
 				model.CallNotificationTypeAnswerCall,
 				input.CallType,
