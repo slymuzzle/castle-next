@@ -93,7 +93,9 @@ func (s *service) Register(ctx context.Context, input model.UserRegisterInput) (
 }
 
 func (s *service) Login(ctx context.Context, input model.UserLoginInput) (*model.LoginUser, error) {
-	existingUser, err := s.entClient.User.
+	repository := s.entClient
+
+	existingUser, err := repository.User.
 		Query().
 		Where(user.Nickname(input.Nickname)).
 		Only(ctx)
@@ -117,14 +119,22 @@ func (s *service) Login(ctx context.Context, input model.UserLoginInput) (*model
 		return nil, err
 	}
 
-	_, err = s.entClient.Device.
+	_, err = repository.Device.
+		Delete().
+		Where(
+			device.DeviceID(input.DeviceID),
+		).
+		Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = repository.Device.
 		Create().
 		SetUserID(existingUser.ID).
 		SetDeviceID(input.DeviceID).
 		SetFcmToken(input.FcmToken).
-		OnConflictColumns(device.UserColumn).
-		UpdateNewValues().
-		ID(ctx)
+		Save(ctx)
 	if err != nil {
 		return nil, errors.Join(ErrCreateOrUpdateUserDevice, err)
 	}
