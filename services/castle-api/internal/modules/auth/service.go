@@ -122,7 +122,10 @@ func (s *service) Login(ctx context.Context, input model.UserLoginInput) (*model
 	_, err = repository.Device.
 		Delete().
 		Where(
-			device.DeviceID(input.DeviceID),
+			device.Or(
+				device.HasUserWith(user.ID(existingUser.ID)),
+				device.DeviceID(input.DeviceID),
+			),
 		).
 		Exec(ctx)
 	if err != nil {
